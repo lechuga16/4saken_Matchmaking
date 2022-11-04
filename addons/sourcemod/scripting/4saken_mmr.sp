@@ -3,6 +3,8 @@
 
 #include <sourcemod>
 #include <system2>
+#include <4saken>
+#include <colors>
 
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
@@ -35,12 +37,13 @@ public Plugin myinfo =
 	name        = "4saken Pugs",
 	author      = "Drixevel",
 	description = "Manages the 4saken MMR/Teams system.",
-	version     = "1.0.0",
+	version     = "1.0.1",
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
 };
 
 public void OnPluginStart()
 {
+	LoadTranslation("4saken_mmr.phrases");
 	Database.Connect(OnSQLConnect, "4saken");
 
 	convar_Sub_URL     = CreateConVar("sm_4saken_sub_url", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
@@ -125,7 +128,7 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 		ThrowError("Error while connecting to database: %s", error);
 
 	g_Database = db;
-	LogMessage("Connected to database successfully.");
+	_4saken_log("Connected to database successfully.");
 
 	char sTable[64];
 	char sQuery[256];
@@ -208,7 +211,7 @@ public void OnClientAuthorized(int client, const char[] auth)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 		return;
 
 	char sQuery[256];
@@ -251,7 +254,7 @@ void SaveData(int client)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 		return;
 
 	char sQuery[256];
@@ -313,8 +316,8 @@ public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadca
 
 	if (convar_Debug.BoolValue)
 	{
-		PrintToChat(victim, "MMR Update: %i [Difference: %i]", g_Rating[victim], difference);
-		PrintToChat(attacker, "MMR Update: %i [Difference: %i]", g_Rating[attacker], difference);
+		CPrintToChat(victim, "MMR Update: %i [Difference: %i]", g_Rating[victim], difference);
+		CPrintToChat(attacker, "MMR Update: %i [Difference: %i]", g_Rating[attacker], difference);
 	}
 }
 
@@ -333,7 +336,7 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
-		if (!GetClientAuthId(i, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
+		if (!GetClientAuthId(i, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 			continue;
 
 		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[i], g_Team[i], g_Rating[i], g_Team[i]);
@@ -371,10 +374,13 @@ public Action Command_Sub(int client, int args)
 	System2_URLEncode(sURL, sizeof(sURL), sURL);
 
 	char sIP[64];
-	GetServerIP(sIP, sizeof(sIP), true);
+	// This function does not allow to recover domains.
+	// GetServerIP(sIP, sizeof(sIP), true);
+	if(!_4saken_KvGet("server", "ip", sIP, sizeof(sIP)))
+		sIP = "No_IP";
 
 	char sSub[256];
-	FormatEx(sSub, sizeof(sSub), "%N has requested a sub on server: %s", client, sIP);
+	FormatEx(sSub, sizeof(sSub), "%N has requested a sub on server: %s:%d", client, sIP, FindConVar("hostport").IntValue);
 
 	System2HTTPRequest httpRequest = new System2HTTPRequest(Http_OnSendSubRequest, sURL);
 	httpRequest.SetData("sub=%s", sSub);
@@ -385,6 +391,7 @@ public Action Command_Sub(int client, int args)
 	return Plugin_Handled;
 }
 
+/*
 void GetServerIP(char[] buffer, int size, bool showport = false)
 {
 	int ip = FindConVar("hostip").IntValue;
@@ -399,7 +406,7 @@ void GetServerIP(char[] buffer, int size, bool showport = false)
 
 	if (showport)
 		Format(buffer, size, "%s:%d", buffer, FindConVar("hostport").IntValue);
-}
+} */
 
 public void Http_OnSendSubRequest(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
@@ -418,20 +425,20 @@ public Action Command_CreateTeam(int client, int args)
 	{
 		char sCommand[32];
 		GetCmdArg(0, sCommand, sizeof(sCommand));
-		PrintToChat(client, "[SM] Usage: %s <name>", sCommand);
+		CReplyToCommand(client, "[SM] Usage: %s <name>", sCommand);
 		return Plugin_Handled;
 	}
 
 	if (strlen(g_Team[client]) > 0)
 	{
-		PrintToChat(client, "You are currently part of a team, please leave it to start your own team.");
+		CPrintToChat(client, "%t %t", "Tag", "LeaveToStart");
 		return Plugin_Handled;
 	}
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 	{
-		PrintToChat(client, "You are currently not connected to steam, you can't make a team.");
+		CPrintToChat(client, "%t %t", "Tag", "NoSteam");
 		return Plugin_Handled;
 	}
 
@@ -482,14 +489,14 @@ public void OnCheckTeamName(Database db, DBResultSet results, const char[] error
 	if (results == null)
 	{
 		delete pack;
-		PrintToChat(client, "Unknown error while creating team, please contact an adminstrator. [Error Code: 1]");
+		CPrintToChat(client, "%t %t", "Tag", "Error_CreatingTeam");
 		ThrowError("Error while checking team name: %s", error);
 	}
 
 	if (results.RowCount > 0)
 	{
 		delete pack;
-		PrintToChat(client, "Team name %s is currently taken, please try a different name.", sEscapedName);
+		CPrintToChat(client, "%t %t", "Tag", "CurrentlyTaken", sEscapedName);
 		return;
 	}
 
@@ -522,12 +529,12 @@ public void OnCreateTeam(Database db, DBResultSet results, const char[] error, D
 
 	if (results == null)
 	{
-		PrintToChat(client, "Unknown error while creating team, please contact an adminstrator. [Error Code: 2]");
+		CPrintToChat(client, "%t %t", "Tag", "Error_CreatingTeam2");
 		ThrowError("Error while creating team: %s", error);
 	}
 
 	strcopy(g_Team[client], sizeof(g_Team[]), sEscapedName);
-	PrintToChat(client, "You have successfully started a team called: %s", sEscapedName);
+	CPrintToChat(client, "%t %t", "Tag", "StartedTeam", sEscapedName);
 
 	SaveData(client);
 }
@@ -538,19 +545,19 @@ public Action Command_TeamInvite(int client, int args)
 	{
 		char sCommand[32];
 		GetCmdArg(0, sCommand, sizeof(sCommand));
-		PrintToChat(client, "[SM] Usage: %s <target>", sCommand);
+		CReplyToCommand(client, "[SM] Usage: %s <target>", sCommand);
 		return Plugin_Handled;
 	}
 
 	if (strlen(g_Team[client]) == 0)
 	{
-		PrintToChat(client, "You aren't a part of a team to invite players to.");
+		CPrintToChat(client, "%t %t", "Tag", "NoPartTeam");
 		return Plugin_Handled;
 	}
 
 	if (!IsTeamCaptain(client))
 	{
-		PrintToChat(client, "You aren't the team captain, you can't invite players.");
+		CPrintToChat(client, "%t %t", "Tag", "NoCaptain");
 		return Plugin_Handled;
 	}
 
@@ -561,13 +568,13 @@ public Action Command_TeamInvite(int client, int args)
 
 	if (target < 1)
 	{
-		PrintToChat(client, "Target %s not found, please try again.", sTarget);
+		CPrintToChat(client, "%t %t", "Tag", "TargetNotFound", sTarget);
 		return Plugin_Handled;
 	}
 
 	if (strlen(g_Team[target]) > 0)
 	{
-		PrintToChat(client, "Target %N is already a part of a team.", target);
+		CPrintToChat(client, "%t %t", "Tag", "TargetReady", target);
 		return Plugin_Handled;
 	}
 
@@ -578,11 +585,19 @@ public Action Command_TeamInvite(int client, int args)
 
 void SendTeamInvite(int client, int target)
 {
+	char
+		sMenuTitle[64],
+		sMenuYes[4],
+		sMenuNo[4];
 	Menu menu = new Menu(MenuHandler_TeamInvite);
-	menu.SetTitle("%N has sent you a team invite to:\n%s", client, g_Team[client]);
 
-	menu.AddItem("yes", "Yes");
-	menu.AddItem("no", "No");
+	Format(sMenuTitle, sizeof sMenuTitle, "%t", "MenuTitle_Invite");
+	menu.SetTitle(sMenuTitle, client, g_Team[client]);
+
+	Format(sMenuYes, sizeof sMenuYes, "%t", "Menu_Yes");
+	menu.AddItem("yes", sMenuYes);
+	Format(sMenuNo, sizeof sMenuNo, "%t", "Menu_No");
+	menu.AddItem("no", sMenuNo);
 
 	PushMenuInt(menu, "client", GetClientUserId(client));
 	PushMenuString(menu, "team", g_Team[client]);
@@ -607,16 +622,16 @@ public int MenuHandler_TeamInvite(Menu menu, MenuAction action, int param1, int 
 			if (StrEqual(sInfo, "yes"))
 			{
 				if (client > 0)
-					PrintToChat(client, "%N has joined your team.", param1);
+					CPrintToChat(client, "%t %t", "Tag", "JoinedTeam", param1);
 
 				SetPlayerTeam(param1, sTeam);
 			}
 			else
 			{
 				if (client > 0)
-					PrintToChat(client, "%N has declined to join your team.", param1);
+					CPrintToChat(client, "%t %t", "Tag", "DeclinedTeam", param1);
 
-				PrintToChat(param1, "You have declined to join team: %s", sTeam);
+				CPrintToChat(param1, "%t %t", "Tag", "YouDeclinedTeam", sTeam);
 			}
 		}
 
@@ -632,7 +647,7 @@ void SetPlayerTeam(int client, const char[] team)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 		return;
 
 	DataPack pack = new DataPack();
@@ -665,9 +680,9 @@ public void OnJoinTeam(Database db, DBResultSet results, const char[] error, Dat
 	strcopy(g_Team[client], 64, sTeam);
 
 	if (strlen(sTeam) > 0)
-		PrintToChat(client, "You have joined team: %s", sTeam);
+		CPrintToChat(client, "%t %t", "Tag", "YouJoinedTeam", sTeam);
 	else
-		PrintToChat(client, "You are no longer a part of a team.");
+		CPrintToChat(client, "%t %t", "Tag", "YouNoJoinedTeam");
 }
 
 stock bool PushMenuInt(Menu menu, const char[] id, int value)
@@ -715,19 +730,19 @@ public Action Command_KickFromTeam(int client, int args)
 	{
 		char sCommand[32];
 		GetCmdArg(0, sCommand, sizeof(sCommand));
-		PrintToChat(client, "[SM] Usage: %s <target>", sCommand);
+		CReplyToCommand(client, "[SM] Usage: %s <target>", sCommand);
 		return Plugin_Handled;
 	}
 
 	if (strlen(g_Team[client]) == 0)
 	{
-		PrintToChat(client, "You aren't part of a team to kick players from.");
+		CPrintToChat(client, "You aren't part of a team to kick players from.");
 		return Plugin_Handled;
 	}
 
 	if (!IsTeamCaptain(client))
 	{
-		PrintToChat(client, "You aren't the team captain, you can't kick players.");
+		CPrintToChat(client, "You aren't the team captain, you can't kick players.");
 		return Plugin_Handled;
 	}
 
@@ -738,25 +753,25 @@ public Action Command_KickFromTeam(int client, int args)
 
 	if (target < 1)
 	{
-		PrintToChat(client, "Target %s not found, please try again.", sTarget);
+		CPrintToChat(client, "Target %s not found, please try again.", sTarget);
 		return Plugin_Handled;
 	}
 
 	if (client == target)
 	{
-		PrintToChat(client, "You aren't allowed to kick yourself from your own team, please disband it.");
+		CPrintToChat(client, "You aren't allowed to kick yourself from your own team, please disband it.");
 		return Plugin_Handled;
 	}
 
 	if (strlen(g_Team[target]) == 0)
 	{
-		PrintToChat(client, "Target %N is not a part of a team currently.", target);
+		CPrintToChat(client, "Target %N is not a part of a team currently.", target);
 		return Plugin_Handled;
 	}
 
 	if (!StrEqual(g_Team[client], g_Team[target], false))
 	{
-		PrintToChat(client, "Target %N is not a part of the same team as you.", target);
+		CPrintToChat(client, "Target %N is not a part of the same team as you.", target);
 		return Plugin_Handled;
 	}
 
@@ -796,13 +811,13 @@ public int MenuHandler_KickTeammate(Menu menu, MenuAction action, int param1, in
 			if (StrEqual(sInfo, "yes"))
 			{
 				if (target > 0)
-					PrintToChat(target, "%N has kicked you from the team.", param1);
+					CPrintToChat(target, "%N has kicked you from the team.", param1);
 
-				PrintToChat(param1, "%N has been kicked from the team.", target);
+				CPrintToChat(param1, "%N has been kicked from the team.", target);
 				SetPlayerTeam(target, "");
 			}
 			else
-				PrintToChat(param1, "%N hasn't been kicked from the team.", target);
+				CPrintToChat(param1, "%N hasn't been kicked from the team.", target);
 		}
 
 		case MenuAction_End:
@@ -815,13 +830,13 @@ public Action Command_Disband(int client, int args)
 {
 	if (strlen(g_Team[client]) == 0)
 	{
-		PrintToChat(client, "You aren't a part of a team to disband.");
+		CPrintToChat(client, "You aren't a part of a team to disband.");
 		return Plugin_Handled;
 	}
 
 	if (!IsTeamCaptain(client))
 	{
-		PrintToChat(client, "You aren't the team captain, you can't disband your team.");
+		CPrintToChat(client, "You aren't the team captain, you can't disband your team.");
 		return Plugin_Handled;
 	}
 
@@ -852,11 +867,11 @@ public int MenuHandler_DisbandTeam(Menu menu, MenuAction action, int param1, int
 
 			if (StrEqual(sInfo, "yes", false))
 			{
-				PrintToChat(param1, "Disbanding your team...");
+				CPrintToChat(param1, "Disbanding your team...");
 				DisbandTeam(g_Team[param1]);
 			}
 			else
-				PrintToChat(param1, "Your team hasn't been disbanded.");
+				CPrintToChat(param1, "Your team hasn't been disbanded.");
 		}
 
 		case MenuAction_End:
@@ -871,7 +886,7 @@ void DisbandTeam(const char[] team)
 	{
 		if (StrEqual(g_Team[i], team, false))
 		{
-			PrintToChat(i, "Your team has been disbanded.");
+			CPrintToChat(i, "Your team has been disbanded.");
 			SetPlayerTeam(i, "");
 		}
 	}

@@ -46,21 +46,6 @@ public void OnPluginStart()
 	AutoExecConfig(true, "4saken_reserve");
 }
 
-void LoadTranslation(char[] sTranslation)
-{
-	char
-		sPath[PLATFORM_MAX_PATH],
-		sName[64];
-
-	Format(sName, sizeof(sName), "translations/%s.txt", sTranslation);
-	BuildPath(Path_SM, sPath, sizeof(sPath), sName);
-	if (!FileExists(sPath))
-	{
-		SetFailState("Missing translation file %s.txt", sTranslation);
-	}
-	LoadTranslations(sTranslation);
-}
-
 public void OnClientPutInServer(int iClient)
 {
 	GetStatus();

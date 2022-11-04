@@ -147,3 +147,23 @@ stock bool _4saken_KvGet(const char[] section, char[] key, char[] buffer, int ma
 
 	return true;
 }
+
+/**
+ * Check if the translation file exists
+ *
+ * @param translation       translation file name
+ */
+stock void LoadTranslation(const char[] translation)
+{
+	char
+		sPath[PLATFORM_MAX_PATH],
+		sName[64];
+
+	Format(sName, sizeof(sName), "translations/%s.txt", translation);
+	BuildPath(Path_SM, sPath, sizeof(sPath), sName);
+	if (!FileExists(sPath))
+	{
+		SetFailState("Missing translation file %s.txt", translation);
+	}
+	LoadTranslations(translation);
+}

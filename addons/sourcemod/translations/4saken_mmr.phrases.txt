@@ -1,0 +1,79 @@
+"Phrases"
+{
+	"Tag"
+	{
+		"en"		"{blue}[{default}4saken{blue}]{default}"
+	}
+	"LeaveToStart"
+	{
+		"en"		"You are currently part of a team, please leave it to start your own team."
+	}
+	"NoSteam"
+	{
+		"en"		"You are currently not connected to steam, you can't make a team."
+	}
+	"Error_CreatingTeam"
+	{
+		"en"		"Unknown error while creating team, please contact an adminstrator. [Error Code: 1]"
+	}
+	"CurrentlyTaken"
+	{
+		"en"		"Team name %s is currently taken, please try a different name."
+	}
+	"Error_CreatingTeam2"
+	{
+		"en"		"Unknown error while creating team, please contact an adminstrator. [Error Code: 2]"
+	}
+	"StartedTeam"
+	{
+		"en"		"You have successfully started a team called: %s"
+	}
+	"NoPartTeam"
+	{
+		"en"		"You aren't a part of a team to invite players to."
+	}
+	"NoCaptain"
+	{
+		"en"		"You aren't the team captain, you can't invite players."
+	}
+	"TargetNotFound"
+	{
+		"en"		"Target %s not found, please try again."
+	}
+	"TargetReady"
+	{
+		"en"		"Target %N is already a part of a team."
+	}
+	"MenuTitle_Invite"
+	{
+		"en"		"%N has sent you a team invite to:\n%s"
+	}
+	"Menu_Yes"
+	{
+		"en"		"yes"
+	}
+	"Menu_No"
+	{
+		"en"		"no"
+	}
+	"JoinedTeam"
+	{
+		"en"		"%N has joined your team."
+	}
+	"DeclinedTeam"
+	{
+		"en"		"%N has declined to join your team."
+	}
+	"YouDeclinedTeam"
+	{
+		"en"		"%N has declined to join your team."
+	}
+	"YouJoinedTeam"
+	{
+		"en"		"You have joined team: %s"
+	}
+	"YouNoJoinedTeam"
+	{
+		"en"		"You are no longer a part of a team."
+	}
+}

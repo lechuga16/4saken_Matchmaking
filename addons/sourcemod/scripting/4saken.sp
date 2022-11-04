@@ -9,8 +9,7 @@
 #define IPIFY_URL      "api.ipify.org"
 
 ConVar
-	g_cvarDebug,
-	g_cvarEnableIp;
+	g_cvarDebug;
 char
 	g_sLogPath[PLATFORM_MAX_PATH];
 
@@ -41,7 +40,6 @@ public void OnPluginStart()
 {
 	CreateConVar("sm_4saken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug    = CreateConVar("sm_4saken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarEnableIp = CreateConVar("sm_4saken_enableip", "1", "Enable automatic IP detection, if disabled, it should use sm_4saken_ip", FCVAR_NONE, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_4saken_showip", ShowIP, "get ip and port server");
 	RegAdminCmd("sm_4saken_kv", Cmd_KeyValue, ADMFLAG_ROOT, "Manages the values of the 4saken.cfg file");
 	BuildPath(Path_SM, g_sLogPath, sizeof(g_sLogPath), "logs/4saken.log");
@@ -163,12 +161,6 @@ void KVCreation()
 	delete kv;
 }
 
-public void OnConfigsExecuted()
-{
-	if (g_cvarEnableIp.BoolValue)
-		GetIpFromIpify();
-}
-
 public Action ShowIP(int iClient, int iArgs)
 {
 	if (iArgs == 0)
@@ -181,35 +173,4 @@ public Action ShowIP(int iClient, int iArgs)
 		CReplyToCommand(iClient, "Usage: sm_4saken_showip");
 
 	return Plugin_Handled;
-}
-
-void GetIpFromIpify()
-{
-	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpResponseCallback, IPIFY_URL);
-	httpRequest.SetHeader("Content-Type", "application/json");
-	httpRequest.Timeout = 5;
-	httpRequest.GET();
-	delete httpRequest;
-}
-
-void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
-{
-	char
-		url[256],
-		content[128];
-	request.GetURL(url, sizeof(url));
-
-	if (!success)
-	{
-		_4saken_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
-		return;
-	}
-
-	for (int found = 0; found < response.ContentLength;)
-	{
-		found += response.GetContent(content, sizeof(content), found);
-	}
-
-	if (g_cvarDebug.BoolValue)
-		_4saken_log("GET IP: %s", content);
 }
