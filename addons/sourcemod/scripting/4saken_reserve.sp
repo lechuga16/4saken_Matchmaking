@@ -19,12 +19,11 @@ char
 
 public Plugin myinfo =
 {
-	name        = "Manage Reserved Servers",
+	name        = "4saken Manage Reserved Servers",
 	author      = "lechuga",
 	description = "Functions that help in booking servers for matchmaking",
 	version     = PLUGIN_VERSION,
-	url         = "N/A"
-
+	url         = "https://github.com/lechuga16/4saken_Matchmaking"
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

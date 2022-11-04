@@ -16,11 +16,11 @@ char
 
 public Plugin myinfo =
 {
-	name        = "4saken",
+	name        = "4saken Core",
 	author      = "lechuga",
 	description = "Manage the 4saken api",
 	version     = PLUGIN_VERSION,
-	url         = "N/A"
+	url         = "https://github.com/lechuga16/4saken_Matchmaking"
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

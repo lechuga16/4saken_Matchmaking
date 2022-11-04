@@ -36,7 +36,7 @@ public Plugin myinfo =
 	author      = "Drixevel",
 	description = "Manages the 4saken MMR/Teams system.",
 	version     = "1.0.0",
-	url         = "https://drixevel.dev/"
+	url         = "https://github.com/lechuga16/4saken_Matchmaking"
 };
 
 public void OnPluginStart()
