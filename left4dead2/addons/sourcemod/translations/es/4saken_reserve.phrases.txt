@@ -1,0 +1,15 @@
+"Phrases"
+{
+	"KickMsg"
+	{
+		"es"		"Este servidor solo puede ser usado bajo una reserva desde el emparejamiento de 4saken\n Entra a https://4saken.us/ para jugar."
+	}
+	"Reserved"
+	{
+		"es"		"Este servidor {blue}esta reservado{default}"
+	}
+	"Unreserved"
+	{
+		"es"		"Este servidor {red}no esta reservado{default}"
+	}
+}
