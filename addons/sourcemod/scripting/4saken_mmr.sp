@@ -7,44 +7,48 @@
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
 
-ConVar convar_Sub_URL;
-ConVar convar_Table_MMR;
-ConVar convar_Table_Teams;
-ConVar convar_StartingMMR;
-ConVar convar_KValue;
-ConVar convar_Debug;
+ConVar
+	convar_Sub_URL,
+	convar_Table_MMR,
+	convar_Table_Teams,
+	convar_StartingMMR,
+	convar_KValue,
+	convar_Debug;
+Database
+	g_Database;
+int 
+	g_Rating[MAXPLAYERS + 1];
+char
+	g_Team[MAXPLAYERS + 1][64];
+bool
+	g_IsTeamGame;
+char
+	g_TeamName[2][64],
+	g_TeamCaptain[2][64];
+int
+	g_TeamRating[2];
 
-Database g_Database;
-
-int g_Rating[MAXPLAYERS + 1];
-char g_Team[MAXPLAYERS + 1][64];
-
-bool g_IsTeamGame;
-char g_TeamName[2][64];
-char g_TeamCaptain[2][64];
-int g_TeamRating[2];
-
-int g_LastSub[MAXPLAYERS + 1] = {-1, ...};
+int g_LastSub[MAXPLAYERS + 1] = { -1, ... };
 
 public Plugin myinfo =
 {
-	name = "4saken Pugs",
-	author = "Drixevel",
+	name        = "4saken Pugs",
+	author      = "Drixevel",
 	description = "Manages the 4saken MMR/Teams system.",
-	version = "1.0.0",
-	url = "https://drixevel.dev/"
+	version     = "1.0.0",
+	url         = "https://drixevel.dev/"
 };
 
 public void OnPluginStart()
 {
 	Database.Connect(OnSQLConnect, "4saken");
 
-	convar_Sub_URL = CreateConVar("sm_4saken_sub_url", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
-	convar_Table_MMR = CreateConVar("sm_4saken_table_mmr", "l4d2_mmr", "What should the table name be for player MMR values?", FCVAR_NOTIFY);
+	convar_Sub_URL     = CreateConVar("sm_4saken_sub_url", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
+	convar_Table_MMR   = CreateConVar("sm_4saken_table_mmr", "l4d2_mmr", "What should the table name be for player MMR values?", FCVAR_NOTIFY);
 	convar_Table_Teams = CreateConVar("sm_4saken_table_teams", "l4d2_teams", "What should the table name be for player teams be?", FCVAR_NOTIFY);
 	convar_StartingMMR = CreateConVar("sm_4saken_starting_mmr", "1200", "What MMR should players start with?", FCVAR_NOTIFY, true, 0.0);
-	convar_KValue = CreateConVar("sm_4saken_kvalue", "16.0", "What should the KValue be for calculating player MMR values?", FCVAR_NOTIFY, true, 0.0);
-	convar_Debug = CreateConVar("sm_4saken_debug", "0", "Enable debug mode to see how MMR is being affected.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	convar_KValue      = CreateConVar("sm_4saken_kvalue", "16.0", "What should the KValue be for calculating player MMR values?", FCVAR_NOTIFY, true, 0.0);
+	convar_Debug       = CreateConVar("sm_4saken_debug", "0", "Enable debug mode to see how MMR is being affected.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 
 	HookEvent("player_death", Event_OnPlayerDeath);
 	HookEvent("round_end", Event_OnRoundEnd);
@@ -74,18 +78,17 @@ public void OnRoundIsLive()
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
-		
+
 		if (GetClientTeam(i) == TEAM_SURVIVOR)
 			survivors[totalsurvivors++] = i;
 		else if (GetClientTeam(i) == TEAM_INFECTED)
 			infected[totalinfected++] = i;
 	}
 
-	//This is so dumb.
-	if (StrEqual(g_Team[survivors[0]], g_Team[survivors[1]]) && StrEqual(g_Team[survivors[1]], g_Team[survivors[2]]) && StrEqual(g_Team[survivors[2]], g_Team[survivors[3]]) && 
-		StrEqual(g_Team[infected[0]], g_Team[infected[1]]) && StrEqual(g_Team[infected[1]], g_Team[infected[2]]) && StrEqual(g_Team[infected[2]], g_Team[infected[3]]))
+	// This is so dumb.
+	if (StrEqual(g_Team[survivors[0]], g_Team[survivors[1]]) && StrEqual(g_Team[survivors[1]], g_Team[survivors[2]]) && StrEqual(g_Team[survivors[2]], g_Team[survivors[3]]) && StrEqual(g_Team[infected[0]], g_Team[infected[1]]) && StrEqual(g_Team[infected[1]], g_Team[infected[2]]) && StrEqual(g_Team[infected[2]], g_Team[infected[3]]))
 		g_IsTeamGame = true;
-	
+
 	if (g_IsTeamGame)
 	{
 		char sTable[64];
@@ -120,7 +123,7 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 {
 	if (db == null)
 		ThrowError("Error while connecting to database: %s", error);
-	
+
 	g_Database = db;
 	LogMessage("Connected to database successfully.");
 
@@ -130,7 +133,7 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT , `steamid` VARCHAR(64) NOT NULL , `mmr` INT NOT NULL DEFAULT %i, `team` VARCHAR(64) NOT NULL DEFAULT '' , PRIMARY KEY (`id`), UNIQUE (`steamid`)) ENGINE = InnoDB;", sTable, convar_StartingMMR.IntValue);
 	g_Database.Query(OnCreateTable, sQuery);
-	
+
 	convar_Table_Teams.GetString(sTable, sizeof(sTable));
 	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT , `name` VARCHAR(64) NOT NULL DEFAULT '', `captainid` VARCHAR(64) NOT NULL DEFAULT '', `mmr` INT NOT NULL DEFAULT %i , PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTable, convar_StartingMMR.IntValue);
 	g_Database.Query(OnCreateTable, sQuery);
@@ -151,7 +154,7 @@ public void Event_OnVersusFinished(Event event, const char[] name, bool dontBroa
 {
 	if (!g_IsTeamGame)
 		return;
-	
+
 	int[] survivors = new int[4];
 	int totalsurvivors;
 
@@ -162,18 +165,19 @@ public void Event_OnVersusFinished(Event event, const char[] name, bool dontBroa
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
-		
+
 		if (GetClientTeam(i) == TEAM_SURVIVOR)
 			survivors[totalsurvivors++] = i;
 		else if (GetClientTeam(i) == TEAM_INFECTED)
 			infected[totalinfected++] = i;
 	}
-	
+
 	char sTable[64];
 	convar_Table_Teams.GetString(sTable, sizeof(sTable));
 
-	char sQuery[256]; int team;
-	
+	char sQuery[256];
+	int  team;
+
 	team = GetTeamInt(TEAM_SURVIVOR);
 	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET mmr = '%i' WHERE name = '%s';", sTable, g_TeamRating[team], g_TeamName[team]);
 	g_Database.Query(OnUpdateTeamMMR, sQuery, 0);
@@ -191,7 +195,7 @@ public void OnUpdateTeamMMR(Database db, DBResultSet results, const char[] error
 
 public void OnClientConnected(int client)
 {
-	g_Rating[client] = convar_StartingMMR.IntValue;
+	g_Rating[client]  = convar_StartingMMR.IntValue;
 	g_Team[client][0] = '\0';
 }
 
@@ -199,14 +203,14 @@ public void OnClientAuthorized(int client, const char[] auth)
 {
 	if (IsFakeClient(client) || g_Database == null)
 		return;
-	
+
 	char sTable[64];
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
-	
+
 	char sSteamID[64];
 	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 		return;
-	
+
 	char sQuery[256];
 	g_Database.Format(sQuery, sizeof(sQuery), "SELECT mmr, team FROM `%s` WHERE steamid = '%s';", sTable, sSteamID);
 	g_Database.Query(OnParseMMR, sQuery, GetClientUserId(client));
@@ -217,10 +221,10 @@ public void OnParseMMR(Database db, DBResultSet results, const char[] error, any
 	int client;
 	if ((client = GetClientOfUserId(data)) == 0)
 		return;
-	
+
 	if (results == null)
 		ThrowError("Error while parsing player MMR: %s", error);
-	
+
 	if (results.FetchRow())
 	{
 		g_Rating[client] = results.FetchInt(0);
@@ -234,7 +238,7 @@ public void OnClientDisconnect(int client)
 {
 	if (IsFakeClient(client))
 		return;
-	
+
 	SaveData(client);
 }
 
@@ -242,14 +246,14 @@ void SaveData(int client)
 {
 	if (g_Database == null)
 		return;
-	
+
 	char sTable[64];
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
-	
+
 	char sSteamID[64];
 	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 		return;
-	
+
 	char sQuery[256];
 	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[client], g_Team[client], g_Rating[client], g_Team[client]);
 	g_Database.Query(OnSaveMMR, sQuery);
@@ -263,32 +267,32 @@ public void OnSaveMMR(Database db, DBResultSet results, const char[] error, any 
 
 public void OnClientDisconnect_Post(int client)
 {
-	g_Rating[client] = convar_StartingMMR.IntValue;
+	g_Rating[client]  = convar_StartingMMR.IntValue;
 	g_Team[client][0] = '\0';
 	g_LastSub[client] = -1;
 }
 
 public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-	int victim = GetClientOfUserId(event.GetInt("userid"));
-	int attacker = GetClientOfUserId(event.GetInt("attacker"));
+	int  victim        = GetClientOfUserId(event.GetInt("userid"));
+	int  attacker      = GetClientOfUserId(event.GetInt("attacker"));
 	bool attackerisbot = event.GetBool("attackerisbot");
-	bool victimisbot = event.GetBool("victimisbot");
-	
+	bool victimisbot   = event.GetBool("victimisbot");
+
 	if (victim < 1 || victim > MaxClients || victimisbot)
 		return;
-	
+
 	if (attacker < 1 || attacker > MaxClients || attackerisbot)
 		return;
-	
+
 	int team_victim = GetClientTeam(victim);
 	if (team_victim != TEAM_INFECTED)
 		return;
-	
+
 	int team_attacker = GetClientTeam(attacker);
 	if (team_attacker != TEAM_SURVIVOR)
 		return;
-	
+
 	int difference = RoundFloat(convar_KValue.FloatValue * (1 - (1 / (Pow(10.0, float((g_Rating[victim] - g_Rating[attacker])) / 400) + 1))));
 
 	g_Rating[victim] -= difference;
@@ -301,7 +305,7 @@ public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadca
 		team = GetTeamInt(team_victim);
 		if (g_TeamRating[team] != -1)
 			g_TeamRating[team] -= difference;
-		
+
 		team = GetTeamInt(team_attacker);
 		if (g_TeamRating[team] != -1)
 			g_TeamRating[team] += difference;
@@ -318,19 +322,20 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	if (g_Database == null)
 		return;
-	
+
 	char sTable[64];
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
-	
-	char sSteamID[64]; char sQuery[256];
+
+	char sSteamID[64];
+	char sQuery[256];
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
-		
+
 		if (!GetClientAuthId(i, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 			continue;
-		
+
 		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[i], g_Team[i], g_Rating[i], g_Team[i]);
 		g_Database.Query(OnUpdateMMR, sQuery);
 	}
@@ -404,8 +409,8 @@ public void Http_OnSendSubRequest(bool success, const char[] error, System2HTTPR
 	char sURL[128];
 	response.GetLastURL(sURL, sizeof(sURL));
 
-	PrintToServer("Request to %s finished with status code %d in %.2f seconds.", sURL, response.StatusCode, response.TotalTime); 
-} 
+	PrintToServer("Request to %s finished with status code %d in %.2f seconds.", sURL, response.StatusCode, response.TotalTime);
+}
 
 public Action Command_CreateTeam(int client, int args)
 {
@@ -436,8 +441,8 @@ public Action Command_CreateTeam(int client, int args)
 	char sName[64];
 	GetCmdArgString(sName, sizeof(sName));
 
-	//Escape the string so players can't use exploits with the name.
-	int size = 2 * strlen(sName) + 1;
+	// Escape the string so players can't use exploits with the name.
+	int size            = 2 * strlen(sName) + 1;
 	char[] sEscapedName = new char[size];
 	g_Database.Escape(sName, sEscapedName, size);
 
@@ -459,7 +464,7 @@ public void OnCheckTeamName(Database db, DBResultSet results, const char[] error
 	pack.Reset();
 
 	int userid = pack.ReadCell();
-	int size = pack.ReadCell();
+	int size   = pack.ReadCell();
 
 	char[] sEscapedName = new char[size];
 	pack.ReadString(sEscapedName, size);
@@ -473,14 +478,14 @@ public void OnCheckTeamName(Database db, DBResultSet results, const char[] error
 		delete pack;
 		return;
 	}
-	
+
 	if (results == null)
 	{
 		delete pack;
 		PrintToChat(client, "Unknown error while creating team, please contact an adminstrator. [Error Code: 1]");
 		ThrowError("Error while checking team name: %s", error);
 	}
-	
+
 	if (results.RowCount > 0)
 	{
 		delete pack;
@@ -501,7 +506,7 @@ public void OnCreateTeam(Database db, DBResultSet results, const char[] error, D
 	pack.Reset();
 
 	int userid = pack.ReadCell();
-	int size = pack.ReadCell();
+	int size   = pack.ReadCell();
 
 	char[] sEscapedName = new char[size];
 	pack.ReadString(sEscapedName, size);
@@ -603,14 +608,14 @@ public int MenuHandler_TeamInvite(Menu menu, MenuAction action, int param1, int 
 			{
 				if (client > 0)
 					PrintToChat(client, "%N has joined your team.", param1);
-				
+
 				SetPlayerTeam(param1, sTeam);
 			}
 			else
 			{
 				if (client > 0)
 					PrintToChat(client, "%N has declined to join your team.", param1);
-				
+
 				PrintToChat(param1, "You have declined to join team: %s", sTeam);
 			}
 		}
@@ -629,7 +634,7 @@ void SetPlayerTeam(int client, const char[] team)
 	char sSteamID[64];
 	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 		return;
-	
+
 	DataPack pack = new DataPack();
 	pack.WriteCell(GetClientUserId(client));
 	pack.WriteString(team);
@@ -653,10 +658,10 @@ public void OnJoinTeam(Database db, DBResultSet results, const char[] error, Dat
 	int client;
 	if ((client = GetClientOfUserId(userid)) == 0)
 		return;
-	
+
 	if (results == null)
 		ThrowError("Error while player joining team: %s", error);
-	
+
 	strcopy(g_Team[client], 64, sTeam);
 
 	if (strlen(sTeam) > 0)
@@ -674,11 +679,12 @@ stock bool PushMenuInt(Menu menu, const char[] id, int value)
 
 stock int GetMenuInt(Menu menu, const char[] id, int defaultvalue = 0)
 {
-	char info[128]; char data[128];
+	char info[128];
+	char data[128];
 	for (int i = 0; i < menu.ItemCount; i++)
 		if (menu.GetItem(i, info, sizeof(info), _, data, sizeof(data)) && StrEqual(info, id))
 			return StringToInt(data);
-	
+
 	return defaultvalue;
 }
 
@@ -689,7 +695,8 @@ stock bool PushMenuString(Menu menu, const char[] id, const char[] value)
 
 stock bool GetMenuString(Menu menu, const char[] id, char[] buffer, int size)
 {
-	char info[128]; char data[8192];
+	char info[128];
+	char data[8192];
 	for (int i = 0; i < menu.ItemCount; i++)
 	{
 		if (menu.GetItem(i, info, sizeof(info), _, data, sizeof(data)) && StrEqual(info, id))
@@ -698,7 +705,7 @@ stock bool GetMenuString(Menu menu, const char[] id, char[] buffer, int size)
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -790,7 +797,7 @@ public int MenuHandler_KickTeammate(Menu menu, MenuAction action, int param1, in
 			{
 				if (target > 0)
 					PrintToChat(target, "%N has kicked you from the team.", param1);
-				
+
 				PrintToChat(param1, "%N has been kicked from the team.", target);
 				SetPlayerTeam(target, "");
 			}
@@ -890,11 +897,11 @@ bool IsTeamCaptain(int client)
 	team = GetTeamInt(TEAM_SURVIVOR);
 	if (StrEqual(g_Team[client], g_TeamCaptain[team]))
 		return true;
-	
+
 	team = GetTeamInt(TEAM_INFECTED);
 	if (StrEqual(g_Team[client], g_TeamCaptain[team]))
 		return true;
-	
+
 	return false;
 }
 
