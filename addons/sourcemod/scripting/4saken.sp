@@ -86,7 +86,7 @@ public Action Cmd_KeyValue(int iClient, int iArgs)
 		sPatch[64],
 		sBuffer[64];
 
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), _4SAKEN_DIR_CFG);
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.cfg");
 	KeyValues kv = new KeyValues("4saken");
 	kv.ImportFromFile(sPatch);
 
@@ -139,7 +139,7 @@ public Action Cmd_KeyValue(int iClient, int iArgs)
 bool KVCheck()
 {
 	char sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), _4SAKEN_DIR_CFG);
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.cfg");
 	if (!FileExists(sPatch))
 	{
 		_4saken_log("KeyValue: %s not found, creating file...", sPatch);
@@ -152,7 +152,7 @@ bool KVCheck()
 void KVCreation()
 {
 	char sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), _4SAKEN_DIR_CFG);
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.cfg");
 	KeyValues kv  = new KeyValues("4saken");
 	kv.JumpToKey("server", true);
 	kv.SetString("ip", "0.0.0.0");
