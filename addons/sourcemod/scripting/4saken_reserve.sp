@@ -40,7 +40,7 @@ public void OnPluginStart()
 {
 	LoadTranslation("4saken_reserve.phrases");
 	CreateConVar("sm_4saken_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug = CreateConVar("sm_4saken_reserve_debug", "0", "Turn on debug messages", 0, true, 0.0, true, 1.0);
+	g_cvarDebug = CreateConVar("sm_4saken_reserve_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	RegAdminCmd("sm_4saken_reserved", IsReserved, ADMFLAG_GENERIC);
 
 	AutoExecConfig(true, "4saken_reserve");

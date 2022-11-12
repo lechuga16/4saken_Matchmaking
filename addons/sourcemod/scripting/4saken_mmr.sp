@@ -4,6 +4,7 @@
 #include <sourcemod>
 #include <system2>
 #include <4saken>
+#include <4saken_endgame>
 #include <colors>
 
 #define TEAM_SURVIVOR 2
@@ -55,7 +56,7 @@ public void OnPluginStart()
 
 	HookEvent("player_death", Event_OnPlayerDeath);
 	HookEvent("round_end", Event_OnRoundEnd);
-	HookEvent("versus_match_finished", Event_OnVersusFinished);
+	// HookEvent("versus_match_finished", Event_OnVersusFinished);
 
 	RegConsoleCmd("sm_sub", Command_Sub, "Call to the website to find a substitute.");
 
@@ -153,6 +154,44 @@ public void OnCreateTable(Database db, DBResultSet results, const char[] error, 
 		ThrowError("Error while creating table: %s", error);
 }
 
+public void OnEndGame()
+{
+	if (!g_IsTeamGame)
+		return;
+
+	int[] survivors = new int[4];
+	int totalsurvivors;
+
+	int[] infected = new int[4];
+	int totalinfected;
+
+	for (int i = 1; i <= MaxClients; i++)
+	{
+		if (!IsClientInGame(i) || IsFakeClient(i))
+			continue;
+
+		if (GetClientTeam(i) == TEAM_SURVIVOR)
+			survivors[totalsurvivors++] = i;
+		else if (GetClientTeam(i) == TEAM_INFECTED)
+			infected[totalinfected++] = i;
+	}
+
+	char sTable[64];
+	convar_Table_Teams.GetString(sTable, sizeof(sTable));
+
+	char sQuery[256];
+	int  team;
+
+	team = GetTeamInt(TEAM_SURVIVOR);
+	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET mmr = '%i' WHERE name = '%s';", sTable, g_TeamRating[team], g_TeamName[team]);
+	g_Database.Query(OnUpdateTeamMMR, sQuery, 0);
+
+	team = GetTeamInt(TEAM_INFECTED);
+	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET mmr = '%i' WHERE name = '%s';", sTable, g_TeamRating[team], g_TeamName[team]);
+	g_Database.Query(OnUpdateTeamMMR, sQuery, 1);
+}
+
+/*
 public void Event_OnVersusFinished(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_IsTeamGame)
@@ -189,6 +228,7 @@ public void Event_OnVersusFinished(Event event, const char[] name, bool dontBroa
 	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET mmr = '%i' WHERE name = '%s';", sTable, g_TeamRating[team], g_TeamName[team]);
 	g_Database.Query(OnUpdateTeamMMR, sQuery, 1);
 }
+*/
 
 public void OnUpdateTeamMMR(Database db, DBResultSet results, const char[] error, any data)
 {
@@ -342,6 +382,7 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[i], g_Team[i], g_Rating[i], g_Team[i]);
 		g_Database.Query(OnUpdateMMR, sQuery);
 	}
+	
 }
 
 public void OnUpdateMMR(Database db, DBResultSet results, const char[] error, any data)
@@ -406,7 +447,8 @@ void GetServerIP(char[] buffer, int size, bool showport = false)
 
 	if (showport)
 		Format(buffer, size, "%s:%d", buffer, FindConVar("hostport").IntValue);
-} */
+}
+*/
 
 public void Http_OnSendSubRequest(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {

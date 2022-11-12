@@ -16,37 +16,34 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined _4saken_included
+#if defined _4saken_endgame_included
   #endinput
 #endif
-#define _4saken_included
+#define _4saken_endgame_included
 
 #include <4saken_stocks>
 
 /**
- * Logs a message to 4saken file.  The log message will be in the normal
- *
- * @param format        Formatting rules.
- * @param ...           Variable number of format parameters.
- * @noreturn
+ * Called when the round_end event starts.
+ * The event depends on the list of maps 4sakenMaps.json.
+ * The event was executed after the second round.
  */
-native void _4saken_log(const char[] format, any ...);
+forward void OnEndGame();
 
-public SharedPlugin __pl_4saken =
+/**
+ * Returns if the match ends on this map.
+ *
+ * @return	true if you end the match on this map.
+ */
+native bool IsEndGame();
+
+public SharedPlugin __pl_4saken_endgame =
 {
-    name = "4saken",
-    file = "4saken.smx",
+    name = "4saken_endgame",
+    file = "4saken_endgame.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else
     required = 0,
 #endif
 };
-
-#if !defined REQUIRE_PLUGIN
-public __pl_4saken_SetNTVOptional()
-{
-    MarkNativeAsOptional("_4saken_log");
-    MarkNativeAsOptional("_4saken_KvGet");
-}
-#endif

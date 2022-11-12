@@ -1,0 +1,7 @@
+"Phrases"
+{
+	"Tag"
+	{
+		"en"		"[{olive}4saken{default}]"
+	}
+}

@@ -21,8 +21,11 @@
 #endif
 #define _4saken_stocks_included
 
+#include <sdktools_gamerules>
+#include <json>
+#include <4saken>
+
 #define CONSOLE 0
-#define _4SAKEN_DIR_CFG "configs/4saken.cfg"
 
 // ==================================================
 // ENGINE STOCKS
@@ -95,7 +98,39 @@ stock L4DTeam L4D_GetClientTeam(int client)
  */
 stock bool IsValidClient(int iClient)
 {
-	if (!IsValidClientIndex(iClient) || !IsClientInGame(iClient) || IsFakeClient(iClient))
+	if (!IsValidClientIndex(iClient))
+		return false;
+
+	if (!IsClientInGame(iClient))
+		return false;
+
+	if (IsFakeClient(iClient))
+		return false;
+
+	return true;
+}
+
+/**
+ * Returns a valid client indexed.
+ *
+ * @param client		Player's index.
+ * @return				true if the client is valid, false if not.
+ */
+stock bool IsValidClientConsole(int iClient)
+{
+	if (iClient == CONSOLE)
+		return true;
+
+	if (iClient >= MaxClients)
+		return false;
+
+	if (!IsValidClientIndex(iClient))
+		return false;
+
+	if (!IsClientInGame(iClient))
+		return false;
+
+	if (IsFakeClient(iClient))
 		return false;
 
 	return true;
@@ -109,7 +144,7 @@ stock bool IsValidClient(int iClient)
  */
 stock bool IsValidClientIndex(int iClient)
 {
-	return (iClient > 0 && iClient <= MaxClients);
+	return (iClient > CONSOLE && iClient <= MaxClients);
 }
 
 /**
@@ -126,7 +161,7 @@ stock bool _4saken_KvGet(const char[] section, char[] key, char[] buffer, int ma
 	char
 		sPatch[64];
 
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), _4SAKEN_DIR_CFG);
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.cfg");
 	KeyValues kv = new KeyValues("4saken");
 	kv.ImportFromFile(sPatch);
 
@@ -148,6 +183,21 @@ stock bool _4saken_KvGet(const char[] section, char[] key, char[] buffer, int ma
 }
 
 /**
+ * Retrieves a list of maps in JSON_Array format.
+ *
+ * @return				a JSON_Array object
+ */
+stock JSON_Array _4saken_Maps()
+{
+	char
+		sPatch[128];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4sakenMaps.json");
+
+	JSON_Array arr = view_as<JSON_Array>(json_read_from_file(sPatch, JSON_NONE));
+	return arr;
+}
+
+/**
  * Check if the translation file exists
  *
  * @param translation       translation file name
@@ -165,4 +215,14 @@ stock void LoadTranslation(const char[] translation)
 		SetFailState("Missing translation file %s.txt", translation);
 	}
 	LoadTranslations(translation);
+}
+
+/**
+ * Is the second round of this map currently being played?
+ *
+ * @return true is the second round, false if not.
+ */
+stock bool InSecondHalfOfRound()
+{
+	return view_as<bool>(GameRules_GetProp("m_bInSecondHalfOfRound"));
 }
