@@ -1,0 +1,19 @@
+"Phrases"
+{
+	"Lastmap"
+	{
+		"es"		"El capítulo actual {blue}será el final{default}."
+	}
+	"NotLastMap"
+	{
+		"es"		"El capítulo actual {red}no será el final{default}."
+	}
+	"KickAll"
+	{
+		"es"		"El partido ha terminado, vuelva a 4saken.us"
+	}
+	"Ended"
+	{
+		"es"		"El partido a finalizado, cargando los datos..."
+	}
+}

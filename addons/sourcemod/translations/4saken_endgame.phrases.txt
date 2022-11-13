@@ -3,21 +3,17 @@
 	"Lastmap"
 	{
 		"en"		"The current chapter {blue}will be the end{default}."
-		"es"		"El capítulo actual {blue}será el final{default}."
 	}
 	"NotLastMap"
 	{
 		"en"		"The current chapter will {red}not be the end{default}."
-		"es"		"El capítulo actual {red}no será el final{default}."
 	}
 	"KickAll"
 	{
 		"en"		"The match is over, go back to 4saken.us"
-		"es"		"El partido ha terminado, vuelva a 4saken.us"
 	}
 	"Ended"
 	{
 		"en"		"The match has ended, loading the data..."
-		"es"		"El partido a finalizado, cargando los datos..."
 	}
 }
