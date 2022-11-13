@@ -1,4 +1,4 @@
-#include <4saken_endgame>
+#include <4saken>
 #include <colors>
 #include <sourcemod>
 #include <system2>

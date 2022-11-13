@@ -21,8 +21,6 @@
 #endif
 #define _4saken_endgame_included
 
-#include <4saken_stocks>
-
 /**
  * Called when the round_end event starts.
  * The event depends on the list of maps 4sakenMaps.json.

@@ -4,7 +4,6 @@
 #include <sourcemod>
 #include <system2>
 #include <4saken>
-#include <4saken_endgame>
 #include <colors>
 
 #define TEAM_SURVIVOR 2

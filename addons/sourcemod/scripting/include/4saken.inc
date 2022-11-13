@@ -22,6 +22,8 @@
 #define _4saken_included
 
 #include <4saken_stocks>
+#include <4saken_endgame>
+// #include <4saken_jarvis>
 
 /**
  * Logs a message to 4saken file.  The log message will be in the normal
