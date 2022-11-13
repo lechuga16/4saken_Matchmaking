@@ -47,6 +47,5 @@ public SharedPlugin __pl_4saken =
 public __pl_4saken_SetNTVOptional()
 {
     MarkNativeAsOptional("_4saken_log");
-    MarkNativeAsOptional("_4saken_KvGet");
 }
 #endif

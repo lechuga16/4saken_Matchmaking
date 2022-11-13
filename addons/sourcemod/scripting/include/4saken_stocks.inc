@@ -137,7 +137,7 @@ stock bool IsValidClientConsole(int iClient)
 }
 
 /**
- * Returns a client indexed.
+ * Client indexed.
  *
  * @param client		Player's index.
  * @return				true if the client is valid, false if not.
@@ -148,44 +148,38 @@ stock bool IsValidClientIndex(int iClient)
 }
 
 /**
- * Get 4saken IP address using KeyValue.
+ * Server ip written in 4saken.json
  *
- * @param section       section inside the keyvalue
- * @param key        	key inside keyvalue
- * @param buffer        String to store.
- * @param maxlength     Maximum size of string buffer.
- * @return				true if a value was extracted, false if the section is not valid.
+ * @return				true when it returns the ip in char (length 64)
+*/
+stock char[] _4saken_GetIp()
+{
+	char sIp[64];
+	JSON_Object JoIp = _4saken_json();
+	JoIp.GetString("IP", sIp, sizeof(sIp));
+	json_cleanup_and_delete(JoIp);
+	return sIp;
+}
+
+/**
+ * Get a json object from file 4saken.json
+ *
+ * @return				a JSON_Object
  */
-stock bool _4saken_KvGet(const char[] section, char[] key, char[] buffer, int maxlength)
+stock JSON_Object _4saken_json()
 {
 	char
-		sPatch[64];
+		sPatch[128];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.json");
 
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.cfg");
-	KeyValues kv = new KeyValues("4saken");
-	kv.ImportFromFile(sPatch);
-
-	if (!kv.JumpToKey(section))
-	{
-		_4saken_log("KeyValue: %s not found", sPatch);
-		return false;
-	}
-
-	kv.GetString(key, buffer, maxlength, "KeyNotFound");
-	if(StrEqual(buffer, "KeyNotFound", false))
-	{
-		_4saken_log("KeyValue: %s not found", key);
-		return false;
-	}
-	delete kv;
-
-	return true;
+	JSON_Object obj = json_read_from_file(sPatch, JSON_ENCODE_PRETTY);
+	return obj;
 }
 
 /**
  * Retrieves a list of maps in JSON_Array format.
  *
- * @return				a JSON_Array object
+ * @return				a JSON_Array
  */
 stock JSON_Array _4saken_Maps()
 {

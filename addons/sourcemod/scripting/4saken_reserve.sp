@@ -15,7 +15,7 @@ int
 	iStatus = 0;
 char
 	sURL[256],
-	g_sIp[128];
+	g_sIp[64];
 
 public Plugin myinfo =
 {
@@ -44,6 +44,14 @@ public void OnPluginStart()
 	RegAdminCmd("sm_4saken_reserved", IsReserved, ADMFLAG_GENERIC);
 
 	AutoExecConfig(true, "4saken_reserve");
+	ServerIp();
+}
+
+void ServerIp()
+{
+	g_sIp = _4saken_GetIp();
+	if(g_cvarDebug.BoolValue)
+		_4saken_log("IP: %s", g_sIp);
 }
 
 public void OnClientPutInServer(int iClient)
@@ -53,7 +61,6 @@ public void OnClientPutInServer(int iClient)
 
 void GetStatus()
 {
-	_4saken_KvGet("server", "ip", g_sIp, sizeof(g_sIp));
 	g_iPort = FindConVar("hostport").IntValue;
 	Format(sURL, sizeof(sURL), "%s?ip=%s&port=%d", URL_4SAKEN, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
