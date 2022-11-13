@@ -1,0 +1,15 @@
+"Phrases"
+{
+	"Tag"
+	{
+		"en"	"[{green}!{default}]"
+	}
+	"KickClient"
+	{
+		"en"	"We do not accept accounts with l4d2 accounts are not accepted"
+	}
+	"KickAnnouncer"
+	{
+		"en"    "{olive}%s{default} was kicked from the server for using shared l4d2."
+	}
+}

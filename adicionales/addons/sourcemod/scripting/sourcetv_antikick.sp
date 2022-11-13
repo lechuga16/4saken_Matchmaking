@@ -23,24 +23,34 @@ public Action CmdCallVote(int client, const char[] command, int argc)
 {
 	if(client == 0)
 	{
-		ReplyToCommand(client, "%t", "FailKickConsole");
+		CReplyToCommand(client, "%t", "FailKickConsole");
+		return Plugin_Continue;
+	}
+
+	if(!IsClientInGame(client))
+		return Plugin_Continue;
+
+	if(!IsClientConnected(client))
+		return Plugin_Continue;
+
+
+	char sType[16];
+	GetCmdArg(1, sType, sizeof sType);
+	if (!StrEqual(sType, "kick", false))
+		return Plugin_Continue;
+
+	char sTarget[32];
+	GetCmdArg(2, sTarget, sizeof sTarget);
+	int ClientTarget = GetClientOfUserId(StringToInt(sTarget));
+
+	if(ClientTarget == 0)
+		return Plugin_Continue;
+
+	if (IsClientSourceTV(ClientTarget))
+	{	
+		CPrintToChat(client, "%t %t", "Tag", "FailKick");
 		return Plugin_Handled;
 	}
-	else if (IsClientInGame(client) && IsClientConnected(client))
-	{
-		char sType[32];
-		GetCmdArg(1, sType, sizeof sType);
-		if (StrEqual(sType, "kick", false))
-		{
-			char sTarget[32];
-			GetCmdArg(2, sTarget, sizeof sTarget);
-			int ClientTarget = GetClientOfUserId(StringToInt(sTarget));
-			if (IsClientSourceTV(ClientTarget))
-			{	
-				CPrintToChat(client, "%t %t", "Tag", "FailKick");
-				return Plugin_Handled;
-			}
-		}
-	}
+
 	return Plugin_Continue;
 }

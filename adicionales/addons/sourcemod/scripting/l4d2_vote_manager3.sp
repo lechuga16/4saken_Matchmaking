@@ -48,7 +48,8 @@ ConVar
     hTankImmunity,
     hRespectImmunity,
     hLog,
-    hCreationTimer;
+    hCreationTimer,
+	hNoKick;
 int
     initVal,
     VoteStatus,
@@ -72,9 +73,6 @@ enum VoteManager_Vote
 	Voted_CanVote
 };
 
-
-
-
 public void OnPluginStart()
 {
 	char game_name[64];
@@ -91,6 +89,7 @@ public void OnPluginStart()
 	hTankImmunity    = CreateConVar("l4d2_votemanager_tank_immunity", "1", "Tanks have immunity against kick votes", CVAR_FLAGS);
 	hRespectImmunity = CreateConVar("l4d2_votemanager_respect_immunity", "1", "Respect admin immunity levels in kick votes(only when admin kicking admin)", CVAR_FLAGS);
 	hLog             = CreateConVar("l4d2_votemanager_log", "3", "1=Log vote info to files 2=Log vote info to server; add the values together if you want", CVAR_FLAGS);
+	hNoKick			 = CreateConVar("l4d2_votemanager_Nokick", "0", "Disables kick vote in any case", CVAR_FLAGS);
 
 	HookUserMessage(GetUserMessageId("VotePass"), VotePass);
 	HookUserMessage(GetUserMessageId("VoteFail"), VoteFail);
@@ -202,12 +201,15 @@ public Action VoteAction(int client, const char[] command, int argc)
 
 public Action VoteStart(int client, const char[] command, int argc)
 {
-	if (GetServerClientCount(true) == 0 || client == 0) return Plugin_Handled;    // prevent votes while server is empty or if server tries calling vote
+	if (GetServerClientCount(true) == 0 || client == 0)
+		return Plugin_Handled;    // prevent votes while server is empty or if server tries calling vote
+
 	if (argc >= 1)
 	{
 		float flEngineTime = GetEngineTime();
 		GetCmdArg(1, sIssue, sizeof(sIssue));
-		if (argc == 2) GetCmdArg(2, sOption, sizeof(sOption));
+		if (argc == 2)
+			GetCmdArg(2, sOption, sizeof(sOption));
 		VoteStringsToLower();
 		Format(sCaller, sizeof(sCaller), "%N", client);
 
@@ -617,6 +619,15 @@ stock Action ClientCanKick(int client, const char[] userid)
 		return Plugin_Handled;
 	}
 
+	if (hNoKick.BoolValue)
+	{
+		LogVoteManager("%T", "No Kick", LANG_SERVER, client, target);
+		VoteManagerNotify(client, "%t %t", "Tag", "No Kick", client, target);
+		VoteLogAction(client, -1, "'%L' callvote kick denied (reason: Kick voting is disabled)", client);
+		ClearVoteStrings();
+		return Plugin_Handled;
+	}
+
 	LogVoteManager("%T", "Kick Vote", LANG_SERVER, client, target);
 	VoteManagerNotify(client, "%t %t", "Tag", "Kick Vote", client, target);
 	VoteLogAction(client, -1, "'%L' callvote kick started (kickee: '%L')", client, target);
@@ -892,15 +903,10 @@ stock void VoteManagerNotify(int client, const char[] message, any...)
  */
 stock void LogVoteManager(char log[300], any...)
 {
-	if (hLog.IntValue < 1) return;
+	if (hLog.IntValue < 1)
+		return;
 
-	// delete colors
-	ReplaceString(log, sizeof(log), "{default}", "", false);
-	ReplaceString(log, sizeof(log), "{blue}", "", false);
-	ReplaceString(log, sizeof(log), "{red}", "", false);
-	ReplaceString(log, sizeof(log), "{olive}", "", false);
-	ReplaceString(log, sizeof(log), "{green}", "", false);
-	ReplaceString(log, sizeof(log), "{lightgreen}", "", false);
+	CRemoveTags(log, sizeof(log));
 
 	char
 		buffer[256],

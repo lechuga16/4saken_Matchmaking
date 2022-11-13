@@ -1,0 +1,11 @@
+"Phrases"
+{
+	"Tag"
+	{
+		"en"		"[{green}SourceTV{default}]"
+	}
+	"FailKick"
+	{
+		"en"		"{red}You can't kick{default} SourceTV bot"
+	}
+}

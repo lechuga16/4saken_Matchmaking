@@ -1,0 +1,7 @@
+"Phrases"
+{
+	"FailKick"
+	{
+		"es"		"{red}No puedes expulsar{default} el bot de SourceTV"
+	}
+}

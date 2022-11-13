@@ -1,0 +1,159 @@
+"Phrases"
+{
+	"Vetoed"
+	{
+		"#format"	"{1:N}"
+		"es"		"{1} ha {red}vetado{default} la votación actual."
+	}
+	
+	"Passed"
+	{
+		"#format"	"{1:N}"
+		"es"		"{1} ha {blue}pasado{default} la votación actual"
+	}
+	
+	"Cant Pass"
+	{
+		"es"		"No hay suficientes indecisos para aprobar esta votación"
+	}
+	
+	"Cant Veto"
+	{
+		"es"		"No hay suficientes indecisos para vetar esta votación"
+	}	
+	
+	"No Vote"
+	{
+		"es"		"No hay ninguna votación en curso"
+	}
+	
+	"Log Error"
+	{
+		"es"		"Vote Manager 3 no pudo registrar una acción en su propio archivo"
+	}
+	
+	"Conflict"
+	{
+		"es"		"Ahora mismo hay una votación activa. Espera a que termine la votación"
+	}
+	
+	"Wait"
+	{
+		"#format"	"{1:d}"
+		"es"		"Debes esperar {1} segundos antes de convocar una votación"
+	}
+	
+	"No Access"
+	{
+		"#format"	"{1:s},{2:s}"
+		"es"		"{1} se le impidió iniciar una votación {olive}{2}{default}. Razón: {lightgreen}no hay acceso{default}"
+	}	
+	
+	"Vote Called"
+	{
+		"#format"	"{1:s},{2:s}"
+		"es"		"{1} inició una votación a {olive}{2}{default}"
+	}
+	
+	"Custom Vote"
+	{
+		"#format"	"{1:N},{2:s},{3:s},{4:s}"
+		"es"		"{1} inició la votación personalizada: '{3}' para el equipo {2}, con el comando: '{4}'"
+	}
+	
+	"Custom Vote Passed"
+	{
+		"es"		"La votación personalizada ha pasado..."
+	}
+	
+	"Use sm_customvote"
+	{
+		"es"		"Por favor, utilice sm_customvote para llamar a los votos personalizados"
+	}
+	
+	"Custom Passed"
+	{
+		"#format"	"{1:s},{2:s}"
+		"es"		"La votación '{2}' convocada por {olive}{1}{default} ha pasado."
+	}
+	
+	"Custom Failed"
+	{
+		"#format"	"{1:s},{2:s}"
+		"es"		"¡La votación '{2}' llamada por, {olive}{1}{default} ha fallado."
+	}	
+	
+	"Vote Failed"
+	{
+		"es"		"La votación convocada ha fracasado"
+	}
+	
+	"Vote Called 2 Arguments"
+	{
+		"#format"	"{1:s},{2:s},{3:s}"
+		"es"		"{1} inició una votación {2} con la opción {3}"
+	}
+	
+	"Vote Passed"
+	{
+		"es"		"La votación convocada ha sido aprobada"
+	}
+
+	"Kick Vote"
+	{
+		"#format"	"{1:N},{2:N}"
+		"es"		"{olive}{1}{default} ha iniciado una {red}votación de expulsión{default} contra {olive}{2}{default}"
+	}
+
+	"Kick Vote Call Failed"
+	{
+		"#format"	"{1:N},{2:N}"
+		"es"		"A {olive}{1}{default} se le impidió iniciar una votación de expulsión contra {olive}{2}{default}. Razón: {lightgreen}no se puede apuntar al jugador{default}"
+	}
+	
+	"Kick Immunity"
+	{
+		"#format"	"{1:N},{2:N}"
+		"es"		"A {olive}{1}{default} se le ha impedido iniciar una votación de expulsión contra {olive}{2}{default}. Razón: {lightgreen}Inmunidad a la expulsión{default}"
+	}	
+
+	"No Kick"
+	{
+		"#format"	"{1:N},{2:N}"
+		"es"		"A {olive}{1}{default} se le ha impedido iniciar una votación de expulsión contra {olive}{2}{default}. Razón: {lightgreen}La votación de expulsión esta deshabilitada{default}"
+	}	
+
+	"Invalid Kick Userid"
+	{
+		"#format"	"{1:N},{2:s}"
+		"es"		"A {olive}{1}{default} se le ha impedido iniciar una votación de expulsión contra {olive}{2}{default}. Razón: {lightgreen}jugador inválido{default}"
+	}
+	
+	"Tank Immune Response"
+	{
+		"#format"	"{1:N},{2:N}"
+		"es"		"¡{olive}{1}{default} ha sido impedido de iniciar una votación de expulsión contra {olive}{2}{default}! Razón: {lightgreen}los tanques son inmunes{default}"
+	}
+	
+	"Spectator Response"
+	{
+		"#format"	"{1:N},{2:N}"
+		"es"		"A {olive}{1}{default} se le impidió iniciar una votación de expulsión contra {olive}{2}{default}. Razón: {lightgreen}los espectadores no pueden llamar a los votos de expulsión{default}"
+	}
+	
+	"Client Exploit Attempt"
+	{
+		"#format"	"{1:N},{2:d},{3:s}"
+		"es"		"{red}{1}{default}(clientid:{olive}{2}{default}) intentó iniciar un voto falso para bloquear votos({olive}{3}{default})"
+	}
+	
+	"Usage"
+	{
+		"es"		"Uso: sm_customvote: <cadena: texto a mostrar> <cadena: comando a ejecutar si se pasa>"
+	}
+	
+	"Invalid Handle"
+	{
+		"es"		"No se ha podido crear un voto personalizado, consulte al desarrollador"
+	}	
+}	
