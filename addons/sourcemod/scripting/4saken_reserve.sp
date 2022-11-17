@@ -31,8 +31,16 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	if (!L4D_IsEngineLeft4Dead2())
 	{
 		strcopy(error, err_max, "Plugin only support L4D2 engine");
+
+	}
+
+	g_sIp = _4saken_GetIp();
+	if(StrEqual(g_sIp, "0.0.0.0", false))
+	{
+		strcopy(error, err_max, "ERROR: The server ip was not configured");
 		return APLRes_Failure;
 	}
+
 	return APLRes_Success;
 }
 
@@ -40,18 +48,10 @@ public void OnPluginStart()
 {
 	LoadTranslation("4saken_reserve.phrases");
 	CreateConVar("sm_4saken_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug = CreateConVar("sm_4saken_reserve_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarDebug = CreateConVar("sm_4saken_reserve_debug", "0", "Turn on debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	RegAdminCmd("sm_4saken_reserved", IsReserved, ADMFLAG_GENERIC);
 
 	AutoExecConfig(true, "4saken_reserve");
-	ServerIp();
-}
-
-void ServerIp()
-{
-	g_sIp = _4saken_GetIp();
-	if(g_cvarDebug.BoolValue)
-		_4saken_log("IP: %s", g_sIp);
 }
 
 public void OnClientPutInServer(int iClient)
@@ -105,7 +105,7 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 			{
 				case false:
 				{
-					KickClient(i, "%T", "KickMsg", LANG_SERVER);
+					KickAll("KickMsg");
 					if (g_cvarDebug.BoolValue)
 						_4saken_log("%N was kicked, server without unreserved.", i);
 				}
@@ -117,6 +117,12 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 			}
 		}
 	}
+}
+
+public Action KickAll(const char[] sMessage)
+{
+	ServerCommand("sm_kick @all %t", sMessage);
+	return Plugin_Continue;
 }
 
 public Action IsReserved(int iClient, int iArgs)

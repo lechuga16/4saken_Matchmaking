@@ -26,7 +26,8 @@ bool
 	g_IsTeamGame;
 char
 	g_TeamName[2][64],
-	g_TeamCaptain[2][64];
+	g_TeamCaptain[2][64],
+	g_sIp[64];
 int
 	g_TeamRating[2];
 
@@ -40,6 +41,24 @@ public Plugin myinfo =
 	version     = "1.0.1",
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
 };
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	if (!L4D_IsEngineLeft4Dead2())
+	{
+		strcopy(error, err_max, "Plugin only support L4D2 engine");
+
+	}
+
+	g_sIp = _4saken_GetIp();
+	if(StrEqual(g_sIp, "0.0.0.0", false))
+	{
+		strcopy(error, err_max, "ERROR: The server ip was not configured");
+		return APLRes_Failure;
+	}
+
+	return APLRes_Success;
+}
 
 public void OnPluginStart()
 {
@@ -64,6 +83,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_kickfromteam", Command_KickFromTeam, "Kick players from your team.");
 	RegConsoleCmd("sm_disband", Command_Disband, "Disband your current team.");
 
+	AutoExecConfig(true, "4saken_mmr");
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientConnected(i))
 			OnClientConnected(i);
@@ -250,7 +270,7 @@ public void OnClientAuthorized(int client, const char[] auth)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 		return;
 
 	char sQuery[256];
@@ -293,7 +313,7 @@ void SaveData(int client)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 		return;
 
 	char sQuery[256];
@@ -375,7 +395,7 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
-		if (!GetClientAuthId(i, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
+		if (!GetClientAuthId(i, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 			continue;
 
 		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[i], g_Team[i], g_Rating[i], g_Team[i]);
@@ -413,14 +433,8 @@ public Action Command_Sub(int client, int args)
 
 	System2_URLEncode(sURL, sizeof(sURL), sURL);
 
-	char sIP[64];
-	// This function does not allow to recover domains.
-	// GetServerIP(sIP, sizeof(sIP), true);
-	if(!_4saken_KvGet("server", "ip", sIP, sizeof(sIP)))
-		sIP = "No_IP";
-
 	char sSub[256];
-	FormatEx(sSub, sizeof(sSub), "%N has requested a sub on server: %s:%d", client, sIP, FindConVar("hostport").IntValue);
+	FormatEx(sSub, sizeof(sSub), "%N has requested a sub on server: %s:%d", client, g_sIp, FindConVar("hostport").IntValue);
 
 	System2HTTPRequest httpRequest = new System2HTTPRequest(Http_OnSendSubRequest, sURL);
 	httpRequest.SetData("sub=%s", sSub);
@@ -477,7 +491,7 @@ public Action Command_CreateTeam(int client, int args)
 	}
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 	{
 		CPrintToChat(client, "%t %t", "Tag", "NoSteam");
 		return Plugin_Handled;
@@ -688,7 +702,7 @@ void SetPlayerTeam(int client, const char[] team)
 	convar_Table_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
-	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
+	if (!GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 		return;
 
 	DataPack pack = new DataPack();

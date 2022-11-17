@@ -48,9 +48,9 @@ public void OnPluginStart()
 	HookEvent("round_end", Event_RoundEnd);
 
 	CreateConVar("sm_4saken_endgame_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug		= CreateConVar("sm_4saken_endgame_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarEnable    = CreateConVar("sm_4saken_enable", "1", "Was the end of the game before the last map", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarTimeKick	= CreateConVar("sm_4saken_timekick", "10.0", "Set counter before kicking players", FCVAR_NONE, true, 0.0, true, 10.0);
+	g_cvarDebug		= CreateConVar("sm_4saken_endgame_debug", "0", "Turn on debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarEnable    = CreateConVar("sm_4saken_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY | FCVAR_DONTRECORD , true, 0.0, true, 1.0);
+	g_cvarTimeKick	= CreateConVar("sm_4saken_endgame_timekick", "10.0", "Set counter before kicking players", FCVAR_NOTIFY, true, 0.0, true, 10.0);
 	RegAdminCmd("sm_4saken_checkmap", Cmd_CheckMap, ADMFLAG_ROOT);
 	RegAdminCmd("sm_4saken_maplist", Cmd_Maplist, ADMFLAG_ROOT);
 
