@@ -166,7 +166,7 @@ Database Connect()
 	char error[255];
 	Database db;
 	
-	if (SQL_CheckConfig("4saken_"))
+	if (SQL_CheckConfig("4saken"))
 		_4saken_log("The 4saken configuration is not found in databases.cfg");
 
 	db = SQL_Connect("4saken", true, error, sizeof(error));
