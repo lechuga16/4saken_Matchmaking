@@ -2,6 +2,7 @@
 #pragma newdecls required
 
 #include <4saken>
+#include <4saken_endgame>
 #include <colors>
 #include <sourcemod>
 #include <system2>
@@ -51,6 +52,7 @@ public void OnPluginStart()
 	g_cvarDebug = CreateConVar("sm_4saken_reserve_debug", "0", "Turn on debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	RegAdminCmd("sm_4saken_reserved", IsReserved, ADMFLAG_GENERIC);
 
+	g_iPort = FindConVar("hostport").IntValue;
 	AutoExecConfig(true, "4saken_reserve");
 }
 
@@ -61,7 +63,6 @@ public void OnClientPutInServer(int iClient)
 
 void GetStatus()
 {
-	g_iPort = FindConVar("hostport").IntValue;
 	Format(sURL, sizeof(sURL), "%s?ip=%s&port=%d", URL_4SAKEN, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
 		_4saken_log("URL: %s", sURL);
@@ -158,4 +159,38 @@ void Reserved(int iClient)
 	}
 	if (g_cvarDebug.BoolValue)
 		_4saken_log("%N checked if the server is %s", iClient, view_as<bool>(iStatus) ? "reserved" : "unreserved");
+}
+
+Database Connect()
+{
+	char error[255];
+	Database db;
+	
+	if (SQL_CheckConfig("4saken_"))
+		_4saken_log("The 4saken configuration is not found in databases.cfg");
+
+	db = SQL_Connect("4saken", true, error, sizeof(error));
+	
+	if (db == null)
+		_4saken_log("Could not connect to database: %s", error);
+	
+	return db;
+}
+
+public void OnEndGame()
+{
+	Database dStatus = Connect();
+	char 
+		sQuery[256];
+	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", g_sIp, g_iPort);
+
+	if (g_cvarDebug.BoolValue)
+		_4saken_log("Query: %s", sQuery);
+
+	if (!SQL_FastQuery(dStatus, sQuery))
+	{
+		char error[255];
+		SQL_GetError(dStatus, error, sizeof(error));
+		_4saken_log("Failed to query (error: %s)", error);
+	}
 }

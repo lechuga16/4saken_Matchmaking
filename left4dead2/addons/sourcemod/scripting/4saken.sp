@@ -10,8 +10,6 @@
 
 ConVar
 	g_cvarDebug;
-char
-	g_sLogPath[PLATFORM_MAX_PATH];
 
 public Plugin myinfo =
 {
@@ -41,8 +39,7 @@ public void OnPluginStart()
 	CreateConVar("sm_4saken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug    = CreateConVar("sm_4saken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_4saken_showip", ShowIP, "Get ip and port server");
-
-	BuildPath(Path_SM, g_sLogPath, sizeof(g_sLogPath), "logs/4saken.log");
+	
 	AutoExecConfig(true, "4saken");
 	JSON_Check();
 }
@@ -52,10 +49,12 @@ public any Native_Log(Handle plugin, int numParams)
 {
 	char
 		sFilename[64],
-		sBuffer[256];
+		sBuffer[PLATFORM_MAX_PATH],
+		sLogPath[PLATFORM_MAX_PATH];
+	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/4saken.log");
 	GetPluginBasename(plugin, sFilename, sizeof(sFilename));
 	FormatNativeString(0, 1, 2, sizeof(sBuffer), _, sBuffer);
-	LogToFileEx(g_sLogPath, "[%s] %s", sFilename, sBuffer);
+	LogToFileEx(sLogPath, "[%s] %s", sFilename, sBuffer);
 	return 0;
 }
 
