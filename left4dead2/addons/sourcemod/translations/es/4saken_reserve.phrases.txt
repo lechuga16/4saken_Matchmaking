@@ -2,7 +2,7 @@
 {
 	"KickMsg"
 	{
-		"es"		"Este servidor solo puede ser usado bajo una reserva desde el emparejamiento de 4saken\n Entra a https://4saken.us/ para jugar."
+		"es"		"Este servidor solo puede ser usado bajo una reserva desde 4saken\nPara jugar entra a https://4saken.us/"
 	}
 	"Reserved"
 	{

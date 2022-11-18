@@ -98,32 +98,26 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 		_4saken_log("GET request: %d", iStatus);
 	}
 
-	for (int i = 1; i <= MaxClients; i++)
+	for (int index = 1; index <= MaxClients; index++)
 	{
-		if (IsValidClient(i))
+		if (!IsFakeClient(index) && IsClientConnected(index))
 		{
 			switch (view_as<bool>(iStatus))
 			{
 				case false:
 				{
-					KickAll("KickMsg");
+					KickClient(index, "%t", "KickMsg");
 					if (g_cvarDebug.BoolValue)
-						_4saken_log("%N was kicked, server without unreserved.", i);
+						_4saken_log("%N was kicked, server without unreserved.", index);
 				}
 				case true:
 				{
 					if (g_cvarDebug.BoolValue)
-						_4saken_log("%N was allowed in, the server was reserved.", i);
+						_4saken_log("%N was allowed in, the server was reserved.", index);
 				}
 			}
 		}
 	}
-}
-
-public Action KickAll(const char[] sMessage)
-{
-	ServerCommand("sm_kick @all %t", sMessage);
-	return Plugin_Continue;
 }
 
 public Action IsReserved(int iClient, int iArgs)

@@ -2,7 +2,7 @@
 {
 	"KickMsg"
 	{
-		"en"		"This server can only be used under a reservation from 4saken matchmaking\n Go to https://4saken.us/ to play."
+		"en"		"This server can only be used under a reservation from 4saken\n Go to https://4saken.us/"
 	}
 	"Reserved"
 	{
