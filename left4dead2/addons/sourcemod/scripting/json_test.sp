@@ -528,7 +528,6 @@ void it_should_trim_floats()
     Test_AssertStringsEqual("output", json_encode_output, "[0.0,1.0,10.01,-0.0,-1.0,-10.01]");
 }
 
-#if SM_INT64_SUPPORTED
 void it_should_support_int64()
 {
     char[] input = "[-9999999999,-2147483649,-2147483648,-1,0,1,2147483647,4294967295,4294967296,9999999999]";
@@ -550,7 +549,6 @@ void it_should_support_int64()
 
     Test_AssertStringsEqual("output", json_encode_output, input);
 }
-#endif
 
 void it_should_remove_meta_keys_from_arrays()
 {
@@ -1259,9 +1257,7 @@ public void OnPluginStart()
     Test_Run("it_should_rename_object_keys", it_should_rename_object_keys);
     Test_Run("it_should_maintain_hidden_on_renamed_object_keys", it_should_maintain_hidden_on_renamed_object_keys);
     Test_Run("it_should_calculate_string_sizes_correctly", it_should_calculate_string_sizes_correctly);
-    #if SM_INT64_SUPPORTED
     Test_Run("it_should_support_int64", it_should_support_int64);
-    #endif
     Test_Run("it_should_read_and_write_files", it_should_read_and_write_files);
 
     Test_EndSection();
