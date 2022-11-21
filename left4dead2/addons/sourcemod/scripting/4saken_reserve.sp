@@ -10,7 +10,8 @@
 #define URL_4SAKEN     "forsaken-blk.herokuapp.com/queue/matchstatus"
 
 ConVar
-	g_cvarDebug;
+	g_cvarDebug,
+	g_cvarEnable;
 int
 	g_iPort,
 	iStatus = 0;
@@ -49,15 +50,18 @@ public void OnPluginStart()
 {
 	LoadTranslation("4saken_reserve.phrases");
 	CreateConVar("sm_4saken_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug = CreateConVar("sm_4saken_reserve_debug", "0", "Turn on debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarDebug  = CreateConVar("sm_4saken_reserve_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarEnable = CreateConVar("sm_4saken_reserve_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	RegAdminCmd("sm_4saken_reserved", IsReserved, ADMFLAG_GENERIC);
 
 	g_iPort = FindConVar("hostport").IntValue;
-	AutoExecConfig(true, "4saken_reserve");
+	AutoExecConfig(false, "4saken");
 }
 
 public void OnClientPutInServer(int iClient)
 {
+	if(!g_cvarEnable.BoolValue)
+		return;
 	GetStatus();
 }
 
@@ -100,7 +104,7 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 
 	for (int index = 1; index <= MaxClients; index++)
 	{
-		if (!IsFakeClient(index) && IsClientConnected(index))
+		if (IsClientConnected(index) && !IsFakeClient(index))
 		{
 			switch (view_as<bool>(iStatus))
 			{
@@ -122,6 +126,9 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 
 public Action IsReserved(int iClient, int iArgs)
 {
+	if(!g_cvarEnable.BoolValue)
+		return Plugin_Handled;
+
 	if (iArgs != 0)
 		return Plugin_Handled;
 

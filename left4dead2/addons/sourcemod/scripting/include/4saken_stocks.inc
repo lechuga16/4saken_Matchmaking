@@ -77,6 +77,50 @@ stock void GetPluginBasename(Handle plugin, char[] buffer,int maxlength)
 }
 
 /**
+ * Return true if the client is on the infected team.
+ *
+ * @param client client ID
+ * @return bool
+ */
+stock bool IsInfected(int client)
+{
+	return (IsClientInGame(client) && L4D_GetClientTeam(client) == L4DTeam_Infected);
+}
+
+/**
+ * Return true if the valid client index and is client on the infected team.
+ *
+ * @param client client ID
+ * @return bool
+ */
+stock bool IsValidInfected(int client)
+{
+	return (IsValidClientIndex(client) && IsInfected(client));
+}
+
+/**
+ * Returns true if the client is currently on the survivor team. 
+ *
+ * @param client client ID
+ * @return bool
+ */
+stock bool IsSurvivor(int client)
+{
+	return (IsClientInGame(client) && L4D_GetClientTeam(client) == L4DTeam_Survivor);
+}
+
+/**
+ * Return true if the valid client index and is client on the survivor team.
+ *
+ * @param client client ID
+ * @return bool
+ */
+stock bool IsValidSurvivor(int client)
+{
+	return (IsValidClientIndex(client) && IsSurvivor(client));
+}
+
+/**
  * Returns the clients team using L4DTeam.
  *
  * @param client		Player's index.
