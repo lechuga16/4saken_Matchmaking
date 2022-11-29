@@ -73,7 +73,7 @@ public void OnRoundLiveCountdown()
 	if(!g_cvarEnable.BoolValue)
 		return;
 
-	if(g_bAnnounce)
+	if(g_bAnnounce && CurrentMapEndGame())
 	{
 		g_bAnnounce = false;
 		CPrintToChatAll("%t %t", "Tag", "Lastmap");

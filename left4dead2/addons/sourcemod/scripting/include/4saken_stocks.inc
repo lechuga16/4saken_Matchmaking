@@ -51,10 +51,10 @@ stock bool L4D_IsEngineLeft4Dead2()
 // ==================================================
 enum L4DTeam
 {
-	L4DTeam_Unassigned				= 0,
-	L4DTeam_Spectator				= 1,
-	L4DTeam_Survivor				= 2,
-	L4DTeam_Infected				= 3
+	L4DTeam_Unassigned	= 0,
+	L4DTeam_Spectator	= 1,
+	L4DTeam_Survivor	= 2,
+	L4DTeam_Infected	= 3
 }
 
 // ==================================================

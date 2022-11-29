@@ -8,23 +8,24 @@
 #undef REQUIRE_PLUGIN
 #include <readyup>
 
-
+#define URL_MMR "forsaken-blk.herokuapp.com/login/get/mmr"
+ 
 ConVar
 	g_cvarSub_URL,
-	g_cvarTable_MMR,
-	g_cvarTable_Teams,
-	g_cvarStartingMMR,
+	// g_cvarStartingMMR,
 	g_cvarKValue,
 	g_cvarDebug,
 	g_cvarEnable;
 Database
 	g_Database;
 int 
-	g_Rating[MAXPLAYERS + 1];
+	g_iRating[MAXPLAYERS + 1],
+	g_iTeam[MAXPLAYERS + 1],
+	g_iIDTeam;
 char
-	g_Team[MAXPLAYERS + 1][64];
+	g_sTeam[MAXPLAYERS + 1][64];
 bool
-	g_IsTeamGame;
+	g_IsTeamGame = false;
 char
 	g_TeamName[2][64],
 	g_TeamCaptain[2][64],
@@ -69,9 +70,7 @@ public void OnPluginStart()
 	g_cvarDebug			= CreateConVar("sm_4saken_mmr_debug", "0", "Debug messages.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarEnable		= CreateConVar("sm_4saken_mmr_enable", "1", "Activate mmr registration", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarSub_URL		= CreateConVar("sm_4saken_mmr_suburl", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
-	g_cvarTable_MMR		= CreateConVar("sm_4saken_mmr_table", "l4d2_mmr", "What should the table name be for player MMR values?", FCVAR_NOTIFY);
-	g_cvarTable_Teams	= CreateConVar("sm_4saken_mmr_tableteams", "l4d2_teams", "What should the table name be for player teams be?", FCVAR_NOTIFY);
-	g_cvarStartingMMR	= CreateConVar("sm_4saken_mmr_starting_value", "1200", "What MMR should players start with?", FCVAR_NOTIFY, true, 0.0);
+	// g_cvarStartingMMR	= CreateConVar("sm_4saken_mmr_starting_value", "1200", "What MMR should players start with?", FCVAR_NOTIFY, true, 0.0);
 	g_cvarKValue		= CreateConVar("sm_4saken_mmr_kvalue", "16.0", "What should the KValue be for calculating player MMR values?", FCVAR_NOTIFY, true, 0.0);
 
 	HookEvent("player_death", Event_OnPlayerDeath);
@@ -79,10 +78,14 @@ public void OnPluginStart()
 
 	RegConsoleCmd("sm_sub", Command_Sub, "Call to the website to find a substitute.");
 
+	/*
 	RegConsoleCmd("sm_createteam", Command_CreateTeam, "Create a team and invite others to the team.");
 	RegConsoleCmd("sm_teaminvite", Command_TeamInvite, "Invite a certain player to your team.");
 	RegConsoleCmd("sm_kickfromteam", Command_KickFromTeam, "Kick players from your team.");
 	RegConsoleCmd("sm_disband", Command_Disband, "Disband your current team.");
+	*/
+
+	RegConsoleCmd("sm_mmr", Command_MMR, "get mmr.");
 
 	AutoExecConfig(false, "4saken");
 	for (int i = 1; i <= MaxClients; i++)
@@ -106,31 +109,36 @@ public void OnRoundIsLive()
 		if (!IsClientInGame(i) || IsFakeClient(i))
 			continue;
 
-		if (L4D_GetClientTeam(i) == L4DTeam_Survivor)
+		switch(L4D_GetClientTeam(i))
+		{
+			case L4DTeam_Survivor:
+				survivors[totalsurvivors++] = i;
+			case L4DTeam_Infected:
+				infected[totalinfected++] = i;
+		}
+
+/*		if (L4D_GetClientTeam(i) == L4DTeam_Survivor)
 			survivors[totalsurvivors++] = i;
 		else if (L4D_GetClientTeam(i) == L4DTeam_Infected)
-			infected[totalinfected++] = i;
+			infected[totalinfected++] = i; */
 	}
 
 	// This is so dumb.
-	if (   StrEqual(g_Team[survivors[0]], g_Team[survivors[1]]) 
-		&& StrEqual(g_Team[survivors[1]], g_Team[survivors[2]]) 
-		&& StrEqual(g_Team[survivors[2]], g_Team[survivors[3]]) 
-		&& StrEqual(g_Team[infected[0]], g_Team[infected[1]]) 
-		&& StrEqual(g_Team[infected[1]], g_Team[infected[2]]) 
-		&& StrEqual(g_Team[infected[2]], g_Team[infected[3]]))
-		g_IsTeamGame = true;
+/*	if (   StrEqual(g_sTeam[survivors[0]], g_sTeam[survivors[1]]) 
+		&& StrEqual(g_sTeam[survivors[1]], g_sTeam[survivors[2]]) 
+		&& StrEqual(g_sTeam[survivors[2]], g_sTeam[survivors[3]]) 
+		&& StrEqual(g_sTeam[infected[0]], g_sTeam[infected[1]]) 
+		&& StrEqual(g_sTeam[infected[1]], g_sTeam[infected[2]]) 
+		&& StrEqual(g_sTeam[infected[2]], g_sTeam[infected[3]]))
+		g_IsTeamGame = true; */
 
 	if (g_IsTeamGame)
 	{
-		char sTable[64];
-		g_cvarTable_Teams.GetString(sTable, sizeof(sTable));
-
 		char sQuery[256];
-		g_Database.Format(sQuery, sizeof(sQuery), "SELECT name, captainid, mmr FROM `%s` WHERE name = '%s';", sTable, g_Team[survivors[0]]);
+		g_Database.Format(sQuery, sizeof(sQuery), "SELECT name, captainid, mmr FROM `mmr_team` WHERE name = '%s';", g_sTeam[survivors[0]]);
 		g_Database.Query(OnParseTeamMMR, sQuery, GetTeamInt(L4DTeam_Survivor));
 
-		g_Database.Format(sQuery, sizeof(sQuery), "SELECT name, captainid, mmr FROM `%s` WHERE name = '%s';", sTable, g_Team[infected[0]]);
+		g_Database.Format(sQuery, sizeof(sQuery), "SELECT name, captainid, mmr FROM `mmr_team` WHERE name = '%s';", g_sTeam[infected[0]]);
 		g_Database.Query(OnParseTeamMMR, sQuery, GetTeamInt(L4DTeam_Infected));
 	}
 }
@@ -159,31 +167,33 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 		ThrowError("Error while connecting to database: %s", error);
 
 	g_Database = db;
-	if(g_cvarDebug)
+	if(g_cvarDebug.BoolValue)
 		_4saken_log("Connected to database successfully.");
 
-	char sTable[64];
+/*
+Las Tablas seran creadas desde la web
 	char sQuery[256];
-
-	g_cvarTable_MMR.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT , `steamid` VARCHAR(64) NOT NULL , `mmr` INT NOT NULL DEFAULT %i, `team` VARCHAR(64) NOT NULL DEFAULT '' , PRIMARY KEY (`id`), UNIQUE (`steamid`)) ENGINE = InnoDB;", sTable, g_cvarStartingMMR.IntValue);
+	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `l4d2_users` ( `id` INT NOT NULL AUTO_INCREMENT , `steamid` VARCHAR(64) NOT NULL , `mmr` INT NOT NULL DEFAULT %i, `team` VARCHAR(64) NOT NULL DEFAULT '' , PRIMARY KEY (`id`), UNIQUE (`steamid`)) ENGINE = InnoDB;", g_cvarStartingMMR.IntValue);
 	g_Database.Query(OnCreateTable, sQuery);
 
-	g_cvarTable_Teams.GetString(sTable, sizeof(sTable));
-	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT , `name` VARCHAR(64) NOT NULL DEFAULT '', `captainid` VARCHAR(64) NOT NULL DEFAULT '', `mmr` INT NOT NULL DEFAULT %i , PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTable, g_cvarStartingMMR.IntValue);
+	g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `l4d2_teams` ( `id` INT NOT NULL AUTO_INCREMENT , `name` VARCHAR(64) NOT NULL DEFAULT '', `mmr` INT NOT NULL DEFAULT %i , PRIMARY KEY (`id`)) ENGINE = InnoDB;", g_cvarStartingMMR.IntValue);
 	g_Database.Query(OnCreateTable, sQuery);
-
+*/
 	char auth[64];
 	for (int i = 1; i <= MaxClients; i++)
+	{
 		if (IsClientAuthorized(i) && GetClientAuthId(i, AuthId_Engine, auth, sizeof(auth)))
-			OnClientAuthorized(i, auth);
+				OnClientAuthorized(i, auth);
+	}
 }
 
+/*
+Las Tablas seran creadas desde la web
 public void OnCreateTable(Database db, DBResultSet results, const char[] error, any data)
 {
 	if (results == null)
 		ThrowError("Error while creating table: %s", error);
-}
+} */
 
 public void OnEndGame()
 {
@@ -210,18 +220,15 @@ public void OnEndGame()
 			infected[totalinfected++] = i;
 	}
 
-	char sTable[64];
-	g_cvarTable_Teams.GetString(sTable, sizeof(sTable));
-
 	char sQuery[256];
 	int  team;
 
 	team = GetTeamInt(L4DTeam_Survivor);
-	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET mmr = '%i' WHERE name = '%s';", sTable, g_TeamRating[team], g_TeamName[team]);
+	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `mmr_team` SET mmr = '%i' WHERE name = '%s';", g_TeamRating[team], g_TeamName[team]);
 	g_Database.Query(OnUpdateTeamMMR, sQuery, 0);
 
 	team = GetTeamInt(L4DTeam_Infected);
-	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET mmr = '%i' WHERE name = '%s';", sTable, g_TeamRating[team], g_TeamName[team]);
+	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `mmr_team` SET mmr = '%i' WHERE name = '%s';", g_TeamRating[team], g_TeamName[team]);
 	g_Database.Query(OnUpdateTeamMMR, sQuery, 1);
 }
 
@@ -233,32 +240,38 @@ public void OnUpdateTeamMMR(Database db, DBResultSet results, const char[] error
 
 public void OnClientConnected(int client)
 {
-	g_Rating[client]  = g_cvarStartingMMR.IntValue;
-	g_Team[client][0] = '\0';
+	// g_iRating[client]  = g_cvarStartingMMR.IntValue;
+	g_sTeam[client][0] = '\0';
 }
 
-public void OnClientAuthorized(int client, const char[] auth)
+public void OnClientAuthorized(int client)
 {
 
 	if (IsFakeClient(client) || g_Database == null)
 		return;
-
-	char sTable[64];
-	g_cvarTable_MMR.GetString(sTable, sizeof(sTable));
 
 	char sSteamID[64];
 	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 		return;
 
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "SELECT mmr, team FROM `%s` WHERE steamid = '%s';", sTable, sSteamID);
+	// g_Database.Format(sQuery, sizeof(sQuery), "SELECT u.mmr, t.name FROM `l4d2_users` u, `l4d2_teams` t WHERE `steamid` = '%s';", sSteamID);
+	g_Database.Format(sQuery, sizeof(sQuery), "SELECT u.mmr u.team FROM `l4d2_users` u WHERE `steamid` = '%s';", sSteamID);
 	g_Database.Query(OnParseMMR, sQuery, GetClientUserId(client));
+
+	if(!g_IsTeamGame)
+		return;
+
+	char sQueryTeam[256];
+	// g_Database.Format(sQuery, sizeof(sQuery), "SELECT u.mmr, t.name FROM `l4d2_users` u, `l4d2_teams` t WHERE `steamid` = '%s';", sSteamID);
+	g_Database.Format(sQueryTeam, sizeof(sQueryTeam), "SELECT t.mmr FROM `l4d2_teams` t WHERE `id` = '%s';", g_iTeam[client]);
+	g_Database.Query(OnParseTeam, sQueryTeam, GetClientUserId(client));
 }
 
 public void OnParseMMR(Database db, DBResultSet results, const char[] error, any data)
 {
-	int client;
-	if ((client = GetClientOfUserId(data)) == 0)
+	int client = GetClientOfUserId(data);
+	if (client == CONSOLE)
 		return;
 
 	if (results == null)
@@ -266,13 +279,27 @@ public void OnParseMMR(Database db, DBResultSet results, const char[] error, any
 
 	if (results.FetchRow())
 	{
-		g_Rating[client] = results.FetchInt(0);
-		results.FetchString(1, g_Team[client], 64);
+		g_iRating[client] = results.FetchInt(0);
+		// results.FetchString(1, g_sTeam[client], 64);
 	}
-	else
-		SaveData(client);
+//	else
+//		SaveData(client);
 }
 
+public void OnParseTeam(Database db, DBResultSet results, const char[] error, any data)
+{
+	int client = GetClientOfUserId(data);
+	if (client == CONSOLE)
+		return;
+
+	if (results == null)
+		ThrowError("Error while parsing Team: %s", error);
+
+	if (results.FetchRow())
+		g_iTeam[client] = results.FetchInt(0);
+
+}
+/*
 public void OnClientDisconnect(int client)
 {
 	if (IsFakeClient(client))
@@ -286,34 +313,36 @@ void SaveData(int client)
 	if (g_Database == null)
 		return;
 
-	char sTable[64];
-	g_cvarTable_MMR.GetString(sTable, sizeof(sTable));
-
-	char sSteamID[64];
+	char sSteamID[64];}
+	char sClientName[64];
 	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 		return;
 
+	if(!GetClientName(client, sClientName, sizeof(sClientName)))
+		sClientName = "Invalid Name";
+
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[client], g_Team[client], g_Rating[client], g_Team[client]);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `l4d2_users` (personaname, steamid, mmr, mmr_team) VALUES ('%s', '%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', mmr_team = '%s';", sClientName, sSteamID, g_iRating[client], g_sTeam[client], g_iRating[client], g_sTeam[client]);
 	g_Database.Query(OnSaveMMR, sQuery);
 }
-
+*/
 public void OnSaveMMR(Database db, DBResultSet results, const char[] error, any data)
 {
 	if (results == null)
 		ThrowError("Error while saving player MMR on disconnect: %s", error);
 }
 
+/*
 public void OnClientDisconnect_Post(int client)
 {
 	if(!g_cvarEnable.BoolValue)
 		return;
 
-	g_Rating[client]  = g_cvarStartingMMR.IntValue;
-	g_Team[client][0] = '\0';
+	g_iRating[client]  = g_cvarStartingMMR.IntValue;
+	g_sTeam[client][0] = '\0';
 	g_LastSub[client] = -1;
 }
-
+*/
 public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 
@@ -339,10 +368,10 @@ public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadca
 	if (team_attacker != L4DTeam_Survivor)
 		return;
 
-	int difference = RoundFloat(g_cvarKValue.FloatValue * (1 - (1 / (Pow(10.0, float((g_Rating[victim] - g_Rating[attacker])) / 400) + 1))));
+	int difference = RoundFloat(g_cvarKValue.FloatValue * (1 - (1 / (Pow(10.0, float((g_iRating[victim] - g_iRating[attacker])) / 400) + 1))));
 
-	g_Rating[victim] -= difference;
-	g_Rating[attacker] += difference;
+	g_iRating[victim] -= difference;
+	g_iRating[attacker] += difference;
 
 	if (g_IsTeamGame)
 	{
@@ -359,8 +388,8 @@ public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadca
 
 	if (g_cvarDebug.BoolValue)
 	{
-		CPrintToChat(victim, "MMR Update: %i [Difference: %i]", g_Rating[victim], difference);
-		CPrintToChat(attacker, "MMR Update: %i [Difference: %i]", g_Rating[attacker], difference);
+		CPrintToChat(victim, "MMR Update: %i [Difference: %i]", g_iRating[victim], difference);
+		CPrintToChat(attacker, "MMR Update: %i [Difference: %i]", g_iRating[attacker], difference);
 	}
 }
 
@@ -372,9 +401,6 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 	if (g_Database == null)
 		return;
 
-	char sTable[64];
-	g_cvarTable_MMR.GetString(sTable, sizeof(sTable));
-
 	char sSteamID[64];
 	char sQuery[256];
 	for (int i = 1; i <= MaxClients; i++)
@@ -385,16 +411,22 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		if (!GetClientAuthId(i, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 			continue;
 
-		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (steamid, mmr, team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', team = '%s';", sTable, sSteamID, g_Rating[i], g_Team[i], g_Rating[i], g_Team[i]);
+//		g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `l4d2_users` (steamid, mmr, mmr_team) VALUES ('%s', '%i', '%s') ON DUPLICATE KEY UPDATE mmr = '%i', mmr_team = '%s';", sSteamID, g_iRating[i], g_sTeam[i], g_iRating[i], g_sTeam[i]);
+//		g_Database.Query(OnUpdateMMR, sQuery);
+		g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_users` SET `mmr`= '%s' WHERE `steamid` = '%s';", g_iRating[i], sSteamID);
 		g_Database.Query(OnUpdateMMR, sQuery);
 	}
-	
+
+/*	if(!g_IsTeamGame)
+		return
+	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_teams` SET `mmr`= '%s' WHERE `id` = '%d';", g_TeamRating[team],  g_sTeam[i]);
+	g_Database.Query(OnUpdateMMR, sQuery);*/
 }
 
 public void OnUpdateMMR(Database db, DBResultSet results, const char[] error, any data)
 {
 	if (results == null)
-		ThrowError("Error while saving player MMR on round end: %s", error);
+		ThrowError("Error while saving %s MMR on round end: %s", g_IsTeamGame ? "team" : "player", error);
 }
 
 public Action Command_Sub(int client, int args)
@@ -442,7 +474,7 @@ public void Http_OnSendSubRequest(bool success, const char[] error, System2HTTPR
 
 	PrintToServer("Request to %s finished with status code %d in %.2f seconds.", sURL, response.StatusCode, response.TotalTime);
 }
-
+/*
 public Action Command_CreateTeam(int client, int args)
 {
 	if (args == 0)
@@ -453,7 +485,7 @@ public Action Command_CreateTeam(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if (strlen(g_Team[client]) > 0)
+	if (strlen(g_sTeam[client]) > 0)
 	{
 		CPrintToChat(client, "%t %t", "Tag", "LeaveToStart");
 		return Plugin_Handled;
@@ -465,9 +497,6 @@ public Action Command_CreateTeam(int client, int args)
 		CPrintToChat(client, "%t %t", "Tag", "NoSteam");
 		return Plugin_Handled;
 	}
-
-	char sTable[256];
-	g_cvarTable_Teams.GetString(sTable, sizeof(sTable));
 
 	char sName[64];
 	GetCmdArgString(sName, sizeof(sName));
@@ -484,11 +513,12 @@ public Action Command_CreateTeam(int client, int args)
 	pack.WriteString(sSteamID);
 
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "SELECT name FROM `%s` WHERE name = '%s';", sTable, sEscapedName);
+	g_Database.Format(sQuery, sizeof(sQuery), "SELECT name FROM `mmr_team` WHERE name = '%s';", sEscapedName);
 	g_Database.Query(OnCheckTeamName, sQuery, pack);
 
 	return Plugin_Handled;
 }
+
 
 public void OnCheckTeamName(Database db, DBResultSet results, const char[] error, DataPack pack)
 {
@@ -524,11 +554,8 @@ public void OnCheckTeamName(Database db, DBResultSet results, const char[] error
 		return;
 	}
 
-	char sTable[256];
-	g_cvarTable_Teams.GetString(sTable, sizeof(sTable));
-
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (name, captainid, mmr) VALUES ('%s', '%s', '%i');", sTable, sEscapedName, sSteamID, g_cvarStartingMMR.IntValue);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `l4d2_teams` (name, captainid, mmr) VALUES ('%s', '%s', '%i');", sEscapedName, sSteamID, g_cvarStartingMMR.IntValue);
 	g_Database.Query(OnCreateTeam, sQuery, pack);
 }
 
@@ -557,12 +584,13 @@ public void OnCreateTeam(Database db, DBResultSet results, const char[] error, D
 		ThrowError("Error while creating team: %s", error);
 	}
 
-	strcopy(g_Team[client], sizeof(g_Team[]), sEscapedName);
+	strcopy(g_sTeam[client], sizeof(g_sTeam[]), sEscapedName);
 	CPrintToChat(client, "%t %t", "Tag", "StartedTeam", sEscapedName);
 
 	SaveData(client);
 }
-
+*/
+/*
 public Action Command_TeamInvite(int client, int args)
 {
 	if (args == 0)
@@ -573,7 +601,7 @@ public Action Command_TeamInvite(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if (strlen(g_Team[client]) == 0)
+	if (strlen(g_sTeam[client]) == 0)
 	{
 		CPrintToChat(client, "%t %t", "Tag", "NoPartTeam");
 		return Plugin_Handled;
@@ -596,7 +624,7 @@ public Action Command_TeamInvite(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if (strlen(g_Team[target]) > 0)
+	if (strlen(g_sTeam[target]) > 0)
 	{
 		CPrintToChat(client, "%t %t", "Tag", "TargetReady", target);
 		return Plugin_Handled;
@@ -616,7 +644,7 @@ void SendTeamInvite(int client, int target)
 	Menu menu = new Menu(MenuHandler_TeamInvite);
 
 	Format(sMenuTitle, sizeof sMenuTitle, "%t", "MenuTitle_Invite");
-	menu.SetTitle(sMenuTitle, client, g_Team[client]);
+	menu.SetTitle(sMenuTitle, client, g_sTeam[client]);
 
 	Format(sMenuYes, sizeof sMenuYes, "%t", "Menu_Yes");
 	menu.AddItem("yes", sMenuYes);
@@ -624,7 +652,7 @@ void SendTeamInvite(int client, int target)
 	menu.AddItem("no", sMenuNo);
 
 	PushMenuInt(menu, "client", GetClientUserId(client));
-	PushMenuString(menu, "team", g_Team[client]);
+	PushMenuString(menu, "team", g_sTeam[client]);
 
 	menu.Display(target, MENU_TIME_FOREVER);
 }
@@ -667,9 +695,6 @@ public int MenuHandler_TeamInvite(Menu menu, MenuAction action, int param1, int 
 
 void SetPlayerTeam(int client, const char[] team)
 {
-	char sTable[64];
-	g_cvarTable_MMR.GetString(sTable, sizeof(sTable));
-
 	char sSteamID[64];
 	if (!GetClientAuthId(client, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 		return;
@@ -679,7 +704,7 @@ void SetPlayerTeam(int client, const char[] team)
 	pack.WriteString(team);
 
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `%s` SET team = '%s' WHERE steamid = '%s';", sTable, team, sSteamID);
+	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_users` SET mmr_team = '%s' WHERE steamid = '%s';", team, sSteamID);
 	g_Database.Query(OnJoinTeam, sQuery, pack);
 }
 
@@ -701,7 +726,7 @@ public void OnJoinTeam(Database db, DBResultSet results, const char[] error, Dat
 	if (results == null)
 		ThrowError("Error while player joining team: %s", error);
 
-	strcopy(g_Team[client], 64, sTeam);
+	strcopy(g_sTeam[client], 64, sTeam);
 
 	if (strlen(sTeam) > 0)
 		CPrintToChat(client, "%t %t", "Tag", "YouJoinedTeam", sTeam);
@@ -758,7 +783,7 @@ public Action Command_KickFromTeam(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if (strlen(g_Team[client]) == 0)
+	if (strlen(g_sTeam[client]) == 0)
 	{
 		CPrintToChat(client, "You aren't part of a team to kick players from.");
 		return Plugin_Handled;
@@ -787,13 +812,13 @@ public Action Command_KickFromTeam(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if (strlen(g_Team[target]) == 0)
+	if (strlen(g_sTeam[target]) == 0)
 	{
 		CPrintToChat(client, "Target %N is not a part of a team currently.", target);
 		return Plugin_Handled;
 	}
 
-	if (!StrEqual(g_Team[client], g_Team[target], false))
+	if (!StrEqual(g_sTeam[client], g_sTeam[target], false))
 	{
 		CPrintToChat(client, "Target %N is not a part of the same team as you.", target);
 		return Plugin_Handled;
@@ -807,13 +832,13 @@ public Action Command_KickFromTeam(int client, int args)
 void ConfirmKickMenu(int client, int target)
 {
 	Menu menu = new Menu(MenuHandler_KickTeammate);
-	menu.SetTitle("Are you sure you want to kick %N from %s?", target, g_Team[client]);
+	menu.SetTitle("Are you sure you want to kick %N from %s?", target, g_sTeam[client]);
 
 	menu.AddItem("yes", "Yes");
 	menu.AddItem("no", "No");
 
 	PushMenuInt(menu, "target", GetClientUserId(target));
-	PushMenuString(menu, "team", g_Team[client]);
+	PushMenuString(menu, "team", g_sTeam[client]);
 
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -852,7 +877,7 @@ public int MenuHandler_KickTeammate(Menu menu, MenuAction action, int param1, in
 
 public Action Command_Disband(int client, int args)
 {
-	if (strlen(g_Team[client]) == 0)
+	if (strlen(g_sTeam[client]) == 0)
 	{
 		CPrintToChat(client, "You aren't a part of a team to disband.");
 		return Plugin_Handled;
@@ -868,7 +893,47 @@ public Action Command_Disband(int client, int args)
 
 	return Plugin_Handled;
 }
+*/
+public Action Command_MMR(int iClient, int iArgs)
+{
+	if (iArgs != 0 && iArgs != 1)
+	{
+		char sCommand[32];
+		GetCmdArg(0, sCommand, sizeof(sCommand));
+		CReplyToCommand(iClient, "[SM] Usage: %s <TargetOptional>", sCommand);
+		return Plugin_Handled;
+	}
 
+	switch(iArgs)
+	{
+		case 0:
+		{
+			GetMMR(iClient);
+			return Plugin_Handled;
+		}
+		case 1:
+		{
+		}
+	}
+	return Plugin_Handled;
+}
+
+void GetMMR(int iClient)
+{
+ 	char sSteamID[64];
+	char sURL[256];
+	GetClientAuthId(iClient, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	Format(sURL, sizeof(sURL), "%s?steamid=%s", URL_MMR, sSteamID);
+	if (g_cvarDebug.BoolValue)
+		_4saken_log("URL: %s", sURL);
+
+	
+	CReplyToCommand(iClient,"You mmr: %d ", g_iRating[iClient]);
+}
+
+
+/*
 void ConfirmDisbandTeam(int client)
 {
 	Menu menu = new Menu(MenuHandler_DisbandTeam);
@@ -892,7 +957,7 @@ public int MenuHandler_DisbandTeam(Menu menu, MenuAction action, int param1, int
 			if (StrEqual(sInfo, "yes", false))
 			{
 				CPrintToChat(param1, "Disbanding your team...");
-				DisbandTeam(g_Team[param1]);
+				DisbandTeam(g_sTeam[param1]);
 			}
 			else
 				CPrintToChat(param1, "Your team hasn't been disbanded.");
@@ -908,18 +973,15 @@ void DisbandTeam(const char[] team)
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (StrEqual(g_Team[i], team, false))
+		if (StrEqual(g_sTeam[i], team, false))
 		{
 			CPrintToChat(i, "Your team has been disbanded.");
 			SetPlayerTeam(i, "");
 		}
 	}
 
-	char sTable[64];
-	g_cvarTable_Teams.GetString(sTable, sizeof(sTable));
-
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "DELETE FROM `%s` WHERE name = '%s';", sTable, team);
+	g_Database.Format(sQuery, sizeof(sQuery), "DELETE FROM `l4d2_teams` WHERE name = '%s';", team);
 	g_Database.Query(OnDeleteTeam, sQuery);
 }
 
@@ -934,16 +996,16 @@ bool IsTeamCaptain(int client)
 	int team;
 
 	team = GetTeamInt(L4DTeam_Survivor);
-	if (StrEqual(g_Team[client], g_TeamCaptain[team]))
+	if (StrEqual(g_sTeam[client], g_TeamCaptain[team]))
 		return true;
 
 	team = GetTeamInt(L4DTeam_Infected);
-	if (StrEqual(g_Team[client], g_TeamCaptain[team]))
+	if (StrEqual(g_sTeam[client], g_TeamCaptain[team]))
 		return true;
 
 	return false;
 }
-
+*/
 int GetTeamInt(L4DTeam team)
 {
 	return view_as<int>(team) - 2;
