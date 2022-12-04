@@ -24,6 +24,7 @@
 #include <sdktools_gamerules>
 #include <json>
 
+#define URL_4SAKEN_MATCH     "forsaken-blk.herokuapp.com/queue/get-match-info"
 #define CONSOLE 0
 
 // ==================================================

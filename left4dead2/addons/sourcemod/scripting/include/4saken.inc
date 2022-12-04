@@ -32,6 +32,33 @@
  */
 native void _4saken_log(const char[] format, any ...);
 
+/**
+ * Gets the type of match broadcast on 4saken.us
+ *
+ * @return An integer, -1 is that information is not yet obtained
+ */
+native int _4saken_TypeMatch();
+
+/**
+ * Gets the steamid of the players that are assigned to Team 1
+ *
+ * @param index         Index in the team.
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+native void _4saken_Team1(int index, char[] buffer, int maxlength);
+
+/**
+ * Gets the steamid of the players that are assigned to Team 2
+ *
+ * @param index         Index in the team.
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+native void _4saken_Team2(int index, char[] buffer, int maxlength);
+
 public SharedPlugin __pl_4saken =
 {
     name = "4saken",
@@ -47,5 +74,8 @@ public SharedPlugin __pl_4saken =
 public __pl_4saken_SetNTVOptional()
 {
     MarkNativeAsOptional("_4saken_log");
+    MarkNativeAsOptional("_4saken_TypeMatch");
+    MarkNativeAsOptional("_4saken_Team1");
+    MarkNativeAsOptional("_4saken_Team2");
 }
 #endif

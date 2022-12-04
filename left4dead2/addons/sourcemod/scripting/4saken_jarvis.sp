@@ -6,23 +6,39 @@
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #include <readyup>
-#define PLUGIN_VERSION "0.1"
+#define PLUGIN_VERSION  "0.1"
+#define MAX_PLAYER_TEAM 5
+#define STEAMID_LENGTH  32
 
 enum TypeMatch
 {
-	unrank = 1,
-	rank,
-	teams
+	invalid  = 0,
+	scout    = 1,
+	adept    = 2,
+	veteran  = 3,
+	unranked = 4,
+	scrims   = 5
 
 }
 
+enum ForsakenTeam
+{
+	Team0 = 0,
+	Team1 = 1,
+	Team2 = 2,
+}
+
 TypeMatch
-	g_Lobby = rank;
+	g_Lobby;
+
 ConVar
 	g_cvarDebug;
 bool
-	g_bMatchModeLoaded,
-	g_bIsRank;
+	g_bEnnounceStart = true;
+
+char
+	SteamIDT1[MAX_PLAYER_TEAM][STEAMID_LENGTH],
+	SteamIDT2[MAX_PLAYER_TEAM][STEAMID_LENGTH];
 
 public Plugin myinfo =
 {
@@ -43,6 +59,7 @@ public APLRes
 		strcopy(error, err_max, "Plugin only support L4D2 engine");
 		return APLRes_Failure;
 	}
+
 	return APLRes_Success;
 }
 
@@ -54,102 +71,58 @@ public void OnPluginStart()
 	CreateConVar("sm_4saken_jarvis_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug = CreateConVar("sm_4saken_jarvis_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 
-	g_bMatchModeLoaded = LGO_IsMatchModeLoaded();
+	RegConsoleCmd("sm_4saken_isplayer", isplayer);
+	RegConsoleCmd("sm_4saken_addlechu", addlechu);
+	RegConsoleCmd("sm_4saken_teslist", TestMatch);
+
+	HookEvent("player_team", Event_PlayerTeam);
+
+	PreMatch();
+	CreateTimer(2.0, OrganizeTeams);
 
 	AutoExecConfig(true, "4saken_jarvis");
-
-	char sAuth[64];
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (IsClientAuthorized(i) && GetClientAuthId(i, AuthId_Engine, sAuth, sizeof(sAuth)))
-			OnClientAuthorized(i, sAuth);
-	}
 }
 
-public void OnClientAuthorized(int iClient, const char[] sAuth)
+/*****************************************************************
+            L I B R A R Y   I N C L U D E S
+*****************************************************************/
+#include "4saken/jarvis_prematch.sp"
+#include "4saken/jarvis_teams.sp"
+
+public Action addlechu(int iClient, int iArgs)
 {
-	if (g_Lobby == unrank)
-		return;
+	char sArgs[8];
+	GetCmdArg(1, sArgs, sizeof(sArgs));
 
-	if (g_bMatchModeLoaded)
+	char sSteamID[32];
+	GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID));
+
+	if (StrEqual(sArgs, "1"))
 	{
-		OrganizeTeams(iClient);
-		return;
+		CReplyToCommand(iClient, "Se agrego como survivor")
+			SteamIDT1[4] = sSteamID;
 	}
-
-	switch (CountPlayers())
+	else if (StrEqual(sArgs, "2"))
 	{
-		case 1:
-			CPrintToChatAll("[J.A.R.V.I.S] Falta 1 jugador para cambiar a zonemod");
-
-		case 2:
-		{
-			CPrintToChatAll("[J.A.R.V.I.S] Cambiando a ZoneMod");
-			ServerCommand("sm_forcestart zonemod");
-		}
+		CReplyToCommand(iClient, "Se agrego como infected")
+			SteamIDT2[4] = sSteamID;
 	}
+	return Plugin_Continue;
 }
 
-public void OrganizeTeams(int iClient)
+public Action TestMatch(int iClient, int iArgs)
 {
-	if (!IsClientInGame(iClient) && IsFakeClient(iClient))
-		return;
-
-	char sAuthId[64];
-	GetClientAuthId(iClient, AuthId_Engine, sAuthId, 64);
-	if(ChangeClientTeamEx(iClient, L4DTeam_Spectator))
+	for (int i = 0; i <= 4; i++)
 	{
-		CPrintToChat(iClient, "[J.A.R.V.I.S] Debes permanecer como espectador");
+		int iPlayer = 1 + i;
+		CReplyToCommand(iClient, "Team1 Player %d: %s", iPlayer, SteamIDT1[i]);
 	}
 
-}
-
-public int CountPlayers()
-{
-	int iCount = 0;
-	for (int i = 1; i <= MaxClients; i++)
+	for (int i = 0; i <= 4; i++)
 	{
-		if (IsClientInGame(i) && !IsFakeClient(i))
-		{
-			iCount++;
-		}
+		int iPlayer = 1 + i;
+		CReplyToCommand(iClient, "Team2 Player %d: %s", iPlayer, SteamIDT2[i]);
 	}
 
-	return iCount;
-}
-
-stock bool ChangeClientTeamEx(iClient, L4DTeam team)
-{
-	if (L4D_GetClientTeam(iClient) == team)
-		return true;
-
-	if (team != L4DTeam_Survivor)
-	{
-		ChangeClientTeam(iClient, view_as<int>(team));
-		return true;
-	}
-	else
-	{
-		int bot = FindSurvivorBot();
-
-		if (bot > 0)
-		{
-			int flags = GetCommandFlags("sb_takecontrol");
-			SetCommandFlags("sb_takecontrol", flags & ~FCVAR_CHEAT);
-			FakeClientCommand(iClient, "sb_takecontrol");
-			SetCommandFlags("sb_takecontrol", flags);
-			return true;
-		}
-	}
-	return false;
-}
-
-stock int FindSurvivorBot()
-{
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && IsFakeClient(client) && L4D_GetClientTeam(client) == L4DTeam_Survivor)
-			return client;
-	}
-	return -1;
+	return Plugin_Handled;
 }
