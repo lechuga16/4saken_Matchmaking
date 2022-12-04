@@ -99,13 +99,13 @@ public Action addlechu(int iClient, int iArgs)
 
 	if (StrEqual(sArgs, "1"))
 	{
-		CReplyToCommand(iClient, "Se agrego como survivor")
-			SteamIDT1[4] = sSteamID;
+		CReplyToCommand(iClient, "Se agrego como survivor");
+		SteamIDT1[4] = sSteamID;
 	}
 	else if (StrEqual(sArgs, "2"))
 	{
-		CReplyToCommand(iClient, "Se agrego como infected")
-			SteamIDT2[4] = sSteamID;
+		CReplyToCommand(iClient, "Se agrego como infected");
+		SteamIDT2[4] = sSteamID;
 	}
 	return Plugin_Continue;
 }
