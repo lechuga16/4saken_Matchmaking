@@ -15,20 +15,13 @@ ConVar
 	g_cvarDebug;
 
 char
-	SteamIDT1[MAX_PLAYER_TEAM][STEAMID_LENGTH],
-	SteamIDT2[MAX_PLAYER_TEAM][STEAMID_LENGTH],
-	sURL[256];
+	g_sSteamIDT1[MAX_PLAYER_TEAM][STEAMID_LENGTH],
+	g_sSteamIDT2[MAX_PLAYER_TEAM][STEAMID_LENGTH],
+	g_sURL[256];
 
 int
 	g_iPort,
-	iRegion = 0;
-
-JSON_Object
-	jsMatch;
-
-JSON_Array
-	arrTeam1,
-	arrTeam2;
+	g_iRegion = 0;
 
 public Plugin myinfo =
 {
@@ -41,8 +34,7 @@ public Plugin myinfo =
 
 }
 
-public APLRes
-	AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	if (!L4D_IsEngineLeft4Dead2())
 	{
@@ -64,10 +56,9 @@ public void OnPluginStart()
 	CreateConVar("sm_4saken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug = CreateConVar("sm_4saken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_4saken_showip", ShowIP, "Get ip and port server");
-	RegConsoleCmd("sm_4saken_match", TestMatch, "Get steam player id and game type");
-	g_iPort = FindConVar("hostport").IntValue;
-
 	AutoExecConfig(true, "4saken");
+
+	g_iPort = FindConVar("hostport").IntValue;
 	JSON_Check();
 	GetMatch();
 }
@@ -76,6 +67,7 @@ public void OnPluginStart()
             L I B R A R Y   I N C L U D E S
 *****************************************************************/
 #include "4saken/4saken_native.sp"
+#include "4saken/4saken_web.sp"
 
 bool JSON_Check()
 {
@@ -114,69 +106,4 @@ public Action ShowIP(int iClient, int iArgs)
 		CReplyToCommand(iClient, "Usage: sm_4saken_showip");
 	CReplyToCommand(iClient, "ServerIP: {green}%s{default}:{green}%d{default}", _4saken_GetIp(), FindConVar("hostport").IntValue);
 	return Plugin_Handled;
-}
-
-public Action TestMatch(int iClient, int iArgs)
-{
-	CReplyToCommand(iClient, "Region: %d", iRegion);
-	for (int i = 0; i <= 3; i++)
-	{
-		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "Team1 Player %d: %s", iPlayer, SteamIDT1[i]);
-	}
-
-	for (int i = 0; i <= 3; i++)
-	{
-		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "Team2 Player %d: %s", iPlayer, SteamIDT2[i]);
-	}
-
-	return Plugin_Handled;
-}
-
-void GetMatch()
-{
-	Format(sURL, sizeof(sURL), "%s?ip=%s&port=%d", URL_4SAKEN_MATCH, _4saken_GetIp(), g_iPort);
-	if (g_cvarDebug.BoolValue)
-		_4saken_log("GetMatch URL: %s", sURL);
-
-	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpResponseCallback, sURL);
-	httpRequest.SetHeader("Content-Type", "application/json");
-	httpRequest.Timeout = 5;
-	httpRequest.GET();
-	delete httpRequest;
-}
-
-void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
-{
-	char
-		url[256],
-		content[300];
-
-	request.GetURL(url, sizeof(url));
-
-	if (!success)
-	{
-		_4saken_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
-		return;
-	}
-
-	for (int found = 0; found < response.ContentLength;)
-	{
-		found += response.GetContent(content, sizeof(content), found);
-	}
-
-	jsMatch = json_decode(content);
-	iRegion = jsMatch.GetInt("region");
-
-	arrTeam1 = view_as<JSON_Array>(jsMatch.GetObject("team1"));
-	arrTeam2 = view_as<JSON_Array>(jsMatch.GetObject("team2"));
-	for (int i = 0; i <= 3; i++)
-	{
-		arrTeam1.GetString(i, SteamIDT1[i], STEAMID_LENGTH);
-		ReplaceString(SteamIDT1[i], STEAMID_LENGTH, "STEAM_0", "STEAM_1", false);
-
-		arrTeam2.GetString(i, SteamIDT2[i], STEAMID_LENGTH);
-		ReplaceString(SteamIDT2[i], STEAMID_LENGTH, "STEAM_0", "STEAM_1", false);
-	}
 }

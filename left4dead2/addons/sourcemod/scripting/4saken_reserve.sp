@@ -7,16 +7,17 @@
 #include <sourcemod>
 #include <system2>
 #define PLUGIN_VERSION "0.1"
-#define URL_4SAKEN     "forsaken-blk.herokuapp.com/queue/matchstatus"
 
 ConVar
 	g_cvarDebug,
 	g_cvarEnable;
 int
-	g_iPort,
-	iStatus = 0;
+	g_iPort;
+
+bool
+	g_bReserve;
 char
-	sURL[256],
+	g_sURL[256],
 	g_sIp[64];
 
 public Plugin myinfo =
@@ -36,8 +37,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 	}
 
-	g_sIp = _4saken_GetIp();
-	if(StrEqual(g_sIp, "0.0.0.0", false))
+	if(StrEqual(_4saken_GetIp(), "0.0.0.0", false))
 	{
 		strcopy(error, err_max, "ERROR: The server ip was not configured");
 		return APLRes_Failure;
@@ -52,9 +52,9 @@ public void OnPluginStart()
 	CreateConVar("sm_4saken_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug  = CreateConVar("sm_4saken_reserve_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarEnable = CreateConVar("sm_4saken_reserve_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	RegAdminCmd("sm_4saken_reserved", IsReserved, ADMFLAG_GENERIC);
 
 	g_iPort = FindConVar("hostport").IntValue;
+	g_sIp = _4saken_GetIp();
 	AutoExecConfig(false, "4saken");
 }
 
@@ -62,23 +62,23 @@ public void OnClientPutInServer(int iClient)
 {
 	if(!g_cvarEnable.BoolValue)
 		return;
-	GetStatus();
+	GetReserve();
 }
 
-void GetStatus()
+void GetReserve()
 {
-	Format(sURL, sizeof(sURL), "%s?ip=%s&port=%d", URL_4SAKEN, g_sIp, g_iPort);
+	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_4SAKEN, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("URL: %s", sURL);
+		_4saken_log("URL: %s", g_sURL);
 
-	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpResponseCallback, sURL);
+	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpReserve, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
 	httpRequest.Timeout = 5;
 	httpRequest.GET();
 	delete httpRequest;
 }
 
-void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
+void HttpReserve(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
 	char
 		url[256],
@@ -96,17 +96,17 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 		found += response.GetContent(content, sizeof(content), found);
 	}
 
-	iStatus = StringToInt(content, 10);
+	g_bReserve = view_as<bool>(StringToInt(content, 10));
 	if (g_cvarDebug.BoolValue)
 	{
-		_4saken_log("GET request: %d", iStatus);
+		_4saken_log("GET request: %d", g_bReserve);
 	}
 
 	for (int index = 1; index <= MaxClients; index++)
 	{
 		if (IsClientConnected(index) && !IsFakeClient(index))
 		{
-			switch (view_as<bool>(iStatus))
+			switch (g_bReserve)
 			{
 				case false:
 				{
@@ -122,44 +122,6 @@ void HttpResponseCallback(bool success, const char[] error, System2HTTPRequest r
 			}
 		}
 	}
-}
-
-public Action IsReserved(int iClient, int iArgs)
-{
-	if(!g_cvarEnable.BoolValue)
-		return Plugin_Handled;
-
-	if (iArgs != 0)
-		return Plugin_Handled;
-
-	if (iClient == CONSOLE)
-	{
-		Reserved(iClient);
-		return Plugin_Continue;
-	}
-	if (!IsValidClient)
-	{
-		return Plugin_Handled;
-	}
-	Reserved(iClient);
-	return Plugin_Continue;
-}
-
-void Reserved(int iClient)
-{
-	switch (view_as<bool>(iStatus))
-	{
-		case true:
-		{
-			CReplyToCommand(iClient, "%t", "Reserved");
-		}
-		case false:
-		{
-			CReplyToCommand(iClient, "%t", "Unreserved");
-		}
-	}
-	if (g_cvarDebug.BoolValue)
-		_4saken_log("%N checked if the server is %s", iClient, view_as<bool>(iStatus) ? "reserved" : "unreserved");
 }
 
 Database Connect()

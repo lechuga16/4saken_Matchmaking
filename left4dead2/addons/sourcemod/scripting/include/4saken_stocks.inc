@@ -24,7 +24,8 @@
 #include <sdktools_gamerules>
 #include <json>
 
-#define URL_4SAKEN_MATCH     "forsaken-blk.herokuapp.com/queue/get-match-info"
+#define URL_4SAKEN     		"forsaken-blk.herokuapp.com/queue/matchstatus"
+#define URL_4SAKEN_MATCH	"forsaken-blk.herokuapp.com/queue/get-match-info"
 #define CONSOLE 0
 
 // ==================================================
@@ -56,6 +57,24 @@ enum L4DTeam
 	L4DTeam_Spectator	= 1,
 	L4DTeam_Survivor	= 2,
 	L4DTeam_Infected	= 3
+}
+
+enum TypeMatch
+{
+	invalid  = 0,
+	scout    = 1,
+	adept    = 2,
+	veteran  = 3,
+	unranked = 4,
+	scrims   = 5
+
+}
+
+enum ForsakenTeam
+{
+	Team0 = 0,
+	Team1 = 1,
+	Team2 = 2,
 }
 
 // ==================================================

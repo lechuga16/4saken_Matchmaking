@@ -37,7 +37,7 @@ native void _4saken_log(const char[] format, any ...);
  *
  * @return An integer, -1 is that information is not yet obtained
  */
-native int _4saken_TypeMatch();
+native TypeMatch _4saken_TypeMatch();
 
 /**
  * Gets the steamid of the players that are assigned to Team 1

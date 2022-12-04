@@ -26,13 +26,12 @@ any Native_Log(Handle plugin, int numParams)
 /**
  * Gets the type of match broadcast on 4saken.us
  *
- * @return An integer, -1 is that information is not yet obtained
+ * @return An integer, 0 is that information is not yet obtained
  */
 any Native_TypeMatch(Handle plugin, int numParams)
 {
-	return iRegion;
+	return view_as<TypeMatch>(g_iRegion);
 }
-
 
 /**
  * Gets the steamid of the players that are assigned to Team 1
@@ -48,10 +47,9 @@ any Native_Team1(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, SteamIDT1[index], maxlen);
+	SetNativeString(2, g_sSteamIDT1[index], maxlen);
 	return 0;
 }
-
 
 /**
  * Gets the steamid of the players that are assigned to Team 2
@@ -67,6 +65,6 @@ any Native_Team2(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, SteamIDT2[index], maxlen);
+	SetNativeString(2, g_sSteamIDT2[index], maxlen);
 	return 0;
 }

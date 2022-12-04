@@ -7,26 +7,8 @@
 #include <confogl>
 #include <readyup>
 #define PLUGIN_VERSION  "0.1"
-#define MAX_PLAYER_TEAM 5
+#define MAX_PLAYER_TEAM 5 // nota: recordatorio de poner este valor en  4 cuando este en produccion
 #define STEAMID_LENGTH  32
-
-enum TypeMatch
-{
-	invalid  = 0,
-	scout    = 1,
-	adept    = 2,
-	veteran  = 3,
-	unranked = 4,
-	scrims   = 5
-
-}
-
-enum ForsakenTeam
-{
-	Team0 = 0,
-	Team1 = 1,
-	Team2 = 2,
-}
 
 TypeMatch
 	g_Lobby;
@@ -47,8 +29,6 @@ public Plugin myinfo =
 	description = "Handle the endgame",
 	version     = PLUGIN_VERSION,
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
-
-
 }
 
 public APLRes
