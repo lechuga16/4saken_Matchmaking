@@ -1,4 +1,4 @@
-#include <4saken>
+#include <forsaken>
 #include <colors>
 #include <sourcemod>
 #include <system2>
@@ -21,7 +21,7 @@ GlobalForward
 
 public Plugin myinfo =
 {
-	name        = "4saken End Game",
+	name        = "forsaken End Game",
 	author      = "lechuga",
 	description = "Handle the endgame",
 	version     = PLUGIN_VERSION,
@@ -36,27 +36,27 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		return APLRes_Failure;
 	}
 	CreateNative("IsEndGame", Native_IsEndGame);
-	RegPluginLibrary("4saken_endgame");
+	RegPluginLibrary("forsaken_endgame");
 	return APLRes_Success;
 }
 
 public void OnPluginStart()
 {
-	LoadTranslation("4saken.phrases");
-	LoadTranslation("4saken_endgame.phrases");
+	LoadTranslation("forsaken.phrases");
+	LoadTranslation("forsaken_endgame.phrases");
 
 	HookEvent("round_end", Event_RoundEnd);
 
-	CreateConVar("sm_4saken_endgame_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug		= CreateConVar("sm_4saken_endgame_debug", "0", "Debug messagess", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarEnable    = CreateConVar("sm_4saken_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY | FCVAR_DONTRECORD , true, 0.0, true, 1.0);
-	g_cvarTimeKick	= CreateConVar("sm_4saken_endgame_timekick", "10.0", "Set counter before kicking players", FCVAR_NOTIFY, true, 0.0, true, 10.0);
-	RegAdminCmd("sm_4saken_checkmap", Cmd_CheckMap, ADMFLAG_ROOT);
-	RegAdminCmd("sm_4saken_maplist", Cmd_Maplist, ADMFLAG_ROOT);
+	CreateConVar("sm_endgame_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	g_cvarDebug		= CreateConVar("sm_endgame_debug", "0", "Debug messagess", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarEnable    = CreateConVar("sm_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY | FCVAR_DONTRECORD , true, 0.0, true, 1.0);
+	g_cvarTimeKick	= CreateConVar("sm_endgame_timekick", "10.0", "Set counter before kicking players", FCVAR_NOTIFY, true, 0.0, true, 10.0);
+	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_ROOT);
+	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_ROOT);
 
 	g_gfEndGame = CreateGlobalForward("OnEndGame", ET_Ignore);
 
-	AutoExecConfig(false, "4saken");
+	AutoExecConfig(true, "forsaken_endgame");
 }
 
 // ======================================
@@ -119,7 +119,7 @@ public Action Cmd_CheckMap(int iClient, int iArgs)
 
 public Action Cmd_Maplist(int iClient, int iArgs)
 {
-	JSON_Array jaMaps = _4saken_Maps();
+	JSON_Array jaMaps = Forsaken_Maps();
 
 	int iLength = jaMaps.Length;
 	for (int index = 0; index < iLength; index += 1)
@@ -134,7 +134,7 @@ public Action Cmd_Maplist(int iClient, int iArgs)
 
 public bool CurrentMapEndGame()
 {
-	JSON_Array jaMaps = _4saken_Maps();
+	JSON_Array jaMaps = Forsaken_Maps();
 
 	int iLength = jaMaps.Length;
 	for (int index = 0; index < iLength; index += 1)

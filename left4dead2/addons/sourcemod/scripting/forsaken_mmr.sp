@@ -1,14 +1,12 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <4saken>
+#include <forsaken>
 #include <colors>
 #include <sourcemod>
 #include <system2>
 #undef REQUIRE_PLUGIN
 #include <readyup>
-
-#define URL_MMR "forsaken-blk.herokuapp.com/login/get/mmr"
 
 ConVar
 	g_cvarSub_URL,
@@ -36,7 +34,7 @@ int g_LastSub[MAXPLAYERS + 1] = { -1, ... };
 
 public Plugin myinfo =
 {
-	name        = "4saken Pugs",
+	name        = "Forsaken MMR",
 	author      = "Drixevel",
 	description = "Manages the 4saken MMR/Teams system.",
 	version     = "1.0.1",
@@ -50,7 +48,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		strcopy(error, err_max, "Plugin only support L4D2 engine");
 	}
 
-	g_sIp = _4saken_GetIp();
+	g_sIp = Forsaken_GetIP();
 	if (StrEqual(g_sIp, "0.0.0.0", false))
 	{
 		strcopy(error, err_max, "ERROR: The server ip was not configured");
@@ -62,13 +60,13 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	LoadTranslation("4saken_mmr.phrases");
+	LoadTranslation("forsaken_mmr.phrases");
 	Database.Connect(OnSQLConnect, "4saken");
 
-	g_cvarDebug   = CreateConVar("sm_4saken_mmr_debug", "0", "Debug messages.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarEnable  = CreateConVar("sm_4saken_mmr_enable", "1", "Activate mmr registration", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarSub_URL = CreateConVar("sm_4saken_mmr_suburl", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
-	g_cvarKValue  = CreateConVar("sm_4saken_mmr_kvalue", "16.0", "What should the KValue be for calculating player MMR values?", FCVAR_NOTIFY, true, 0.0);
+	g_cvarDebug   = CreateConVar("sm_mmr_debug", "0", "Debug messages.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarEnable  = CreateConVar("sm_mmr_enable", "1", "Activate mmr registration", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarSub_URL = CreateConVar("sm_mmr_suburl", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
+	g_cvarKValue  = CreateConVar("sm_mmr_kvalue", "16.0", "What should the KValue be for calculating player MMR values?", FCVAR_NOTIFY, true, 0.0);
 
 	HookEvent("player_death", Event_OnPlayerDeath);
 	HookEvent("round_end", Event_OnRoundEnd);
@@ -76,7 +74,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_sub", Command_Sub, "Call to the website to find a substitute.");
 	RegConsoleCmd("sm_mmr", Command_MMR, "get mmr.");
 
-	AutoExecConfig(false, "4saken");
+	AutoExecConfig(true, "forsaken_mmr");
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientConnected(i))
 			OnClientConnected(i);
@@ -143,7 +141,7 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 
 	g_Database = db;
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Connected to database successfully.");
+		Forsaken_log("Connected to database successfully.");
 
 	char auth[64];
 	for (int i = 1; i <= MaxClients; i++)
@@ -211,14 +209,14 @@ public void OnClientAuthorized(int client, const char[] auth)
 		return;
 
 	char sQuery[256];
-	g_Database.Format(sQuery, sizeof(sQuery), "SELECT u.mmr u.team FROM `l4d2_users` u WHERE `steamid` = '%s';", sSteamID);
+	g_Database.Format(sQuery, sizeof(sQuery), "SELECT u.mmr, u.team FROM `l4d2_users` AS u WHERE `steamid` = '%s';", sSteamID);
 	g_Database.Query(OnParseMMR, sQuery, GetClientUserId(client));
 
 	if (!g_IsTeamGame)
 		return;
 
 	char sQueryTeam[256];
-	g_Database.Format(sQueryTeam, sizeof(sQueryTeam), "SELECT t.mmr FROM `l4d2_teams` t WHERE `id` = '%s';", g_iTeam[client]);
+	g_Database.Format(sQueryTeam, sizeof(sQueryTeam), "SELECT t.mmr FROM `l4d2_teams` AS t WHERE `id` = '%s';", g_iTeam[client]);
 	g_Database.Query(OnParseTeam, sQueryTeam, GetClientUserId(client));
 }
 
@@ -234,6 +232,7 @@ public void OnParseMMR(Database db, DBResultSet results, const char[] error, any
 	if (results.FetchRow())
 	{
 		g_iRating[client] = results.FetchInt(0);
+		g_iTeam[client] = results.FetchInt(1);
 	}
 }
 
@@ -323,7 +322,7 @@ public void Event_OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 		if (!GetClientAuthId(i, AuthId_SteamID64, sSteamID, sizeof(sSteamID)))
 			continue;
 
-		g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_users` SET `mmr`= '%s' WHERE `steamid` = '%s';", g_iRating[i], sSteamID);
+		g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_users` SET `mmr`= '%i' WHERE `steamid` = '%s';", g_iRating[i], sSteamID);
 		g_Database.Query(OnUpdateMMR, sQuery);
 	}
 }

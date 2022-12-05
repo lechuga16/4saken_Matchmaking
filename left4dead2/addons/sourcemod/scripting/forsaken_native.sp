@@ -1,8 +1,8 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <4saken>
-#include <4saken_endgame>
+#include <forsaken>
+#include <forsaken_endgame>
 #include <colors>
 #include <json>
 #include <sourcemod>
@@ -14,32 +14,32 @@
 
 public Plugin myinfo =
 {
-	name        = "4saken Native Testing",
+	name        = "Forsaken Native Testing",
 	author      = "lechuga",
-	description = "Manage the 4saken api",
+	description = "Manage the forsaken api",
 	version     = PLUGIN_VERSION,
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("sm_4saken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	RegConsoleCmd("sm_4saken_native", ForsakenTest);
-	RegConsoleCmd("sm_4saken_endgame", EndgameTest);
+	CreateConVar("sm_native_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	RegConsoleCmd("sm_forsaken_native", ForsakenTest);
+	RegConsoleCmd("sm_forsaken_endgame", EndgameTest);
 }
 
 public Action ForsakenTest(int iClient, int iArgs)
 {
 	char 
-		sSteamIDT1[MAX_PLAYER_TEAM][STEAMID_LENGTH],
-		sSteamIDT2[MAX_PLAYER_TEAM][STEAMID_LENGTH];
+		g_sSteamIDTA[MAX_PLAYER_TEAM][STEAMID_LENGTH],
+		g_sSteamIDTB[MAX_PLAYER_TEAM][STEAMID_LENGTH];
 
-	TypeMatch g_Match = _4saken_TypeMatch();
+	TypeMatch g_Match = Forsaken_TypeMatch();
 
 	for (int i = 0; i <= 3; i++)
 	{
-		_4saken_Team1(i, sSteamIDT1[i], STEAMID_LENGTH);
-		_4saken_Team2(i, sSteamIDT2[i], STEAMID_LENGTH);
+		Forsaken_TeamA(i, g_sSteamIDTA[i], STEAMID_LENGTH);
+		Forsaken_TeamB(i, g_sSteamIDTB[i], STEAMID_LENGTH);
 	}
 
 	CReplyToCommand(iClient, "Region: %d", g_Match);
@@ -47,13 +47,13 @@ public Action ForsakenTest(int iClient, int iArgs)
 	for (int i = 0; i <= 3; i++)
 	{
 		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "Team1 Player %d: %s", iPlayer, sSteamIDT1[i]);
+		CReplyToCommand(iClient, "Team1 Player %d: %s", iPlayer, g_sSteamIDTA[i]);
 	}
 
 	for (int i = 0; i <= 3; i++)
 	{
 		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "Team2 Player %d: %s", iPlayer, sSteamIDT2[i]);
+		CReplyToCommand(iClient, "Team2 Player %d: %s", iPlayer, g_sSteamIDTB[i]);
 	}
 
 	return Plugin_Continue;

@@ -1,8 +1,8 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <4saken>
-#include <4saken_endgame>
+#include <forsaken>
+#include <forsaken_endgame>
 #include <colors>
 #include <sourcemod>
 #include <system2>
@@ -22,7 +22,7 @@ char
 
 public Plugin myinfo =
 {
-	name        = "4saken Manage Reserved Servers",
+	name        = "Forsaken Manage Reserved Servers",
 	author      = "lechuga",
 	description = "Functions that help in booking servers for matchmaking",
 	version     = PLUGIN_VERSION,
@@ -37,7 +37,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 	}
 
-	if(StrEqual(_4saken_GetIp(), "0.0.0.0", false))
+	if(StrEqual(Forsaken_GetIP(), "0.0.0.0", false))
 	{
 		strcopy(error, err_max, "ERROR: The server ip was not configured");
 		return APLRes_Failure;
@@ -48,14 +48,14 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	LoadTranslation("4saken_reserve.phrases");
-	CreateConVar("sm_4saken_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug  = CreateConVar("sm_4saken_reserve_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarEnable = CreateConVar("sm_4saken_reserve_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	LoadTranslation("forsaken_reserve.phrases");
+	CreateConVar("sm_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	g_cvarDebug  = CreateConVar("sm_reserve_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarEnable = CreateConVar("sm_reserve_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 
 	g_iPort = FindConVar("hostport").IntValue;
-	g_sIp = _4saken_GetIp();
-	AutoExecConfig(false, "4saken");
+	g_sIp = Forsaken_GetIP();
+	AutoExecConfig(true, "forsaken_reserve");
 }
 
 public void OnClientPutInServer(int iClient)
@@ -67,9 +67,9 @@ public void OnClientPutInServer(int iClient)
 
 void GetReserve()
 {
-	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_4SAKEN, g_sIp, g_iPort);
+	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_FORSAKEN, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("URL: %s", g_sURL);
+		Forsaken_log("URL: %s", g_sURL);
 
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpReserve, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
@@ -87,7 +87,7 @@ void HttpReserve(bool success, const char[] error, System2HTTPRequest request, S
 
 	if (!success)
 	{
-		_4saken_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
+		Forsaken_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
 		return;
 	}
 
@@ -99,7 +99,7 @@ void HttpReserve(bool success, const char[] error, System2HTTPRequest request, S
 	g_bReserve = view_as<bool>(StringToInt(content, 10));
 	if (g_cvarDebug.BoolValue)
 	{
-		_4saken_log("GET request: %d", g_bReserve);
+		Forsaken_log("GET request: %d", g_bReserve);
 	}
 
 	for (int index = 1; index <= MaxClients; index++)
@@ -112,12 +112,12 @@ void HttpReserve(bool success, const char[] error, System2HTTPRequest request, S
 				{
 					KickClient(index, "%t", "KickMsg");
 					if (g_cvarDebug.BoolValue)
-						_4saken_log("%N was kicked, server without unreserved.", index);
+						Forsaken_log("%N was kicked, server without unreserved.", index);
 				}
 				case true:
 				{
 					if (g_cvarDebug.BoolValue)
-						_4saken_log("%N was allowed in, the server was reserved.", index);
+						Forsaken_log("%N was allowed in, the server was reserved.", index);
 				}
 			}
 		}
@@ -130,12 +130,12 @@ Database Connect()
 	Database db;
 	
 	if (SQL_CheckConfig("4saken"))
-		_4saken_log("The 4saken configuration is not found in databases.cfg");
+		Forsaken_log("The 4saken configuration is not found in databases.cfg");
 
 	db = SQL_Connect("4saken", true, error, sizeof(error));
 	
 	if (db == null)
-		_4saken_log("Could not connect to database: %s", error);
+		Forsaken_log("Could not connect to database: %s", error);
 	
 	return db;
 }
@@ -148,12 +148,12 @@ public void OnEndGame()
 	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", g_sIp, g_iPort);
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Query: %s", sQuery);
+		Forsaken_log("Query: %s", sQuery);
 
 	if (!SQL_FastQuery(dStatus, sQuery))
 	{
 		char error[255];
 		SQL_GetError(dStatus, error, sizeof(error));
-		_4saken_log("Failed to query (error: %s)", error);
+		Forsaken_log("Failed to query (error: %s)", error);
 	}
 }

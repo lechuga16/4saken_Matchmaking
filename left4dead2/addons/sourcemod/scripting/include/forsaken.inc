@@ -16,12 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined _4saken_included
+#if defined _forsaken_included
   #endinput
 #endif
-#define _4saken_included
+#define _forsaken_included
 
-#include <4saken_stocks>
+
+#include <forsaken_stocks>
 
 /**
  * Logs a message to 4saken file.  The log message will be in the normal
@@ -30,14 +31,14 @@
  * @param ...           Variable number of format parameters.
  * @noreturn
  */
-native void _4saken_log(const char[] format, any ...);
+native void Forsaken_log(const char[] format, any ...);
 
 /**
  * Gets the type of match broadcast on 4saken.us
  *
  * @return An integer, -1 is that information is not yet obtained
  */
-native TypeMatch _4saken_TypeMatch();
+native TypeMatch Forsaken_TypeMatch();
 
 /**
  * Gets the steamid of the players that are assigned to Team 1
@@ -47,7 +48,7 @@ native TypeMatch _4saken_TypeMatch();
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void _4saken_Team1(int index, char[] buffer, int maxlength);
+native void Forsaken_TeamA(int index, char[] buffer, int maxlength);
 
 /**
  * Gets the steamid of the players that are assigned to Team 2
@@ -57,12 +58,12 @@ native void _4saken_Team1(int index, char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void _4saken_Team2(int index, char[] buffer, int maxlength);
+native void Forsaken_TeamB(int index, char[] buffer, int maxlength);
 
 public SharedPlugin __pl_4saken =
 {
-    name = "4saken",
-    file = "4saken.smx",
+    name = "forsaken",
+    file = "forsaken.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else
@@ -71,11 +72,11 @@ public SharedPlugin __pl_4saken =
 };
 
 #if !defined REQUIRE_PLUGIN
-public __pl_4saken_SetNTVOptional()
+public __pl_forsaken_SetNTVOptional()
 {
-    MarkNativeAsOptional("_4saken_log");
-    MarkNativeAsOptional("_4saken_TypeMatch");
-    MarkNativeAsOptional("_4saken_Team1");
-    MarkNativeAsOptional("_4saken_Team2");
+    MarkNativeAsOptional("Forsaken_log");
+    MarkNativeAsOptional("Forsaken_TypeMatch");
+    MarkNativeAsOptional("forsaken_Team1");
+    MarkNativeAsOptional("Forsaken_TeamB");
 }
 #endif

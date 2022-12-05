@@ -16,7 +16,7 @@ any Native_Log(Handle plugin, int numParams)
 		sFilename[64],
 		sBuffer[PLATFORM_MAX_PATH],
 		sLogPath[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/4saken.log");
+	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/forsaken.log");
 	GetPluginBasename(plugin, sFilename, sizeof(sFilename));
 	FormatNativeString(0, 1, 2, sizeof(sBuffer), _, sBuffer);
 	LogToFileEx(sLogPath, "[%s] %s", sFilename, sBuffer);
@@ -47,7 +47,7 @@ any Native_Team1(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_sSteamIDT1[index], maxlen);
+	SetNativeString(2, g_sSteamIDTA[index], maxlen);
 	return 0;
 }
 
@@ -65,6 +65,6 @@ any Native_Team2(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_sSteamIDT2[index], maxlen);
+	SetNativeString(2, g_sSteamIDTB[index], maxlen);
 	return 0;
 }

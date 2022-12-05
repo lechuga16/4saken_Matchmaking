@@ -95,7 +95,7 @@ public void OnChargerLevelHurt(int survivor, int charger, int damage)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Charger-Level Hurt | Survivor:%N Charger:%N Damage:%d", survivor, charger, damage);
+		Forsaken_log("Skill detected | Charger-Level Hurt | Survivor:%N Charger:%N Damage:%d", survivor, charger, damage);
 
 	char
 		sSteamID[64],
@@ -129,7 +129,7 @@ public void OnWitchCrown(int survivor, int damage)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d", survivor, damage);
+		Forsaken_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d", survivor, damage);
 
 	char
 		sSteamID[64],
@@ -158,7 +158,7 @@ public void OnWitchCrownHurt(int survivor, int damage, int chipdamage)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d Chip:%d", survivor, damage, chipdamage);
+		Forsaken_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d Chip:%d", survivor, damage, chipdamage);
 
 	char
 		sSteamID[64],
@@ -186,7 +186,7 @@ public void OnSmokerSelfClear(int survivor, int smoker, bool withShove)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | SmokerSelfClear | Survivor:%N Smoker:%N Shove:%d", survivor, smoker, view_as<int>(withShove));
+		Forsaken_log("Skill detected | SmokerSelfClear | Survivor:%N Smoker:%N Shove:%d", survivor, smoker, view_as<int>(withShove));
 
 	char
 		sSteamID[64],
@@ -220,7 +220,7 @@ public void OnJockeyHighPounce(int jockey, int victim, float height, bool report
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | JockeyHighPounce | Survivor:%N Jockey:%N Height:%.1f ReportedHigh:%d", victim, jockey, height, view_as<int>(reportedHigh));
+		Forsaken_log("Skill detected | JockeyHighPounce | Survivor:%N Jockey:%N Height:%.1f ReportedHigh:%d", victim, jockey, height, view_as<int>(reportedHigh));
 
 	char
 		sSteamID[64],
@@ -254,7 +254,7 @@ public void OnDeathCharge(int charger, int survivor, float height, float distanc
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | DeathCharger | Survivor:%N Charger:%N Height:%.1f Distance:%.1f Carried:%d", survivor, charger, height, distance, view_as<int>(wasCarried));
+		Forsaken_log("Skill detected | DeathCharger | Survivor:%N Charger:%N Height:%.1f Distance:%.1f Carried:%d", survivor, charger, height, distance, view_as<int>(wasCarried));
 
 	char
 		sSteamID[64],
@@ -288,7 +288,7 @@ public void OnBoomerVomitLanded(int boomer, int amount)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | BoomerVomitLanded | Boomer:%N Amount:%d ", boomer, amount);
+		Forsaken_log("Skill detected | BoomerVomitLanded | Boomer:%N Amount:%d ", boomer, amount);
 
 	char
 		sSteamID[64],
@@ -316,7 +316,7 @@ public void OnSpecialShoved(int survivor, int infected, int zombieClass)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | SpecialShoved | Survivor:%N Infected:%N ZombieClass:%s", survivor, infected, L4D2ZombieClassname[zombieClass])
+		Forsaken_log("Skill detected | SpecialShoved | Survivor:%N Infected:%N ZombieClass:%s", survivor, infected, L4D2ZombieClassname[zombieClass])
 
 	char
 		sSteamID[64],
@@ -350,7 +350,7 @@ public void OnBunnyHopStreak(int survivor, int streak, float maxVelocity)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | BunnyHopStreak | Survivor:%N Streak:%d MaxVelocity:%.1f", survivor, streak, maxVelocity)
+		Forsaken_log("Skill detected | BunnyHopStreak | Survivor:%N Streak:%d MaxVelocity:%.1f", survivor, streak, maxVelocity)
 
 	char
 		sSteamID[64],
@@ -378,7 +378,7 @@ public void OnCarAlarmTriggered(int survivor, int infected, CarAlarmTriggerReaso
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | CarAlarmTriggered | Survivor:%N Infected:%N CarAlarmTriggerReason:%s", survivor, infected, reason)
+		Forsaken_log("Skill detected | CarAlarmTriggered | Survivor:%N Infected:%N CarAlarmTriggerReason:%s", survivor, infected, reason)
 
 	char
 		sSteamID[64],
@@ -412,7 +412,7 @@ public void OnBoomerPop(int survivor, int boomer, int shoveCount, float timeAliv
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | BoomerPop | Survivor:%N Boomer:%N ShoveCount:%d TimeAlive:%.1f", survivor, boomer, shoveCount, timeAlive)
+		Forsaken_log("Skill detected | BoomerPop | Survivor:%N Boomer:%N ShoveCount:%d TimeAlive:%.1f", survivor, boomer, shoveCount, timeAlive)
 
 	char
 		sSteamID[64],
@@ -446,7 +446,7 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | SpecialClear | Clearer:%N Pinner:%N PinVictim:%N ZombieClass:%s TimeA:%.1f TimeB:%.1f WithShove:%s", clearer, pinner, pinvictim, L4D2ZombieClassname[zombieClass], timeA, timeB, withShove, view_as<char>(withShove))
+		Forsaken_log("Skill detected | SpecialClear | Clearer:%N Pinner:%N PinVictim:%N ZombieClass:%s TimeA:%.1f TimeB:%.1f WithShove:%s", clearer, pinner, pinvictim, L4D2ZombieClassname[zombieClass], timeA, timeB, withShove, view_as<char>(withShove))
 
 	char
 		sSteamID[64],
@@ -486,7 +486,7 @@ public void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | HunterHighPounce | Survivor:%N Hunter:%N ActualDamage:%d ZombieClass:%s CalculatedDamage:%.1f Height:%.1f ReportedHigh:%d", survivor, hunter, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh))
+		Forsaken_log("Skill detected | HunterHighPounce | Survivor:%N Hunter:%N ActualDamage:%d ZombieClass:%s CalculatedDamage:%.1f Height:%.1f ReportedHigh:%d", survivor, hunter, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh))
 
 	char
 		sSteamID[64],

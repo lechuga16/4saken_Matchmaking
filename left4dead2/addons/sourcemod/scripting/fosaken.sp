@@ -1,7 +1,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <4saken>
+#include <forsaken>
 #include <colors>
 #include <json>
 #include <Regex>
@@ -15,8 +15,8 @@ ConVar
 	g_cvarDebug;
 
 char
-	g_sSteamIDT1[MAX_PLAYER_TEAM][STEAMID_LENGTH],
-	g_sSteamIDT2[MAX_PLAYER_TEAM][STEAMID_LENGTH],
+	g_sSteamIDTA[MAX_PLAYER_TEAM][STEAMID_LENGTH],
+	g_sSteamIDTB[MAX_PLAYER_TEAM][STEAMID_LENGTH],
 	g_sURL[256];
 
 int
@@ -25,7 +25,7 @@ int
 
 public Plugin myinfo =
 {
-	name        = "4saken Core",
+	name        = "Forsaken Core",
 	author      = "lechuga",
 	description = "Manage the 4saken api",
 	version     = PLUGIN_VERSION,
@@ -43,20 +43,20 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	}
 
 	// Native
-	CreateNative("_4saken_log", Native_Log);
-	CreateNative("_4saken_TypeMatch", Native_TypeMatch);
-	CreateNative("_4saken_Team1", Native_Team1);
-	CreateNative("_4saken_Team2", Native_Team2);
-	RegPluginLibrary("4saken");
+	CreateNative("Forsaken_log", Native_Log);
+	CreateNative("Forsaken_TypeMatch", Native_TypeMatch);
+	CreateNative("Forsaken_TeamA", Native_Team1);
+	CreateNative("Forsaken_TeamB", Native_Team2);
+	RegPluginLibrary("forsaken");
 	return APLRes_Success;
 }
 
 public void OnPluginStart()
 {
-	CreateConVar("sm_4saken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug = CreateConVar("sm_4saken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
-	RegConsoleCmd("sm_4saken_showip", ShowIP, "Get ip and port server");
-	AutoExecConfig(true, "4saken");
+	CreateConVar("sm_forsaken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	g_cvarDebug = CreateConVar("sm_forsaken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
+	RegConsoleCmd("sm_forsaken_showip", ShowIP, "Get ip and port server");
+	AutoExecConfig(true, "forsaken");
 
 	g_iPort = FindConVar("hostport").IntValue;
 	JSON_Check();
@@ -66,19 +66,19 @@ public void OnPluginStart()
 /*****************************************************************
             L I B R A R Y   I N C L U D E S
 *****************************************************************/
-#include "4saken/4saken_native.sp"
-#include "4saken/4saken_web.sp"
+#include "forsaken/forsaken_native.sp"
+#include "forsaken/forsaken_web.sp"
 
 bool JSON_Check()
 {
 	char sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.json");
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/forsaken/IP.json");
 
 	if (FileExists(sPatch))
 		return true;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("4saken.json: Not found");
+		Forsaken_log("IP.json: Not found");
 
 	JSON_Create();
 	return false;
@@ -93,17 +93,17 @@ public void JSON_Create()
 	JoIp.SetString("IP", "0.0.0.0");
 	JoIp.Encode(output, sizeof(output));
 
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/4saken.json");
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/forsaken/IP.json");
 	json_write_to_file(JoIp, sPatch, JSON_ENCODE_PRETTY);
 	json_cleanup_and_delete(JoIp);
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("4saken.json: Created !");
+		Forsaken_log("IP.json: Created !");
 }
 
 public Action ShowIP(int iClient, int iArgs)
 {
 	if (iArgs != 0)
-		CReplyToCommand(iClient, "Usage: sm_4saken_showip");
-	CReplyToCommand(iClient, "ServerIP: {green}%s{default}:{green}%d{default}", _4saken_GetIp(), FindConVar("hostport").IntValue);
+		CReplyToCommand(iClient, "Usage: sm_forsaken_showip");
+	CReplyToCommand(iClient, "ServerIP: {green}%s{default}:{green}%d{default}", Forsaken_GetIP(), FindConVar("hostport").IntValue);
 	return Plugin_Handled;
 }

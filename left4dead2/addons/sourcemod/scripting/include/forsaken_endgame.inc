@@ -16,10 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined _4saken_endgame_included
+#if defined _forsaken_endgame_included
   #endinput
 #endif
-#define _4saken_endgame_included
+#define _forsaken_endgame_included
 
 /**
  * Called when the round_end event starts.
@@ -35,10 +35,10 @@ forward void OnEndGame();
  */
 native bool IsEndGame();
 
-public SharedPlugin __pl_4saken_endgame =
+public SharedPlugin __pl_forsaken_endgame =
 {
-    name = "4saken_endgame",
-    file = "4saken_endgame.smx",
+    name = "forsaken_endgame",
+    file = "forsaken_endgame.smx",
 #if defined REQUIRE_PLUGIN
     required = 1,
 #else

@@ -39,7 +39,7 @@ public void OnSkeet(int survivor, int hunter)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Skeet | Survivor:%N Hunter:%N", survivor, hunter);
+		Forsaken_log("Skill detected | Skeet | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -66,7 +66,7 @@ public void OnSkeetMelee(int survivor, int hunter)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Skeet-Melee | Survivor:%N Hunter:%N", survivor, hunter);
+		Forsaken_log("Skill detected | Skeet-Melee | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -93,7 +93,7 @@ public void OnSkeetGL(int survivor, int hunter)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Skeet Granate Laucher | Survivor:%N Hunter:%N", survivor, hunter);
+		Forsaken_log("Skill detected | Skeet Granate Laucher | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -120,7 +120,7 @@ public void OnSkeetSniper(int survivor, int hunter)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Skeet-Sniper | Survivor:%N Hunter:%N", survivor, hunter);
+		Forsaken_log("Skill detected | Skeet-Sniper | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -147,7 +147,7 @@ public void OnChargerLevel(int survivor, int charger)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Charger-Level | Survivor:%N Charger:%N", survivor, charger);
+		Forsaken_log("Skill detected | Charger-Level | Survivor:%N Charger:%N", survivor, charger);
 
 	char
 		sSteamID[64],
@@ -174,7 +174,7 @@ public void OnHunterDeadstop(int survivor, int hunter)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Hunter-Deadstop | Survivor:%N Hunter:%N", survivor, hunter);
+		Forsaken_log("Skill detected | Hunter-Deadstop | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -201,7 +201,7 @@ public void OnTongueCut(int survivor, int smoker)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Tongue-Cut | Survivor:%N Smoker:%N", survivor, smoker);
+		Forsaken_log("Skill detected | Tongue-Cut | Survivor:%N Smoker:%N", survivor, smoker);
 
 	char
 		sSteamID[64],
@@ -228,7 +228,7 @@ public void OnTankRockSkeeted(int survivor, int tank)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Tank Skeet-Rock | Survivor:%N Tank:%N", survivor, tank);
+		Forsaken_log("Skill detected | Tank Skeet-Rock | Survivor:%N Tank:%N", survivor, tank);
 
 	char
 		sSteamID[64],
@@ -255,7 +255,7 @@ public void OnTankRockEaten(int tank, int survivor)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("Skill detected | Tank Skeet-Rock Eaten | Survivor:%N Tank:%N", survivor, tank);
+		Forsaken_log("Skill detected | Tank Skeet-Rock Eaten | Survivor:%N Tank:%N", survivor, tank);
 
 	char
 		sSteamID[64],

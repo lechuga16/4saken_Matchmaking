@@ -5,9 +5,9 @@
 
 void GetMatch()
 {
-	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_4SAKEN_MATCH, _4saken_GetIp(), g_iPort);
+	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_FORSAKEN_MATCH, Forsaken_GetIP(), g_iPort);
 	if (g_cvarDebug.BoolValue)
-		_4saken_log("GetMatch URL: %s", g_sURL);
+		Forsaken_log("GetMatch URL: %s", g_sURL);
 
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpMatchInfo, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
@@ -31,7 +31,7 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 
 	if (!success)
 	{
-		_4saken_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
+		Forsaken_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
 		return;
 	}
 
@@ -47,10 +47,10 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 	arrTeam2 = view_as<JSON_Array>(jsMatch.GetObject("team2"));
 	for (int i = 0; i <= 3; i++)
 	{
-		arrTeam1.GetString(i, g_sSteamIDT1[i], STEAMID_LENGTH);
-		ReplaceString(g_sSteamIDT1[i], STEAMID_LENGTH, "STEAM_0", "STEAM_1", false);
+		arrTeam1.GetString(i, g_sSteamIDTA[i], STEAMID_LENGTH);
+		ReplaceString(g_sSteamIDTA[i], STEAMID_LENGTH, "STEAM_0", "STEAM_1", false);
 
-		arrTeam2.GetString(i, g_sSteamIDT2[i], STEAMID_LENGTH);
-		ReplaceString(g_sSteamIDT2[i], STEAMID_LENGTH, "STEAM_0", "STEAM_1", false);
+		arrTeam2.GetString(i, g_sSteamIDTB[i], STEAMID_LENGTH);
+		ReplaceString(g_sSteamIDTB[i], STEAMID_LENGTH, "STEAM_0", "STEAM_1", false);
 	}
 }
