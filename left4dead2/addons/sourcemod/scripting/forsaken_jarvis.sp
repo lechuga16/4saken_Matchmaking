@@ -1,12 +1,11 @@
 
 #define _4saken_stocks_left4dhooks_included 1
-#include <forsaken>
 #include <colors>
+#include <forsaken>
 #include <json>
+#include <left4dhooks>
 #include <sourcemod>
 #include <system2>
-#include <system2>
-#include <left4dhooks>
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #include <readyup>
@@ -34,7 +33,7 @@ int
 	g_iPointsTeamB = 0;
 bool
 	g_bHasTransitioned = false,
-	g_bDirectionTeam = true;
+	g_bDirectionTeam   = true;
 
 public Plugin myinfo =
 {
@@ -43,6 +42,7 @@ public Plugin myinfo =
 	description = "Handle the endgame",
 	version     = PLUGIN_VERSION,
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
+
 
 }
 
