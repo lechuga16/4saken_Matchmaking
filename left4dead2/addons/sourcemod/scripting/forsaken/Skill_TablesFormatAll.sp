@@ -119,7 +119,7 @@ public void OnChargerLevelHurt(int survivor, int charger, int damage)
 void QueryChargerLevelHurt(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int damage)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, damage) VALUES ('%s', '%N', '%N', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, damage);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, damage) VALUES ('%s', '%s', '%s', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, damage);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -148,7 +148,7 @@ public void OnWitchCrown(int survivor, int damage)
 void QueryWitchCrown(int iTable, const char[] sMapName, const char[] sSteamID, int damage)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, damage) VALUES ('%s', '%N', '%d');", sTFormatAll[iTable], sMapName, sSteamID, damage);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, damage) VALUES ('%s', '%s', '%d');", sTFormatAll[iTable], sMapName, sSteamID, damage);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -176,7 +176,7 @@ public void OnWitchCrownHurt(int survivor, int damage, int chipdamage)
 void QueryWitchCrownHurt(int iTable, const char[] sMapName, const char[] sSteamID, int damage, int chipdamage)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, damage, chip) VALUES ('%s', '%N', '%d', '%d');", sTFormatAll[iTable], sMapName, sSteamID, damage, chipdamage);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, damage, chip) VALUES ('%s', '%s', '%d', '%d');", sTFormatAll[iTable], sMapName, sSteamID, damage, chipdamage);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -210,7 +210,7 @@ public void OnSmokerSelfClear(int survivor, int smoker, bool withShove)
 void QuerySmokerSelfClear(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, bool withShove)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, withShove) VALUES ('%s', '%N', '%N', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, view_as<int>(withShove));
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, withShove) VALUES ('%s', '%s', '%s', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, view_as<int>(withShove));
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -244,7 +244,7 @@ public void OnJockeyHighPounce(int jockey, int victim, float height, bool report
 void QueryJockeyHighPounce(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, float height, bool reportedHigh)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, height, reportedHigh) VALUES ('%s', '%N', '%N', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, height, view_as<int>(reportedHigh));
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, height, reportedHigh) VALUES ('%s', '%s', '%s', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, height, view_as<int>(reportedHigh));
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -278,7 +278,7 @@ public void OnDeathCharge(int charger, int survivor, float height, float distanc
 QueryDeathCharge(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, float height, float distance, bool wasCarried)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, height, distance, wasCarried) VALUES ('%s', '%N', '%N', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, height, distance, view_as<int>(wasCarried));
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, height, distance, wasCarried) VALUES ('%s', '%s', '%s', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, height, distance, view_as<int>(wasCarried));
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -306,7 +306,7 @@ public void OnBoomerVomitLanded(int boomer, int amount)
 QueryBoomerVomitLanded(int iTable, const char[] sMapName, const char[] sSteamID, int amount)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, infected, amount) VALUES ('%s', '%N', '%d');", sTFormatAll[iTable], sMapName, sSteamID, amount);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, infected, amount) VALUES ('%s', '%s', '%d');", sTFormatAll[iTable], sMapName, sSteamID, amount);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -340,7 +340,7 @@ public void OnSpecialShoved(int survivor, int infected, int zombieClass)
 QuerySpecialShoved(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int zombieClass)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, infected, amount) VALUES ('%s', '%N', '%N', '%s');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, L4D2ZombieClassname[zombieClass]);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, infected, amount) VALUES ('%s', '%s', '%s', '%s');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, L4D2ZombieClassname[zombieClass]);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -368,7 +368,7 @@ public void OnBunnyHopStreak(int survivor, int streak, float maxVelocity)
 QueryBunnyHopStreak(int iTable, const char[] sMapName, const char[] sSteamID, int streak, float maxVelocity)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, streak, maxvelocity) VALUES ('%s', '%N', '%d', '%.1f');", sTFormatAll[iTable], sMapName, sSteamID, streak, maxVelocity);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, streak, maxvelocity) VALUES ('%s', '%s', '%d', '%.1f');", sTFormatAll[iTable], sMapName, sSteamID, streak, maxVelocity);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -402,7 +402,7 @@ public void OnCarAlarmTriggered(int survivor, int infected, CarAlarmTriggerReaso
 QueryCarAlarmTriggered(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, CarAlarmTriggerReason reason)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, CarAlarmTriggerReason) VALUES ('%s', '%N', '%N', '%s');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, reason);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, CarAlarmTriggerReason) VALUES ('%s', '%s', '%s', '%s');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, reason);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -436,7 +436,7 @@ public void OnBoomerPop(int survivor, int boomer, int shoveCount, float timeAliv
 QueryBoomerPop(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int shoveCount, float timeAlive)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, shoveCount, timeAlive) VALUES ('%s', '%N', '%N', '%d', '%.1f');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, shoveCount, timeAlive);
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, shoveCount, timeAlive) VALUES ('%s', '%s', '%s', '%d', '%.1f');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, shoveCount, timeAlive);
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -476,7 +476,7 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 QuerySpecialClear(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, const char[] sSteamID3, int zombieClass, float timeA, float timeB, bool withShove)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, clearer, pinner, pinvictim, zombieclass, timeA, timeB, withShove) VALUES ('%s', '%N', '%N', '%N', '%s', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, sSteamID3, L4D2ZombieClassname[zombieClass], timeA, timeB, view_as<int>(withShove));
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, clearer, pinner, pinvictim, zombieclass, timeA, timeB, withShove) VALUES ('%s', '%s', '%s', '%s', '%s', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, sSteamID3, L4D2ZombieClassname[zombieClass], timeA, timeB, view_as<int>(withShove));
 	g_Database.Query(OnUpdateTable, sQuery);
 }
 
@@ -510,6 +510,6 @@ public void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float
 QueryHunterHighPounce(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int actualDamage, float calculatedDamage, float height, bool reportedHigh)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, actualDamage, calculatedDamage, height, reportedHigh) VALUES ('%s', '%N', '%N', '%d', '%s', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh));
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, actualDamage, calculatedDamage, height, reportedHigh) VALUES ('%s', '%s', '%s', '%d', '%s', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh));
 	g_Database.Query(OnUpdateTable, sQuery);
 }
