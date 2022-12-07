@@ -220,6 +220,9 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
 
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
+	if(!g_cvarDebug.BoolValue)
+	return;
+
 	int	winner = event.GetInt("winner");
 	int	reason = event.GetInt("reason");
 	char message[64];
