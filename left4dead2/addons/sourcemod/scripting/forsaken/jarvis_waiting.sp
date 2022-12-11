@@ -8,7 +8,16 @@ public void WaitingPlayers()
 	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
 		return;
 
-	CreateTimer(30.0, Timer_PrintMessageFiveTimes, _, TIMER_REPEAT);
+	g_hTimerWait = CreateTimer(30.0, Timer_PrintMessageFiveTimes, _, TIMER_REPEAT);
+}
+
+public void OnRoundIsLive()
+{
+	if(g_hTimerWait != null)
+		KillTimer(g_hTimerWait);
+	
+	if(g_cvarDebug.BoolValue)
+		CPrintToChatAll("KillTimer(g_hTimerWait)");
 }
 
 public Action Timer_PrintMessageFiveTimes(Handle timer)

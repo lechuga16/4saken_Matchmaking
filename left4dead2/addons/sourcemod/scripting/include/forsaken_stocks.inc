@@ -43,14 +43,37 @@ enum TypeMatch
 	unranked = 4,
 	scrims   = 5
 
-}
+};
 
 enum ForsakenTeam
 {
 	Team0 = 0,
 	Team1 = 1,
 	Team2 = 2,
-}
+};
+
+// ==================================================
+// Array
+// ==================================================
+
+stock char sTypeMatch[TypeMatch][32] =
+{
+	"invalid",
+	"scout",
+	"adept",
+	"veteran",
+	"unranked",
+	"scrims"
+
+};
+
+stock char sL4DTeam[L4DTeam][8] =
+{
+	"L4DTeam_Unassigned",
+	"L4DTeam_Spectator",
+	"L4DTeam_Survivor",
+	"L4DTeam_Infected"
+};
 
 // ==================================================
 // FUNCTIONS

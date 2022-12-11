@@ -3,92 +3,31 @@
 #endif
 #define _jarvis_teams_included
 
-
-public void OnMapStart()
+public void Teams()
 {
-	//Set scores after a modified transition
-	if (g_bHasTransitioned) {
-		CreateTimer(1.0, Timer_OnMapStartDelay, _, TIMER_FLAG_NO_MAPCHANGE); //Clients have issues connecting if team swap happens exactly on map start, so we delay it
-		g_bHasTransitioned = false;
-	}
-}
+	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
+		return;
 
-public Action Timer_OnMapStartDelay(Handle hTimer)
-{
-	if (g_iPointsTeamA < g_iPointsTeamB)
-		TeamManagement(true);
-
-	if (g_iPointsTeamA > g_iPointsTeamB)
-		g_bDirectionTeam = TeamManagement(false);
-
-	return Plugin_Stop;
-}
-
-public void OnMapEnd()
-{
-	//In case map is force-chenged before custom transition takes place
-	if (g_hTransitionTimer != null)
-	{
-		g_bHasTransitioned = false;
-		delete g_hTransitionTimer;
-	}
-}
-
-public void L4D2_OnEndVersusModeRound_Post()
-{
-	if (InSecondHalfOfRound())
-		g_hTransitionTimer = CreateTimer(15.0, OnRoundEnd_Post);
-}
-
-public Action OnRoundEnd_Post(Handle hTimer)
-{
-	g_hTransitionTimer = null;
-	g_bHasTransitioned = true;
-
-	g_iPointsTeamA = L4D2Direct_GetVSCampaignScore(0);
-	g_iPointsTeamB = L4D2Direct_GetVSCampaignScore(1);
-
-	return Plugin_Stop;
+	g_hTimerOT = CreateTimer(2.0, OrganizeTeams, _, TIMER_REPEAT);
 }
 
 public void CheckTeam(int iClient)
 {
 	ForsakenTeam ClientTeam = IsForsakenTeam(iClient);
 
-	if(InSecondHalfOfRound())
-	{// second round
-		switch (ClientTeam)
+	switch (ClientTeam)
+	{
+		case Team0:
 		{
-			case Team0:
-			{
-				ChangeClientTeamEx(iClient, L4DTeam_Spectator);
-			}
-			case Team1:
-			{
-				ChangeClientTeamEx(iClient, L4DTeam_Infected);
-			}
-			case Team2:
-			{
-				ChangeClientTeamEx(iClient, L4DTeam_Survivor);
-			}
+			ChangeClientTeamEx(iClient, L4DTeam_Spectator);
 		}
-	}
-	else
-	{// first round
-		switch (ClientTeam)
+		case Team1:
 		{
-			case Team0:
-			{
-				ChangeClientTeamEx(iClient, L4DTeam_Spectator);
-			}
-			case Team1:
-			{
-				ChangeClientTeamEx(iClient, L4DTeam_Survivor);
-			}
-			case Team2:
-			{
-				ChangeClientTeamEx(iClient, L4DTeam_Infected);
-			}
+			ChangeClientTeamEx(iClient, L4DTeam_Survivor);
+		}
+		case Team2:
+		{
+			ChangeClientTeamEx(iClient, L4DTeam_Infected);
 		}
 	}
 }
@@ -133,16 +72,22 @@ stock bool ChangeClientTeamEx(int client, L4DTeam team)
 {
 	if (GetClientTeamEx(client) == team)
 		return true;
+
 	else if (GetTeamHumanCount(team) == GetTeamMaxHumans(team))
 		return false;
 
 	if (team != L4DTeam_Survivor)
 	{
 		ChangeClientTeam(client, view_as<int>(team));
+		if(g_cvarDebug.BoolValue)
+			CPrintToChatAll("Client: %N | Team: %s", client, sL4DTeam[team]);
 		return true;
 	}
 	else
 	{
+		if(g_cvarDebug.BoolValue)
+			CPrintToChatAll("Client: %N | Team: %s", client, sL4DTeam[team]);
+			
 		int bot = FindSurvivorBot();
 		if (bot > 0)
 		{
@@ -207,40 +152,19 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
 	char sSteamID[32];
 	GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID));
 
+	bool iTeamIndex = L4D2_AreTeamsFlipped();
+
 	for (int i = 0; i <= 4; i++)
 	{
 		if (StrEqual(sSteamID, g_sSteamIDTA[i], false))
-			return TeamManagement(false) ? Team1 : Team2;
+		{
+			return iTeamIndex ? Team2 : Team1;
+		}
 
 		if (StrEqual(sSteamID, g_sSteamIDTB[i], false))
-			return TeamManagement(false) ? Team2 : Team1;
+		{
+			return iTeamIndex ? Team1 : Team2;
+		}
 	}
 	return Team0;
-}
-
-public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
-{
-	if(!g_cvarDebug.BoolValue)
-	return;
-
-	int	winner = event.GetInt("winner");
-	int	reason = event.GetInt("reason");
-	char message[64];
-	event.GetString("message", message, 64);
-	float time = event.GetFloat("time");
-	CPrintToChatAll("winner: %d", winner);
-	CPrintToChatAll("reason: %d", reason);
-	CPrintToChatAll("message: %s", message);
-	CPrintToChatAll("time: %.3f", time);
-}
-
-
-bool TeamManagement(bool ChangeDirection)
-{
-// if ChangeDirection is true, reverse the order, if false, just retrieve the existing value
-	if(ChangeDirection)
-		g_bDirectionTeam = !g_bDirectionTeam
-
-// true, maintains the correct order. false, reverse the order
-	return g_bDirectionTeam;
 }

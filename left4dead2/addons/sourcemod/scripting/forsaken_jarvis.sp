@@ -21,19 +21,15 @@ ConVar
 	g_cvarEnable,
 	survivor_limit,
 	z_max_player_zombies;
-
 char
 	g_sSteamIDTA[MAX_PLAYER_TEAM][STEAMID_LENGTH],
 	g_sSteamIDTB[MAX_PLAYER_TEAM][STEAMID_LENGTH];
 Handle
 	g_hTimerOT,
-	g_hTransitionTimer;
+	g_hTimerWait;
 int
 	g_iPointsTeamA = 0,
 	g_iPointsTeamB = 0;
-bool
-	g_bHasTransitioned = false,
-	g_bDirectionTeam   = true;
 
 public Plugin myinfo =
 {
@@ -42,8 +38,6 @@ public Plugin myinfo =
 	description = "Handle the endgame",
 	version     = PLUGIN_VERSION,
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
-
-
 }
 
 public APLRes
@@ -67,21 +61,19 @@ public void OnPluginStart()
 	g_cvarDebug  = CreateConVar("sm_jarvis_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarEnable = CreateConVar("sm_jarvis_enable", "1", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 
-	RegConsoleCmd("sm_jarvis_isplayer", isplayer);
-	RegConsoleCmd("sm_jarvis_deleteOT", deleteOT);
-	RegConsoleCmd("sm_jarvis_adduser", adduser);
-	RegConsoleCmd("sm_jarvis_direction", direction);
+	RegConsoleCmd("sm_jarvis_checkteams", CheckTeams);
+	RegConsoleCmd("sm_jarvis_deleteOT", DeleteOT);
+	RegConsoleCmd("sm_jarvis_adduser", AddUser);
+	RegConsoleCmd("sm_jarvis_pointsteam", PointsTeam);
 	RegConsoleCmd("sm_jarvis_listplayers", ListPlayers);
+
 	survivor_limit       = FindConVar("survivor_limit");
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
-	HookEvent("round_end", Event_RoundEnd);
 	PreMatch();
 	WaitingPlayers();
-	if (g_cvarEnable.BoolValue && LGO_IsMatchModeLoaded())
-		g_hTimerOT = CreateTimer(2.0, OrganizeTeams, _, TIMER_REPEAT);
-
+	Teams();
 	AutoExecConfig(true, "forsaken_jarvis");
 }
 
@@ -92,11 +84,17 @@ public void OnPluginStart()
 #include "forsaken/jarvis_teams.sp"
 #include "forsaken/jarvis_waiting.sp"
 
-public Action isplayer(int iClient, int iArgs)
+public Action CheckTeams(int iClient, int iArgs)
 {
+	if (iClient == 0)
+	{
+		CReplyToCommand(iClient, "No se puede usar desde consola");
+		return Plugin_Handled;
+	}
+
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_isplayer");
+		CReplyToCommand(iClient, "Usage: sm_jarvis_checkteams");
 		return Plugin_Handled;
 	}
 
@@ -104,20 +102,27 @@ public Action isplayer(int iClient, int iArgs)
 	return Plugin_Continue;
 }
 
-public Action direction(int iClient, int iArgs)
+public Action PointsTeam(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_direction");
+		CReplyToCommand(iClient, "Usage: sm_jarvis_pointsteam");
 		return Plugin_Handled;
 	}
 
-	TeamManagement(false);
-	CReplyToCommand(iClient, "Direcion: %s", TeamManagement(false) ? "normal" : "invertido");
+	int SurvivorTeamIndex = L4D2_AreTeamsFlipped();
+	int InfectedTeamIndex = !L4D2_AreTeamsFlipped();
+
+	g_iPointsTeamA = L4D2Direct_GetVSCampaignScore(SurvivorTeamIndex);
+	g_iPointsTeamB = L4D2Direct_GetVSCampaignScore(InfectedTeamIndex);
+
+	CReplyToCommand(iClient, "L4D2_AreTeamsFlipped: %s", L4D2_AreTeamsFlipped() ? "True" : "False");
+	CReplyToCommand(iClient, "Points TeamA: %d | TeamB: %d", g_iPointsTeamA, g_iPointsTeamB);
+
 	return Plugin_Continue;
 }
 
-public Action deleteOT(int iClient, int iArgs)
+public Action DeleteOT(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
@@ -130,8 +135,14 @@ public Action deleteOT(int iClient, int iArgs)
 	return Plugin_Continue;
 }
 
-public Action adduser(int iClient, int iArgs)
+public Action AddUser(int iClient, int iArgs)
 {
+	if (iClient == 0)
+	{
+		CReplyToCommand(iClient, "No se puede usar desde consola");
+		return Plugin_Handled;
+	}
+
 	if (iArgs == 0 || iArgs >= 2)
 	{
 		CReplyToCommand(iClient, "Usage: sm_jarvis_adduser <#team> (1:survi|2:infect)");
@@ -164,17 +175,29 @@ public Action ListPlayers(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
+	CReplyToCommand(iClient, "Lobby: %s", sTypeMatch[g_Lobby]);
+
+	char
+		tmpBuffer[32],
+		printBuffer[512];
+	printBuffer[0] = '\0';
+
+	Format(tmpBuffer, sizeof(tmpBuffer), "[J.A.R.V.I.S] TeamA: ");
+	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	for (int i = 0; i <= 4; i++)
 	{
-		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "[J.A.R.V.I.S] Team1 Player %d: %s", iPlayer, g_sSteamIDTA[i]);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_sSteamIDTA[i]);
+		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
 
+	Format(tmpBuffer, sizeof(tmpBuffer), "\n[J.A.R.V.I.S] TeamB: ");
+	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	for (int i = 0; i <= 4; i++)
 	{
-		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "[J.A.R.V.I.S] Team2 Player %d: %s", iPlayer, g_sSteamIDTB[i]);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_sSteamIDTB[i]);
+		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
+	CReplyToCommand(iClient, "%s", printBuffer);
 
 	return Plugin_Handled;
 }

@@ -44,17 +44,27 @@ public Action ForsakenTest(int iClient, int iArgs)
 
 	CReplyToCommand(iClient, "Region: %d", g_Match);
 
-	for (int i = 0; i <= 3; i++)
+	char
+		tmpBuffer[64],
+		printBuffer[512];
+	printBuffer[0] = '\0';
+
+	Format(tmpBuffer, sizeof(tmpBuffer), "[J.A.R.V.I.S] TeamA: ");
+	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
+	for (int i = 0; i <= 4; i++)
 	{
-		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "Team1 Player %d: %s", iPlayer, g_sSteamIDTA[i]);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_sSteamIDTA[i]);
+		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
 
-	for (int i = 0; i <= 3; i++)
+	Format(tmpBuffer, sizeof(tmpBuffer), "\n[J.A.R.V.I.S] TeamB: ");
+	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
+	for (int i = 0; i <= 4; i++)
 	{
-		int iPlayer = 1 + i;
-		CReplyToCommand(iClient, "Team2 Player %d: %s", iPlayer, g_sSteamIDTB[i]);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_sSteamIDTB[i]);
+		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
+	CReplyToCommand(iClient, "%s", printBuffer);
 
 	return Plugin_Continue;
 }

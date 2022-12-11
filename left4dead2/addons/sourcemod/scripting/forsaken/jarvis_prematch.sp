@@ -5,10 +5,10 @@
 
 public void PreMatch()
 {
-	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
+	if (!g_cvarEnable.BoolValue)
 		return;
 
-	CreateTimer(1.0, GetMatchData);
+	CreateTimer(3.0, GetMatchData);
 }
 
 public void OnClientConnected(int client)
@@ -25,11 +25,14 @@ public void OnClientConnected(int client)
 
 public void StartMatch()
 {
-	switch (GetHumanCount())
+	int iHumanCount = GetHumanCount();
+	switch (iHumanCount)
 	{
 		case 1:
 		{
 			CPrintToChatAll("[J.A.R.V.I.S] Falta 1 jugador para cambiar a zonemod");
+			if(g_cvarDebug.BoolValue)
+				CPrintToChatAll("HumanCount: %d", iHumanCount);
 		}
 		case 2:
 		{
@@ -47,6 +50,9 @@ public Action GetMatchData(Handle timer)
 		Forsaken_TeamA(i, g_sSteamIDTA[i], STEAMID_LENGTH);
 		Forsaken_TeamB(i, g_sSteamIDTB[i], STEAMID_LENGTH);
 	}
+
+	if(g_cvarDebug.BoolValue)
+		CPrintToChatAll("GetMatchData");
 	return Plugin_Continue;
 }
 

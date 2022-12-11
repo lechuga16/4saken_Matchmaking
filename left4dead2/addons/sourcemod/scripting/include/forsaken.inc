@@ -60,7 +60,7 @@ native void Forsaken_TeamA(int index, char[] buffer, int maxlength);
  */
 native void Forsaken_TeamB(int index, char[] buffer, int maxlength);
 
-public SharedPlugin __pl_4saken =
+public SharedPlugin __pl_forsaken =
 {
     name = "forsaken",
     file = "forsaken.smx",
@@ -76,7 +76,7 @@ public __pl_forsaken_SetNTVOptional()
 {
     MarkNativeAsOptional("Forsaken_log");
     MarkNativeAsOptional("Forsaken_TypeMatch");
-    MarkNativeAsOptional("forsaken_Team1");
+    MarkNativeAsOptional("Forsaken_Team1");
     MarkNativeAsOptional("Forsaken_TeamB");
 }
 #endif
