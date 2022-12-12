@@ -72,8 +72,8 @@ public void OnPluginStart()
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 	PreMatch();
-	WaitingPlayers();
-	Teams();
+	// WaitingPlayers();
+	// Teams();
 	AutoExecConfig(true, "forsaken_jarvis");
 }
 
@@ -83,6 +83,12 @@ public void OnPluginStart()
 #include "forsaken/jarvis_prematch.sp"
 #include "forsaken/jarvis_teams.sp"
 #include "forsaken/jarvis_waiting.sp"
+
+public void OnMapStart()
+{
+	WaitingPlayers();
+	Teams();
+}
 
 public Action CheckTeams(int iClient, int iArgs)
 {

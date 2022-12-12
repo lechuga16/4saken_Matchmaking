@@ -32,11 +32,11 @@ public Action Timer_PrintMessageFiveTimes(Handle timer)
 		}
 		case 2:
 		{
-			CPrintToChatAll("[J.A.R.V.I.S] Quedan 2:00 minutos de espera");
+			CPrintToChatAll("[J.A.R.V.I.S] Quedan 2 minutos de espera");
 		}
 		case 4:
 		{
-			CPrintToChatAll("[J.A.R.V.I.S] Quedan 1:00 minutos de espera");
+			CPrintToChatAll("[J.A.R.V.I.S] Quedan 1 minutos de espera");
 		}
 		case 5:
 		{
