@@ -16,14 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined _forsaken_stocks_included
+#if defined forsaken_stocks_included
   #endinput
 #endif
-#define _forsaken_stocks_included
+#define forsaken_stocks_included
 
 #include <sdktools_gamerules>
 #include <json>
 #include <forsaken_stocks_left4dhooks>
+#include <forsaken_stocks_l4d2util>
 
 #define URL_FORSAKEN     	"forsaken-blk.herokuapp.com/queue/matchstatus"
 #define URL_FORSAKEN_MATCH	"forsaken-blk.herokuapp.com/queue/get-match-info"
@@ -41,8 +42,9 @@ enum TypeMatch
 	adept    = 2,
 	veteran  = 3,
 	unranked = 4,
-	scrims   = 5
+	scrims   = 5,
 
+	TypeMatch_Size = 6
 };
 
 enum ForsakenTeam
@@ -50,29 +52,37 @@ enum ForsakenTeam
 	Team0 = 0,
 	Team1 = 1,
 	Team2 = 2,
+
+	ForsakenTeam_Size = 3
 };
 
 // ==================================================
 // Array
 // ==================================================
 
-stock char sTypeMatch[TypeMatch][32] =
+stock const char sTypeMatch[TypeMatch_Size][] =
 {
-	"invalid",
-	"scout",
-	"adept",
-	"veteran",
-	"unranked",
-	"scrims"
-
+	"Invalid",
+	"Scout",
+	"Adept",
+	"Veteran",
+	"Unranked",
+	"Scrims"
 };
 
-stock char sL4DTeam[L4DTeam][8] =
+stock const char sL4DTeam[4][] =
 {
-	"L4DTeam_Unassigned",
-	"L4DTeam_Spectator",
-	"L4DTeam_Survivor",
-	"L4DTeam_Infected"
+	"Unassigned",
+	"Spectator",
+	"Survivor",
+	"Infected"
+};
+
+stock const char sForsakenTeam[ForsakenTeam_Size][] =
+{
+	"Team0",
+	"TeamA",
+	"TeamB"
 };
 
 // ==================================================
@@ -102,70 +112,6 @@ stock bool IsHuman(int iClient)
 }
 
 /**
- * Return true if the client is on the infected team.
- *
- * @param client client ID
- * @return bool
- */
-stock bool IsInfected(int client)
-{
-	return (IsClientInGame(client) && L4D_GetClientTeam(client) == L4DTeam_Infected);
-}
-
-/**
- * Return true if the valid client index and is client on the infected team.
- *
- * @param client client ID
- * @return bool
- */
-stock bool IsValidInfected(int client)
-{
-	return (IsValidClientIndex(client) && IsInfected(client));
-}
-
-/**
- * Returns true if the client is currently on the survivor team. 
- *
- * @param client client ID
- * @return bool
- */
-stock bool IsSurvivor(int client)
-{
-	return (IsClientInGame(client) && L4D_GetClientTeam(client) == L4DTeam_Survivor);
-}
-
-/**
- * Return true if the valid client index and is client on the survivor team.
- *
- * @param client client ID
- * @return bool
- */
-stock bool IsValidSurvivor(int client)
-{
-	return (IsValidClientIndex(client) && IsSurvivor(client));
-}
-
-/**
- * Returns a valid client indexed.
- *
- * @param client		Player's index.
- * @return				true if the client is valid, false if not.
- */
-stock bool IsValidClient(int iClient)
-{
-	if (!IsValidClientIndex(iClient))
-		return false;
-
-	if (!IsClientInGame(iClient))
-		return false;
-
-	if (IsFakeClient(iClient))
-		return false;
-
-	return true;
-}
-
-/**
  * Returns a valid client indexed.
  *
  * @param client		Player's index.
@@ -189,17 +135,6 @@ stock bool IsValidClientConsole(int iClient)
 		return false;
 
 	return true;
-}
-
-/**
- * Client indexed.
- *
- * @param client		Player's index.
- * @return				true if the client is valid, false if not.
- */
-stock bool IsValidClientIndex(int iClient)
-{
-	return (iClient > CONSOLE && iClient <= MaxClients);
 }
 
 /**

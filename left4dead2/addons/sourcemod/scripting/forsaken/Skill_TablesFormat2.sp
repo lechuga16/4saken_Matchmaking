@@ -49,7 +49,7 @@ public void OnSkeetHurt(int survivor, int hunter, int damage, bool isOverkill)
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat2(0, sMapName, sSteamID, sSteamID2, damage, isOverkill);
+	QueryFormat2(skeethurt, sMapName, sSteamID, sSteamID2, damage, isOverkill);
 }
 
 public void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverkill)
@@ -76,7 +76,7 @@ public void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverki
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat2(1, sMapName, sSteamID, sSteamID2, damage, isOverkill);
+	QueryFormat2(skeetmeleehurt, sMapName, sSteamID, sSteamID2, damage, isOverkill);
 }
 
 public void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverkill)
@@ -103,10 +103,10 @@ public void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverk
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat2(2, sMapName, sSteamID, sSteamID2, damage, isOverkill);
+	QueryFormat2(skeetsniperhurt, sMapName, sSteamID, sSteamID2, damage, isOverkill);
 }
 
-void QueryFormat2(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int damage, bool isOverkill)
+void QueryFormat2(TFormat2 iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int damage, bool isOverkill)
 {
 	char sQuery[300];
 	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, chip, overkill) VALUES ('%s', '%s', '%s', '%d', '%d');", sTFormat2[iTable], sMapName, sSteamID, sSteamID2, damage, view_as<int>(isOverkill));

@@ -16,10 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined _4saken_stocks_left4dhooks_included
+#if defined forsaken_stocks_left4dhooks_included
   #endinput
 #endif
-#define _4saken_stocks_left4dhooks_included
+#define forsaken_stocks_left4dhooks_included
 
 // ==================================================
 // ENGINE STOCKS
@@ -46,11 +46,41 @@ stock bool L4D_IsEngineLeft4Dead2()
 // ==================================================
 enum L4DTeam
 {
-	L4DTeam_Unassigned	= 0,
-	L4DTeam_Spectator	= 1,
-	L4DTeam_Survivor	= 2,
-	L4DTeam_Infected	= 3
+	L4DTeam_Unassigned  = 0,
+	L4DTeam_Spectator   = 1,
+	L4DTeam_Survivor	  = 2,
+	L4DTeam_Infected	  = 3
 }
+
+enum L4D2ZombieClassType
+{
+	L4D2ZombieClass_Smoker			= 1,
+	L4D2ZombieClass_Boomer			= 2,
+	L4D2ZombieClass_Hunter			= 3,
+	L4D2ZombieClass_Spitter			= 4,
+	L4D2ZombieClass_Jockey			= 5,
+	L4D2ZombieClass_Charger			= 6,
+	L4D2ZombieClass_Witch			  = 7,
+	L4D2ZombieClass_Tank			  = 8,
+	L4D2ZombieClass_NotInfected	= 9
+}
+
+// ==================================================
+// Array
+// ==================================================
+
+stock const char L4D2ZombieClassname[9][] =
+{
+	"smoker",
+	"boomer",
+	"hunter",
+	"spitter",
+	"jockey",
+	"charger",
+	"witch",
+	"tank",
+	"error_bad_L4D2ZombieClassType"
+};
 
 // ==================================================
 // FUNCTIONS

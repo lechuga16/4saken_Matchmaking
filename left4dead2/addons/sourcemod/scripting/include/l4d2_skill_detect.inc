@@ -8,11 +8,13 @@
  */
 enum CarAlarmTriggerReason
 {
-	CarAlarmTrigger_Unknown,
-	CarAlarmTrigger_Hit,
-	CarAlarmTrigger_Touched,
-	CarAlarmTrigger_Explosion,
-	CarAlarmTrigger_Boomer
+	CarAlarmTrigger_Unknown 	= 0,
+	CarAlarmTrigger_Hit 		= 1,
+	CarAlarmTrigger_Touched 	= 2,
+	CarAlarmTrigger_Explosion 	= 3,
+	CarAlarmTrigger_Boomer 		= 4,
+
+	CarAlarmTrigger_Size = 5
 };
 
 /**

@@ -1,8 +1,8 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <forsaken>
 #include <colors>
+#include <forsaken>
 #include <sourcemod>
 #undef REQUIRE_PLUGIN
 #include <l4d2_skill_detect>
@@ -42,7 +42,50 @@ ConVar
 Database
 	g_Database;
 
-char sTFormat[9][] = {
+enum TFormat
+{
+	skeet           = 0,
+	skeetmelee      = 1,
+	skeetgl         = 2,
+	skeetsniper     = 3,
+	chargerlevel    = 4,
+	hunterdeadstop  = 5,
+	tonguecut       = 6,
+	tankrockskeeted = 7,
+	tankrockeaten   = 8,
+
+	TFormat_Size = 9
+};
+
+enum TFormat2
+{
+	skeethurt       = 0,
+	skeetmeleehurt  = 1,
+	skeetsniperhurt = 2,
+
+	TFormat2_Size = 3
+};
+
+enum TFormatAll
+{
+	chargerlevelhurt  = 0,
+	witchcrown        = 1,
+	witchcrownhurt    = 2,
+	smokerselfclear   = 3,
+	jockeyhighpounce  = 4,
+	deathcharge       = 5,
+	boomervomitlanded = 6,
+	specialshoved     = 7,
+	bunnyhopstreak    = 8,
+	caralarmtriggered = 9,
+	boomerpop         = 10,
+	specialclear      = 11,
+	hunterhighpounce  = 12,
+
+	TFormatAll_Size = 13
+};
+
+char sTFormat[TFormat_Size][] = {
 	"skeet",
 	"skeetmelee",
 	"skeetgl",
@@ -54,13 +97,13 @@ char sTFormat[9][] = {
 	"tankrockeaten"
 };
 
-char sTFormat2[3][] = {
+char sTFormat2[TFormat2_Size][] = {
 	"skeethurt",
 	"skeetmeleehurt",
 	"skeetsniperhurt"
 };
 
-char sTFormatAll[13][] = {
+char sTFormatAll[TFormatAll_Size][] = {
 	"chargerlevelhurt",
 	"witchcrown",
 	"witchcrownhurt",
@@ -76,16 +119,12 @@ char sTFormatAll[13][] = {
 	"hunterhighpounce"
 };
 
-char L4D2ZombieClassname[9][] = {
-	"smoker",
-	"boomer",
-	"hunter",
-	"spitter",
-	"jockey",
-	"charger",
-	"witch",
-	"tank",
-	"error_bad_L4D2ZombieClassType"
+char sCarAlarmTriggerReason[5][] = {
+	"unknown",
+	"hit",
+	"touched",
+	"explosion",
+	"boomer"
 };
 
 /*****************************************************************
@@ -98,8 +137,6 @@ public Plugin myinfo =
 	description = "-",
 	version     = PLUGIN_VERSION,
 	url         = "https://github.com/lechuga16/4saken_Matchmaking"
-
-
 }
 
 /*****************************************************************

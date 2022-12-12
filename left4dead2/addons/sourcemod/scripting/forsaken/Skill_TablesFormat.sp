@@ -57,7 +57,7 @@ public void OnSkeet(int survivor, int hunter)
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(0, sMapName, sSteamID, sSteamID2);
+	QueryFormat(skeet, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnSkeetMelee(int survivor, int hunter)
@@ -84,7 +84,7 @@ public void OnSkeetMelee(int survivor, int hunter)
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(1, sMapName, sSteamID, sSteamID2);
+	QueryFormat(skeetmelee, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnSkeetGL(int survivor, int hunter)
@@ -111,7 +111,7 @@ public void OnSkeetGL(int survivor, int hunter)
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(2, sMapName, sSteamID, sSteamID2);
+	QueryFormat(skeetgl, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnSkeetSniper(int survivor, int hunter)
@@ -138,7 +138,7 @@ public void OnSkeetSniper(int survivor, int hunter)
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(3, sMapName, sSteamID, sSteamID2);
+	QueryFormat(skeetsniper, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnChargerLevel(int survivor, int charger)
@@ -165,7 +165,7 @@ public void OnChargerLevel(int survivor, int charger)
 		GetClientAuthId(charger, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(4, sMapName, sSteamID, sSteamID2);
+	QueryFormat(chargerlevel, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnHunterDeadstop(int survivor, int hunter)
@@ -192,7 +192,7 @@ public void OnHunterDeadstop(int survivor, int hunter)
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(5, sMapName, sSteamID, sSteamID2);
+	QueryFormat(hunterdeadstop, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnTongueCut(int survivor, int smoker)
@@ -219,7 +219,7 @@ public void OnTongueCut(int survivor, int smoker)
 		GetClientAuthId(smoker, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(6, sMapName, sSteamID, sSteamID2);
+	QueryFormat(tonguecut, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnTankRockSkeeted(int survivor, int tank)
@@ -246,7 +246,7 @@ public void OnTankRockSkeeted(int survivor, int tank)
 		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(7, sMapName, sSteamID, sSteamID2);
+	QueryFormat(tankrockskeeted, sMapName, sSteamID, sSteamID2);
 }
 
 public void OnTankRockEaten(int tank, int survivor)
@@ -273,10 +273,10 @@ public void OnTankRockEaten(int tank, int survivor)
 		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	QueryFormat(8, sMapName, sSteamID, sSteamID2);
+	QueryFormat(tankrockeaten, sMapName, sSteamID, sSteamID2);
 }
 
-void QueryFormat(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2)
+void QueryFormat(TFormat iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2)
 {
 	char sQuery[256];
 	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected) VALUES ('%s', '%s', '%s');", sTFormat[iTable], sMapName, sSteamID, sSteamID2);
