@@ -510,6 +510,6 @@ public void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float
 QueryHunterHighPounce(int iTable, const char[] sMapName, const char[] sSteamID, const char[] sSteamID2, int actualDamage, float calculatedDamage, float height, bool reportedHigh)
 {
 	char sQuery[300];
-	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, actualDamage, calculatedDamage, height, reportedHigh) VALUES ('%s', '%s', '%s', '%d', '%s', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh));
+	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, actualDamage, calculatedDamage, height, reportedHigh) VALUES ('%s', '%s', '%s', '%d', '%.1f', '%.1f', '%d');", sTFormatAll[iTable], sMapName, sSteamID, sSteamID2, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh));
 	g_Database.Query(OnUpdateTable, sQuery);
 }
