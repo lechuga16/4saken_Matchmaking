@@ -22,65 +22,40 @@ sTFormatAll
 /****************************************************************
             C A L L B A C K   F U N C T I O N S
 ****************************************************************/
+
 void SQLTablesFormatAll()
 {
-	for (int i = 0; i < sizeof(sTFormatAll); i++)
+	for (int i = 0; i < view_as<int>(TFormatAll_Size); i++)
 	{
 		char sQuery[500];
 		switch (i)
 		{
 			case 0:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `damage` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 1:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `damage` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 2:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `damage` INT NOT NULL, `chip` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 3:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `withShove` BOOLEAN NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 4:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `height` FLOAT NOT NULL, `reportedHigh` BOOLEAN NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 5:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `height` FLOAT NOT NULL, `distance` FLOAT NOT NULL, `wasCarried` BOOLEAN NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 6:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `infected` VARCHAR(64) NOT NULL, `amount` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 7:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `zombieclass` VARCHAR(64) NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 8:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `streak` INT NOT NULL, `maxvelocity` FLOAT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 9:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `CarAlarmTriggerReason` VARCHAR(64) NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 10:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `shoveCount` INT NOT NULL, `timeAlive` FLOAT NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 11:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `clearer` VARCHAR(64) NOT NULL, `pinner` VARCHAR(64) NOT NULL, `pinvictim` VARCHAR(64) NOT NULL, `zombieclass` VARCHAR(64) NOT NULL, `timeA` FLOAT NOT NULL, `timeB` FLOAT NOT NULL, `withShove` BOOLEAN NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 			case 12:
-			{
 				g_Database.Format(sQuery, sizeof(sQuery), "CREATE TABLE IF NOT EXISTS `%s` ( `id` INT NOT NULL AUTO_INCREMENT, `map` VARCHAR(32) NOT NULL, `survivor` VARCHAR(64) NOT NULL, `infected` VARCHAR(64) NOT NULL, `actualDamage` INT NOT NULL, `calculatedDamage` FLOAT NOT NULL, `height` FLOAT NOT NULL, `reportedHigh` BOOLEAN NOT NULL, PRIMARY KEY (`id`)) ENGINE = InnoDB;", sTFormatAll[i]);
-			}
 		}
 		g_Database.Query(OnCreateTable, sQuery);
 	}

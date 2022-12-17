@@ -3,6 +3,10 @@
 #endif
 #define _4saken_native_included
 
+/*****************************************************************
+			N A T I V E S
+*****************************************************************/
+
 /**
  * Logs a message to 4saken file.  The log message will be in the normal
  *
@@ -16,7 +20,8 @@ any Native_Log(Handle plugin, int numParams)
 		sFilename[64],
 		sBuffer[PLATFORM_MAX_PATH],
 		sLogPath[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), "logs/forsaken.log");
+	
+	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), DIR_FORSAKENLOG);
 	GetPluginBasename(plugin, sFilename, sizeof(sFilename));
 	FormatNativeString(0, 1, 2, sizeof(sBuffer), _, sBuffer);
 	LogToFileEx(sLogPath, "[%s] %s", sFilename, sBuffer);
@@ -41,7 +46,7 @@ any Native_TypeMatch(Handle plugin, int numParams)
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-any Native_Team1(Handle plugin, int numParams)
+any Native_TeamA(Handle plugin, int numParams)
 {
 	int
 		index  = GetNativeCell(1),
@@ -59,12 +64,63 @@ any Native_Team1(Handle plugin, int numParams)
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-any Native_Team2(Handle plugin, int numParams)
+any Native_TeamB(Handle plugin, int numParams)
 {
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
 	SetNativeString(2, g_sSteamIDTB[index], maxlen);
+	return 0;
+}
+
+/**
+ * Gets the name of the players that are assigned to Team A
+ *
+ * @param index         Index in the team.
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+any Native_NameTA(Handle plugin, int numParams)
+{
+	int
+		index  = GetNativeCell(1),
+		maxlen = GetNativeCell(3);
+
+	SetNativeString(2, g_sNameTA[index], maxlen);
+	return 0;
+}
+
+/**
+ * Gets the name of the players that are assigned to Team B
+ *
+ * @param index         Index in the team.
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+any Native_NameTB(Handle plugin, int numParams)
+{
+	int
+		index  = GetNativeCell(1),
+		maxlen = GetNativeCell(3);
+
+	SetNativeString(2, g_sNameTB[index], maxlen);
+	return 0;
+}
+/**
+ * Gets the IPv4
+ *
+ * @param index         Index in the team.
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+any Native_GetIPv4(Handle plugin, int numParams)
+{
+	int maxlen = GetNativeCell(2);
+	
+	SetNativeString(1, g_sIPv4, maxlen);
 	return 0;
 }

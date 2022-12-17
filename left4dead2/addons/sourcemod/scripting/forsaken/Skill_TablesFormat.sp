@@ -20,6 +20,7 @@ sTFormat
 /****************************************************************
             C A L L B A C K   F U N C T I O N S
 ****************************************************************/
+
 void SQLTablesFormat()
 {
 	for (int i = 0; i < sizeof(sTFormat); i++)
@@ -33,6 +34,7 @@ void SQLTablesFormat()
 /*****************************************************************
             P L U G I N   F U N C T I O N S
 *****************************************************************/
+
 public void OnSkeet(int survivor, int hunter)
 {
 	if (!g_cvarSkeet.BoolValue)

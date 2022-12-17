@@ -1,0 +1,96 @@
+"Phrases"
+{
+	"Tag"
+	{
+		"en"		"[{olive}J.A.R.V.I.S{default}]"
+	}
+    // forsaken_jarvis.sp
+	"NoConsoleCMD"
+	{
+		"en"		"You can't use this command from the console."
+        "es"        "No puedes usar este comando desde la consola."
+	}
+    "DeleteOT"
+    {
+        "en"        "Timer to organize eliminated teams."
+        "es"        "Cronómetro para organizar equipos eliminados."
+    }
+    "AddSurv"
+    {
+        "en"        "Added as a survivor."
+        "es"        "Se agregó como superviviente."
+    }
+    "AddInfect"
+    {
+        "en"        "Added as an infected."
+        "es"        "Se agregó como infectado."
+    }
+    "TypeLobby"
+    {
+        "en"        "Type Lobby: %s."
+        "es"        "Tipo de Lobby: %s."
+    }
+    "InvalidTeam"
+    {
+        "en"        "Invalid team."
+        "es"        "Equipo inválido."
+    }
+    "PlayerInvalid"
+    {
+        "en"        "Invalid player."
+        "es"        "Jugador inválido."
+    }
+    "DesertionTest"
+    {
+        "en"        "Desertion test."
+        "es"        "Prueba de deserción."
+    }
+    // jarvis_prematch.sp
+    "StartAnnouncer"
+    {
+        "en"        "Waiting for 1 player to start %s."
+        "es"        "Esperando 1 jugador para iniciar a %s."
+    }
+    "StartMatch"
+    {
+        "en"        "Starting %s."
+        "es"        "Iniciando %s."
+    }
+    // jarvis_waiting.sp
+    "AllConnected"
+    {
+        "en"        "All players are connected."
+        "es"        "Todos los jugadores están conectados."
+    }
+    "NotAllConnected"
+    {
+        "en"        "Not all players are connected."
+        "es"        "No todos los jugadores están conectados."
+    }
+    "WaitingSurvivors"
+    {
+        "en"        "Waiting for survivors."
+        "es"        "Esperando supervivientes."
+    }
+    "WaitingInfected"
+    {
+        "en"        "Waiting for infected."
+        "es"        "Esperando infectados."
+    }
+    "BanDesertion"
+    {
+        "en"        "Desertion before starting the game."
+        "es"        "Deserción antes del iniciar la partida."
+    }
+    // jarvis_ragequit.sp
+    "RageQuit"
+    {
+        "en"        "%s (%s) left the game, timeout is %.1f seconds."
+        "es"        "%s (%s) dejó el juego, el tiempo de espera es de %.1f segundos."
+    }
+    "ReasonRageQuit"
+    {
+        "en"        "RageQuit."
+        "es"        "RageQuit."
+    }
+}

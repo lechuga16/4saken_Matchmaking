@@ -8,6 +8,12 @@
 #undef REQUIRE_PLUGIN
 #include <readyup>
 
+/*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
+#define PLUGIN_VERSION "1.1"
+
 ConVar
 	g_cvarSub_URL,
 	// g_cvarStartingMMR,
@@ -32,13 +38,17 @@ int
 
 int g_LastSub[MAXPLAYERS + 1] = { -1, ... };
 
+/*****************************************************************
+			P L U G I N   I N F O
+*****************************************************************/
+
 public Plugin myinfo =
 {
-	name        = "Forsaken MMR",
-	author      = "Drixevel",
+	name		= "Forsaken MMR",
+	author		= "Drixevel, lechuga",
 	description = "Manages the 4saken MMR/Teams system.",
-	version     = "1.0.1",
-	url         = "https://github.com/lechuga16/4saken_Matchmaking"
+	version		= PLUGIN_VERSION,
+	url			= "https://github.com/lechuga16/4saken_Matchmaking"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -48,8 +58,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		strcopy(error, err_max, "Plugin only support L4D2 engine");
 	}
 
-	g_sIp = Forsaken_GetIP();
-	if (StrEqual(g_sIp, "0.0.0.0", false))
+	if (StrEqual(Forsaken_GetIP(), "0.0.0.0", false))
 	{
 		strcopy(error, err_max, "ERROR: The server ip was not configured");
 		return APLRes_Failure;
@@ -58,12 +67,16 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+
 public void OnPluginStart()
 {
 	LoadTranslation("forsaken_mmr.phrases");
 	Database.Connect(OnSQLConnect, "4saken");
 
-	g_cvarDebug   = CreateConVar("sm_mmr_debug", "0", "Debug messages.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarDebug	  = CreateConVar("sm_mmr_debug", "0", "Debug messages.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarEnable  = CreateConVar("sm_mmr_enable", "1", "Activate mmr registration", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarSub_URL = CreateConVar("sm_mmr_suburl", "", "HTTP url to send the sub request to.", FCVAR_NOTIFY);
 	g_cvarKValue  = CreateConVar("sm_mmr_kvalue", "16.0", "What should the KValue be for calculating player MMR values?", FCVAR_NOTIFY, true, 0.0);
@@ -74,6 +87,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_sub", Command_Sub, "Call to the website to find a substitute.");
 	RegConsoleCmd("sm_mmr", Command_MMR, "get mmr.");
 
+	g_sIp = Forsaken_GetIP();
 	AutoExecConfig(true, "forsaken_mmr");
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientConnected(i))
@@ -177,7 +191,7 @@ public void OnEndGame()
 	}
 
 	char sQuery[256];
-	int  team;
+	int	 team;
 
 	team = GetTeamInt(L4DTeam_Survivor);
 	g_Database.Format(sQuery, sizeof(sQuery), "UPDATE `mmr_team` SET mmr = '%i' WHERE name = '%s';", g_TeamRating[team], g_TeamName[team]);
@@ -232,7 +246,7 @@ public void OnParseMMR(Database db, DBResultSet results, const char[] error, any
 	if (results.FetchRow())
 	{
 		g_iRating[client] = results.FetchInt(0);
-		g_iTeam[client] = results.FetchInt(1);
+		g_iTeam[client]	  = results.FetchInt(1);
 	}
 }
 
@@ -255,13 +269,76 @@ public void OnSaveMMR(Database db, DBResultSet results, const char[] error, any 
 		ThrowError("Error while saving player MMR on disconnect: %s", error);
 }
 
+public Action Command_Sub(int client, int args)
+{
+	int time = GetTime();
+
+	if (g_LastSub[client] != -1 && g_LastSub[client] > time)
+	{
+		ReplyToCommand(client, "You must wait a bit to send another sub request.");
+		return Plugin_Handled;
+	}
+
+	g_LastSub[client] = time + 60;
+
+	char sURL[256];
+	g_cvarSub_URL.GetString(sURL, sizeof(sURL));
+
+	if (strlen(sURL) == 0)
+	{
+		ReplyToCommand(client, "Unknown error while sending a sub request, please contact an administrator.");
+		return Plugin_Handled;
+	}
+
+	System2_URLEncode(sURL, sizeof(sURL), sURL);
+
+	char sSub[256];
+	FormatEx(sSub, sizeof(sSub), "%N has requested a sub on server: %s:%d", client, g_sIp, FindConVar("hostport").IntValue);
+
+	System2HTTPRequest httpRequest = new System2HTTPRequest(Http_OnSendSubRequest, sURL);
+	httpRequest.SetData("sub=%s", sSub);
+	httpRequest.POST();
+
+	ReplyToCommand(client, "Sub request has been sent.");
+
+	return Plugin_Handled;
+}
+
+public void Http_OnSendSubRequest(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
+{
+	if (!success)
+		ThrowError("Error while sending sub: %s", error);
+
+	char sURL[128];
+	response.GetLastURL(sURL, sizeof(sURL));
+
+	PrintToServer("Request to %s finished with status code %d in %.2f seconds.", sURL, response.StatusCode, response.TotalTime);
+}
+
+public Action Command_MMR(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		char sCommand[32];
+		GetCmdArg(0, sCommand, sizeof(sCommand));
+		CReplyToCommand(iClient, "[SM] Usage: %s", sCommand);
+		return Plugin_Handled;
+	}
+	CReplyToCommand(iClient, "You mmr: %d ", g_iRating[iClient]);
+	return Plugin_Continue;
+}
+
+/****************************************************************
+			C A L L B A C K   F U N C T I O N S
+****************************************************************/
+
 public void Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	int  victim        = GetClientOfUserId(event.GetInt("userid"));
-	int  attacker      = GetClientOfUserId(event.GetInt("attacker"));
+	int	 victim		   = GetClientOfUserId(event.GetInt("userid"));
+	int	 attacker	   = GetClientOfUserId(event.GetInt("attacker"));
 	bool attackerisbot = event.GetBool("attackerisbot");
 	bool victimisbot   = event.GetBool("victimisbot");
 
@@ -331,65 +408,6 @@ public void OnUpdateMMR(Database db, DBResultSet results, const char[] error, an
 {
 	if (results == null)
 		ThrowError("Error while saving %s MMR on round end: %s", g_IsTeamGame ? "team" : "player", error);
-}
-
-public Action Command_Sub(int client, int args)
-{
-	int time = GetTime();
-
-	if (g_LastSub[client] != -1 && g_LastSub[client] > time)
-	{
-		ReplyToCommand(client, "You must wait a bit to send another sub request.");
-		return Plugin_Handled;
-	}
-
-	g_LastSub[client] = time + 60;
-
-	char sURL[256];
-	g_cvarSub_URL.GetString(sURL, sizeof(sURL));
-
-	if (strlen(sURL) == 0)
-	{
-		ReplyToCommand(client, "Unknown error while sending a sub request, please contact an administrator.");
-		return Plugin_Handled;
-	}
-
-	System2_URLEncode(sURL, sizeof(sURL), sURL);
-
-	char sSub[256];
-	FormatEx(sSub, sizeof(sSub), "%N has requested a sub on server: %s:%d", client, g_sIp, FindConVar("hostport").IntValue);
-
-	System2HTTPRequest httpRequest = new System2HTTPRequest(Http_OnSendSubRequest, sURL);
-	httpRequest.SetData("sub=%s", sSub);
-	httpRequest.POST();
-
-	ReplyToCommand(client, "Sub request has been sent.");
-
-	return Plugin_Handled;
-}
-
-public void Http_OnSendSubRequest(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
-{
-	if (!success)
-		ThrowError("Error while sending sub: %s", error);
-
-	char sURL[128];
-	response.GetLastURL(sURL, sizeof(sURL));
-
-	PrintToServer("Request to %s finished with status code %d in %.2f seconds.", sURL, response.StatusCode, response.TotalTime);
-}
-
-public Action Command_MMR(int iClient, int iArgs)
-{
-	if (iArgs != 0)
-	{
-		char sCommand[32];
-		GetCmdArg(0, sCommand, sizeof(sCommand));
-		CReplyToCommand(iClient, "[SM] Usage: %s", sCommand);
-		return Plugin_Handled;
-	}
-	CReplyToCommand(iClient, "You mmr: %d ", g_iRating[iClient]);
-	return Plugin_Continue;
 }
 
 int GetTeamInt(L4DTeam team)

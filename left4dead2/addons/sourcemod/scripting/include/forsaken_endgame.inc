@@ -22,18 +22,27 @@
 #define _forsaken_endgame_included
 
 /**
- * Called when the round_end event starts.
- * The event depends on the list of maps 4sakenMaps.json.
- * The event was executed after the second round.
+ * @brief Called when the round_end event starts.
+ * 		The event depends on the list of maps 4sakenMaps.json.
+ * 		The event was executed after the second round.
  */
 forward void OnEndGame();
 
 /**
- * Returns if the match ends on this map.
- *
- * @return	true if you end the match on this map.
+ * @brief Check if game over is enabled on the current map.
+ * 
+ * @return bool     True if the game over is enabled on the current map, False is disabled.
  */
 native bool IsEndGame();
+
+/**
+ * @brief Force game over by loading current player and server information.
+ * 		After that, the server is restarted.
+ * 
+ *  @return bool    True if the game over was forced, False if not.
+ * 
+ */
+native bool ForceEndGame();
 
 public SharedPlugin __pl_forsaken_endgame =
 {
@@ -45,3 +54,13 @@ public SharedPlugin __pl_forsaken_endgame =
     required = 0,
 #endif
 };
+
+
+#if !defined REQUIRE_PLUGIN
+public __pl_forsaken_endgame_SetNTVOptional()
+{
+    MarkNativeAsOptional("OnEndGame");
+    MarkNativeAsOptional("IsEndGame");
+    MarkNativeAsOptional("ForceEndGame");
+}
+#endif

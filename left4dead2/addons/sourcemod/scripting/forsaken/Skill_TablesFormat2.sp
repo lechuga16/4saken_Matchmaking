@@ -12,6 +12,7 @@ sTFormat2
 /****************************************************************
             C A L L B A C K   F U N C T I O N S
 ****************************************************************/
+
 void SQLTablesFormat2()
 {
 	for (int i = 0; i < sizeof(sTFormat2); i++)
@@ -25,6 +26,7 @@ void SQLTablesFormat2()
 /*****************************************************************
             P L U G I N   F U N C T I O N S
 *****************************************************************/
+
 public void OnSkeetHurt(int survivor, int hunter, int damage, bool isOverkill)
 {
 	if (!g_cvarSkeetHurt.BoolValue)

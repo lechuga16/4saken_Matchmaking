@@ -28,6 +28,11 @@
 
 #define URL_FORSAKEN     	"forsaken-blk.herokuapp.com/queue/matchstatus"
 #define URL_FORSAKEN_MATCH	"forsaken-blk.herokuapp.com/queue/get-match-info"
+#define URL_IPV4			"api.ipify.org?format=json"
+#define DIR_CACHEMATCH		"logs/forsaken_match.json"
+#define DIR_IP				"configs/forsaken/IP.json"
+#define DIR_MAP				"configs/forsaken/Maps.json"
+#define DIR_FORSAKENLOG		"logs/forsaken.log"
 #define CONSOLE 0
 
 
@@ -50,8 +55,8 @@ enum TypeMatch
 enum ForsakenTeam
 {
 	Team0 = 0,
-	Team1 = 1,
-	Team2 = 2,
+	TeamA = 1,
+	TeamB = 2,
 
 	ForsakenTeam_Size = 3
 };
@@ -114,8 +119,8 @@ stock bool IsHuman(int iClient)
 /**
  * Returns a valid client indexed.
  *
- * @param client		Player's index.
- * @return				true if the client is valid, false if not.
+ * @param iClient		Client index.
+ * @return				True if the client is valid, false otherwise.
  */
 stock bool IsValidClientConsole(int iClient)
 {
@@ -140,42 +145,32 @@ stock bool IsValidClientConsole(int iClient)
 /**
  * Server ip written in IP.json
  *
- * @return				true when it returns the ip in char (length 64)
+ * @return				IP
 */
 stock char[] Forsaken_GetIP()
 {
-	char sIp[64];
-	JSON_Object JoIp = Forsaken_JSON();
+	char
+		sIp[64],
+		sPatch[128];
+
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IP);
+	JSON_Object JoIp = json_read_from_file(sPatch, JSON_ENCODE_PRETTY);
 	JoIp.GetString("IP", sIp, sizeof(sIp));
 	json_cleanup_and_delete(JoIp);
 	return sIp;
 }
 
 /**
- * Get a json object from file IP.json
- *
- * @return				a JSON_Object
- */
-stock JSON_Object Forsaken_JSON()
-{
-	char
-		sPatch[128];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/forsaken/IP.json");
-
-	JSON_Object obj = json_read_from_file(sPatch, JSON_ENCODE_PRETTY);
-	return obj;
-}
-
-/**
  * Retrieves a list of maps from file Maps.json
  *
  * @return				a JSON_Array
+ * @noreturn
  */
 stock JSON_Array Forsaken_Maps()
 {
 	char
 		sPatch[128];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), "configs/forsaken/Maps.json");
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_MAP);
 
 	JSON_Array arr = view_as<JSON_Array>(json_read_from_file(sPatch, JSON_NONE));
 	return arr;
@@ -184,7 +179,8 @@ stock JSON_Array Forsaken_Maps()
 /**
  * Check if the translation file exists
  *
- * @param translation       translation file name
+ * @param translation	Translation name.
+ * @noreturn
  */
 stock void LoadTranslation(const char[] translation)
 {
@@ -204,9 +200,36 @@ stock void LoadTranslation(const char[] translation)
 /**
  * Is the second round of this map currently being played?
  *
- * @return true is the second round, false if not.
+ * @return				true if the second round is being played, false if not.
+ * @error				Invalid game rules handle, property and property type.
  */
 stock bool InSecondHalfOfRound()
 {
 	return view_as<bool>(GameRules_GetProp("m_bInSecondHalfOfRound"));
 }
+
+/**
+ * Convierte cualquier formato de SteamId a SteamID64
+ * 
+ * @param sCommunityID		SteamID64
+ * @param iSize				Max size of sCommunityID
+ * @param sSteamID			SteamID
+ */
+stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSteamID)
+{
+    char sBuffer[3][32];
+    ExplodeString(sSteamID, ":", sBuffer, 3, 32);
+    int accountID = StringToInt(sBuffer[2]) * 2 + StringToInt(sBuffer[1]);
+
+    IntToString((accountID + 60265728), sCommunityID, iSize);
+
+    if (accountID >= 39734272)
+    {
+        strcopy(sCommunityID, iSize, sCommunityID[1]);
+        Format(sCommunityID, iSize, "765611980%s", sCommunityID);
+    }
+    else
+    {
+        Format(sCommunityID, iSize, "765611979%s", sCommunityID);
+    }
+} 
