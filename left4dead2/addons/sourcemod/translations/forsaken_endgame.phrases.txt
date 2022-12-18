@@ -1,5 +1,9 @@
 "Phrases"
 {
+	"Tag"
+	{
+		"en"		"[{olive}EndGame{default}]"
+	}
 	"Lastmap"
 	{
 		"en"		"The current chapter {blue}will be the end{default}."

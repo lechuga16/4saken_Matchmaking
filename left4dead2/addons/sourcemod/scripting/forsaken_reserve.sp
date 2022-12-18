@@ -22,7 +22,7 @@ int
 	g_iPort;
 
 bool
-	g_bReserve;
+	g_bReserve = false;
 char
 	g_sURL[256],
 	g_sIp[64];
@@ -68,6 +68,7 @@ public void OnPluginStart()
 	CreateConVar("sm_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug	 = CreateConVar("sm_reserve_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarEnable = CreateConVar("sm_reserve_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	RegConsoleCmd("sm_reserved", Cmd_Reserve, "Reserve the server");
 
 	g_iPort		 = FindConVar("hostport").IntValue;
 	g_sIp		 = Forsaken_GetIP();
@@ -79,7 +80,21 @@ public void OnClientPutInServer(int iClient)
 	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
 		return;
 
+	if(IsFakeClient(iClient))
+		return;
+
 	GetReserve(iClient);
+}
+
+public Action Cmd_Reserve(int iClient, int iArgs)
+{
+	if(iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_reserved");
+		return Plugin_Handled;
+	}
+	CReplyToCommand(iClient, "%s", g_bReserve ? "Reserved" : "Unreserved");
+	return Plugin_Handled;
 }
 
 /*****************************************************************
@@ -109,7 +124,7 @@ public void GetReserve(int iClient)
 
 public void HttpProgressReserved(System2HTTPRequest request, int dlTotal, int dlNow, int ulTotal, int ulNow)
 {
-	PrintToServer("Reserved progress %d of %d bytes", dlNow, dlTotal);
+	PrintToServer("[forsaken_reserve] Reserved progress %d of %d bytes", dlNow, dlTotal);
 	Forsaken_log("Reserved progress %d of %d bytes", dlNow, dlTotal);
 }
 
@@ -118,7 +133,6 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 	char
 		sUrl[256],
 		sContent[10];
-	int iClient = request.Any;
 
 	request.GetURL(sUrl, sizeof(sUrl));
 
@@ -135,18 +149,13 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 
 	g_bReserve = view_as<bool>(StringToInt(sContent, 10));
 
-	switch (g_bReserve)
+	if(!g_bReserve)
 	{
-		case false:
-		{
-			KickClient(iClient, "%t", "KickMsg");
-			if (g_cvarDebug.BoolValue)
-				Forsaken_log("%N was kicked, server without unreserved.", iClient);
-		}
-		case true:
-		{
-			if (g_cvarDebug.BoolValue)
-				Forsaken_log("%N was allowed in, the server was reserved.", iClient);
-		}
+		if (g_cvarDebug.BoolValue)
+			Forsaken_log("%N was kicked, server without unreserved.", request.Any);
+		KickClient(request.Any, "%t", "KickMsg");
 	}
+
+	if (g_cvarDebug.BoolValue)
+		Forsaken_log("%N was allowed in, the server was reserved.", request.Any);
 }

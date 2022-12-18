@@ -62,7 +62,6 @@ public APLRes
 
 public void OnPluginStart()
 {
-	LoadTranslation("forsaken.phrases");
 	LoadTranslation("forsaken_endgame.phrases");
 
 	HookEvent("round_end", Event_RoundEnd);
@@ -75,7 +74,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_ROOT);
 	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_ROOT);
 
-	ConnectDatabase();
+	DatabaseConnect();
 	AutoExecConfig(true, "forsaken_endgame");
 }
 
@@ -115,13 +114,30 @@ public Action Cmd_Maplist(int iClient, int iArgs)
 {
 	JSON_Array jaMaps  = Forsaken_Maps();
 
-	int		   iLength = jaMaps.Length;
-	for (int index = 0; index < iLength; index += 1)
+	int 
+		iLength = jaMaps.Length;
+	char
+		sTmpBuffer[32],
+		sPrintBuffer[512];
+
+	Format(sTmpBuffer, sizeof(sTmpBuffer), "%t :\n", "Tag");
+	StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
+
+	for (int index = 0; index < iLength; index++)
 	{
 		char sListMap[32];
 		jaMaps.GetString(index, sListMap, sizeof(sListMap));
-		CPrintToChatAll("%t %s", "Tag", sListMap);
+		
+		Format(sTmpBuffer, sizeof(sTmpBuffer), "%s ", sListMap);
+		StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
+		if(index == 3 || index == 7)
+		{
+			Format(sTmpBuffer, sizeof(sTmpBuffer), "\n", sListMap);
+			StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
+		}
 	}
+	
+	CReplyToCommand(iClient, "%t %s", "Tag", sPrintBuffer);
 	json_cleanup_and_delete(jaMaps);
 	return Plugin_Continue;
 }
@@ -148,7 +164,8 @@ public int Native_IsEndGame(Handle plugin, int numParams)
  */
 any Native_ForceEndGame(Handle plugin, int numParams)
 {
-	return ForceEndGame();
+	ForceEndGame();
+	return 0;
 }
 
 /****************************************************************
@@ -178,18 +195,18 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
  *
  * @noreturn
  */
-public void ConnectDatabase()
+public void DatabaseConnect()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (SQL_CheckConfig("4saken"))
+	if (!SQL_CheckConfig("4saken"))
 		Forsaken_log("The 4saken configuration is not found in databases.cfg");
 
 	char error[255];
-	g_dbForsaken = SQL_Connect("4saken", true);
+	g_dbForsaken = SQL_Connect("4saken", true, error, sizeof(error));
 
-	if (db == null)
+	if (g_dbForsaken == null)
 		Forsaken_log("Could not connect to database: %s", error);
 }
 
@@ -210,7 +227,7 @@ public bool ForceEndGame()
 	}
 
 	char sQuery[256];
-	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", g_sIp, g_iPort);
+	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", Forsaken_GetIP(), FindConVar("hostport").IntValue);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{
