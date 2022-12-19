@@ -9,24 +9,22 @@
 
 public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontBroadcast)
 {
-	if (!g_cvarEnable.BoolValue)
+	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
 		return;
 
 	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
-	if (iClient <= 0 || iClient > MaxClients)
+	if (!IsValidClientIndex(iClient))
 		return;
 
 	char sSteamId[32];
-	GetClientAuthId(iClient, AuthId_Steam2, sSteamId, sizeof(sSteamId));
+	if(!GetClientAuthId(iClient, AuthId_Steam2, sSteamId, sizeof(sSteamId)))
+		return;
+
 	if (strcmp(sSteamId, "BOT") == 0)
 		return;
 
-	char
-		sReason[128],
-		sPlayerName[128];
-
+	char sReason[128];
 	GetEventString(hEvent, "reason", sReason, sizeof(sReason));
-	GetEventString(hEvent, "name", sPlayerName, sizeof(sPlayerName));
 
 	for (int iID = 0; iID <= 4; iID++)
 	{
@@ -37,11 +35,15 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 			if (IsInReady())
 				continue;
 
-			g_hTimerRageQuitTA[iID] = CreateTimer(g_cvarTimerRageQuit.FloatValue, Timer_RageQuit, iClient, TIMER_REPEAT);
-			CPrintToChatAll("%t %t", "Tag", "RageQuit", sPlayerName, sSteamId, g_cvarTimerRageQuit.FloatValue);
+			DataPack hdataPack;
+			g_hTimerRageQuitTA[iID] = CreateDataTimer(g_cvarTimerRageQuit.FloatValue, Timer_RageQuit, hdataPack);
+			hdataPack.WriteCell(iID);
+			hdataPack.WriteCell(TeamA);
+
+			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_sNameTA[iID], sSteamId, g_cvarTimerRageQuit.IntValue);
 
 			if(g_cvarDebug.BoolValue)
-				Forsaken_log("Player %s (%s) left the game, his waiting time is %.1f seconds.Reason: %s", sPlayerName, sSteamId, g_cvarTimerRageQuit.FloatValue, sReason);
+				Forsaken_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_sNameTA[iID], sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 
 		if (StrEqual(sSteamId, g_sSteamIDTB[iID], false))
@@ -51,11 +53,15 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 			if (IsInReady())
 				continue;
 
-			g_hTimerRageQuitTB[iID] = CreateTimer(g_cvarTimerRageQuit.FloatValue, Timer_RageQuit, iClient, TIMER_REPEAT);
-			CPrintToChatAll("%t %t", "Tag", "RageQuit", sPlayerName, sSteamId, g_cvarTimerRageQuit.FloatValue);
+			DataPack hdataPack;
+			g_hTimerRageQuitTB[iID] = CreateDataTimer(g_cvarTimerRageQuit.FloatValue, Timer_RageQuit, hdataPack);
+			hdataPack.WriteCell(iID);
+			hdataPack.WriteCell(TeamB);
+
+			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_sNameTB[iID], sSteamId, g_cvarTimerRageQuit.IntValue);
 
 			if(g_cvarDebug.BoolValue)
-				Forsaken_log("Player %s (%s) left the game, his waiting time is %.1f seconds.Reason: %s", sPlayerName, sSteamId, g_cvarTimerRageQuit.FloatValue, sReason);
+				Forsaken_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_sNameTB[iID], sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 	}
 }
@@ -105,12 +111,16 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 		{
 			KillTimer(g_hTimerRageQuitTA[iID]);
 			g_hTimerRageQuitTA[iID] = null;
+			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_sNameTA[iID], g_sSteamIDTA[iID]);
+			Forsaken_log("ClientConnected: %N no longer ragequiter", iClient);
 		}
 
 		if (StrEqual(sAuth, g_sSteamIDTB[iID], false))
 		{
 			KillTimer(g_hTimerRageQuitTB[iID]);
 			g_hTimerRageQuitTB[iID] = null;
+			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_sNameTB[iID], g_sSteamIDTB[iID]);
+			Forsaken_log("ClientConnected: %N no longer ragequiter", iClient);
 		}
 	}
 }
@@ -122,10 +132,15 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
  * @param iClient		Client index.
  * @return				Stop the timer.
  **/
-public Action Timer_RageQuit(Handle iTimer, int iClient)
+public Action Timer_RageQuit(Handle iTimer, DataPack hPack)
 {
-	char sReason[64];
-	Format(sReason, sizeof(sReason), "%t %t", "Tag", "ReasonRageQuit");
-	SBPP_BanPlayer(CONSOLE, iClient, g_cvarBanRageQuit.IntValue, sReason);
+	hPack.Reset();
+	int iID = hPack.ReadCell();
+	ForsakenTeam Team = hPack.ReadCell();
+
+	char sBuffer[128];
+	FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanReasonRQ");
+	CreateOffLineBan(iID, Team, g_cvarBanRageQuit.IntValue, sBuffer)
+	ForceEndGame(ragequit);
 	return Plugin_Stop;
 }

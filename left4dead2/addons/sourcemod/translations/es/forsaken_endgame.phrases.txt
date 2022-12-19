@@ -12,8 +12,12 @@
 	{
 		"es"		"El partido ha terminado, vuelva a 4saken.us"
 	}
+	"FailEnded"
+	{
+		"es"		"El partido ha terminado, pero no se han podido cargar los datos."
+	}
 	"Ended"
 	{
-		"es"		"El partido a finalizado, cargando los datos..."
+		"es"		"El partido ha finalizado, cargando los datos..."
 	}
 }

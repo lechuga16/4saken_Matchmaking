@@ -1,9 +1,13 @@
+#define forsaken_stocks_left4dhooks_included 1
 #include <forsaken>
+#include <forsaken_endgame>
 #include <colors>
 #include <sourcemod>
 #include <system2>
 #include <json>
+#include <left4dhooks>
 #undef REQUIRE_PLUGIN
+#include <confogl>
 #include <readyup>
 
 /*****************************************************************
@@ -18,8 +22,10 @@ ConVar
 	g_cvarTimeKick;
 
 bool
-	g_bIsEndGame = false,
-	g_bAnnounce	 = true;
+	g_bIsEndGame	   = false,
+	g_bAnnounce		   = true,
+	g_bNativeAvailable = true,
+	g_bRound_End	   = true;
 
 GlobalForward
 	g_gfEndGame;
@@ -27,10 +33,12 @@ GlobalForward
 Database
 	g_dbForsaken;
 
+CancelMatch
+	g_CancelMatch;
+
 /*****************************************************************
 			P L U G I N   I N F O
 *****************************************************************/
-
 public Plugin myinfo =
 {
 	name		= "Forsaken End Game",
@@ -38,6 +46,7 @@ public Plugin myinfo =
 	description = "Manage the endgame",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/lechuga16/4saken_Matchmaking"
+
 
 }
 
@@ -59,7 +68,6 @@ public APLRes
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-
 public void OnPluginStart()
 {
 	LoadTranslation("forsaken_endgame.phrases");
@@ -73,9 +81,19 @@ public void OnPluginStart()
 
 	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_ROOT);
 	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_ROOT);
+	RegAdminCmd("sm_endgame_cancel", Cmd_Cancel, ADMFLAG_ROOT);
 
 	DatabaseConnect();
 	AutoExecConfig(true, "forsaken_endgame");
+}
+
+public void OnMapStart()
+{
+	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
+		return;
+
+	if (!g_bRound_End)
+		g_bRound_End = !g_bRound_End;
 }
 
 public void OnRoundLiveCountdown()
@@ -98,6 +116,9 @@ public void OnRoundLiveCountdown()
 
 public void OnRoundIsLive()
 {
+	if (!g_bRound_End)
+		g_bRound_End = !g_bRound_End;
+
 	g_bAnnounce = true;
 }
 
@@ -112,9 +133,9 @@ public Action Cmd_CheckMap(int iClient, int iArgs)
 
 public Action Cmd_Maplist(int iClient, int iArgs)
 {
-	JSON_Array jaMaps  = Forsaken_Maps();
+	JSON_Array jaMaps = Forsaken_Maps();
 
-	int 
+	int
 		iLength = jaMaps.Length;
 	char
 		sTmpBuffer[32],
@@ -127,18 +148,30 @@ public Action Cmd_Maplist(int iClient, int iArgs)
 	{
 		char sListMap[32];
 		jaMaps.GetString(index, sListMap, sizeof(sListMap));
-		
+
 		Format(sTmpBuffer, sizeof(sTmpBuffer), "%s ", sListMap);
 		StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
-		if(index == 3 || index == 7)
+		if (index == 3 || index == 7)
 		{
 			Format(sTmpBuffer, sizeof(sTmpBuffer), "\n", sListMap);
 			StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
 		}
 	}
-	
+
 	CReplyToCommand(iClient, "%t %s", "Tag", sPrintBuffer);
 	json_cleanup_and_delete(jaMaps);
+	return Plugin_Continue;
+}
+
+public Action Cmd_Cancel(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_endgame_cancel");
+		return Plugin_Continue;
+	}
+
+	ForceEndGame(unknown);
 	return Plugin_Continue;
 }
 
@@ -164,26 +197,56 @@ public int Native_IsEndGame(Handle plugin, int numParams)
  */
 any Native_ForceEndGame(Handle plugin, int numParams)
 {
-	ForceEndGame();
+	g_CancelMatch = view_as<CancelMatch>(GetNativeCell(1));
+
+	if (!g_bNativeAvailable)
+	{
+		ThrowNativeError(SP_ERROR_NATIVE, "Endgame has already been forced");
+		Forsaken_log("The attempt to force the game to close was rejected due to the timeout, Reason: %s", sCancelMatch[g_CancelMatch]);
+		CreateTimer(10.0, Timer_NativeAvailable);
+		return 0;
+	}
+	if(!IsInReady() && InSecondHalfOfRound())
+		ChapterPoints();
+
+	StartEndGame();
 	return 0;
+}
+
+/**
+ * @brief Timer that restores the availability of the native Force Endgame
+ *
+ * @param timer     Timer handle
+ * @return          Stop the timer
+ */
+public Action Timer_NativeAvailable(Handle timer)
+{
+	g_bNativeAvailable = true;
+	g_CancelMatch	   = unknown;
+	return Plugin_Stop;
 }
 
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
-
 public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 {
+	if(!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded() || !g_bRound_End)
+		return;
+	g_bRound_End = !g_bRound_End;
+
 	if (g_cvarDebug.BoolValue)
 		CPrintToChatAll("%t EndGame: {olive}%s{default}", "Tag", g_bIsEndGame ? "True" : "False");
 
-	if (!g_bIsEndGame)
-		return;
+	if (InSecondHalfOfRound())
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t ChapterPoints", "Tag");
+		ChapterPoints();
 
-	if (!InSecondHalfOfRound())
-		return;
-
-	ForceEndGame();
+		if (g_bIsEndGame)
+			StartEndGame(true);
+	}
 }
 
 /*****************************************************************
@@ -213,18 +276,15 @@ public void DatabaseConnect()
 /**
  * @brief Force game over by loading current player and server information.
  * 		After that, the server is restarted.
- * 
+ *
  *  @return bool    True if the game over was forced, False if not.
- * 
+ *
  */
-public bool ForceEndGame()
+bool StartEndGame(bool iscallback = false)
 {
 	Call_StartForward(g_gfEndGame);
 	if (Call_Finish() != 0)
-	{
 		Forsaken_log("ForceEndGame: error in forward Call_Finish");
-		return false;
-	}
 
 	char sQuery[256];
 	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", Forsaken_GetIP(), FindConVar("hostport").IntValue);
@@ -233,20 +293,28 @@ public bool ForceEndGame()
 	{
 		char error[255];
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
+
 		Forsaken_log("Failed to query (error: %s)", error);
+		CPrintToChatAll("%t %t", "Tag", "FailEndedReserved");
+
+		if (iscallback)
+			CreateTimer(g_cvarTimeKick.FloatValue, KickAll);
+
 		return false;
 	}
-
-	CPrintToChatAll("%t %t", "Tag", "Ended");
-	CreateTimer(g_cvarTimeKick.FloatValue, KickAll);
-	return true;
+	else
+	{
+		CPrintToChatAll("%t %t", "Tag", "Ended");
+		CreateTimer(g_cvarTimeKick.FloatValue, KickAll);
+		return true;
+	}
 }
 
 /**
  * @brief Check if the current map is in the map list Maps.json
- * 
+ *
  * @return bool     True if the current map is in the map list, False if not.
- */ 
+ */
 public bool CurrentMapEndGame()
 {
 	JSON_Array jaMaps  = Forsaken_Maps();
@@ -268,9 +336,49 @@ public bool CurrentMapEndGame()
 	return false;
 }
 
+public void ChapterPoints()
+{
+	TypeMatch Match = Forsaken_TypeMatch();
+
+	if (Match == unranked || Match == invalid)
+		return;
+
+	int
+		iSurvivorTeamIndex,
+		iInfectedTeamIndex,
+		iPointsTeamA,
+		iPointsTeamB,
+		iQueueID = 1;
+
+	char
+		sMapName[32],
+		sQuery[256];
+
+	GetCurrentMap(sMapName, sizeof(sMapName));
+	iSurvivorTeamIndex = L4D2_AreTeamsFlipped();
+	iInfectedTeamIndex = !L4D2_AreTeamsFlipped();
+
+	iPointsTeamA	   = L4D2Direct_GetVSCampaignScore(iSurvivorTeamIndex);
+	iPointsTeamB	   = L4D2Direct_GetVSCampaignScore(iInfectedTeamIndex);
+
+	Format(sQuery, sizeof(sQuery), "INSERT INTO `l4d2_queue_result` \
+	(QueueID, MapCode, TeamsFlipped, PointsTeamA, PointsTeamB, GameCanceled) VALUES \
+	('%d', '%s', '%d', '%d', '%d', '%s');",
+		   iQueueID, sMapName, iInfectedTeamIndex, iPointsTeamA, iPointsTeamB, sCancelMatch[g_CancelMatch]);
+
+	if (!SQL_FastQuery(g_dbForsaken, sQuery))
+	{
+		char error[255];
+		SQL_GetError(g_dbForsaken, error, sizeof(error));
+
+		Forsaken_log("Failed to query (error: %s)", error);
+		CPrintToChatAll("%t %t", "Tag", "FailEndedPoints");
+	}
+}
+
 /**
  * @brief Start the timer that kicks players and restarts the server.
- * 
+ *
  * @return			Stop the timer.
  */
 public Action KickAll(Handle timer)

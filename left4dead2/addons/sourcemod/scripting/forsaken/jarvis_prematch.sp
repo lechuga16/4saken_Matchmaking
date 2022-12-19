@@ -14,8 +14,9 @@
  */
 public void PreMatch()
 {
-	if(g_bisPreMatch)
-		CreateTimer(3.0, GetMatchData);
+	if(!g_bPreMatch)
+		return;
+	CreateTimer(3.0, Timer_GetMatchData);
 }
 
 /**
@@ -24,9 +25,9 @@ public void PreMatch()
  * @param timer		Timer handle.
  * @return			Stop the timer.
  */
-public Action GetMatchData(Handle timer)
+public Action Timer_GetMatchData(Handle timer)
 {
-	g_Lobby = view_as<TypeMatch>(Forsaken_TypeMatch());
+	g_TypeMatch = Forsaken_TypeMatch();
 	for (int i = 0; i <= 3; i++)
 	{
 		Forsaken_TeamA(i, g_sSteamIDTA[i], MAX_AUTHID_LENGTH);
@@ -47,22 +48,21 @@ public Action GetMatchData(Handle timer)
  */
 public void StartMatch()
 {
-	char sConfigCfg[128];
-	g_cvarConfigCfg.GetString(sConfigCfg, sizeof(sConfigCfg));
+	if (LGO_IsMatchModeLoaded())
+		return;
+
+	char sCfgConvar[128];
+	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	int iHumanCount = GetHumanCount();
-	switch (iHumanCount)
+
+	if(iHumanCount == g_cvarPlayersToStart.IntValue)
 	{
-		case 1:
-		{
-			CPrintToChatAll("%t %t", "Tag", "StartAnnouncer", sConfigCfg);
-			if(g_cvarDebug.BoolValue)
-				CPrintToChatAll("HumanCount: %d", iHumanCount);
-		}
-		case 2:
-		{
-			CPrintToChatAll("%t %t", "Tag", "StartMatch", sConfigCfg);
-			LGO_ExecuteConfigCfg(sConfigCfg);
-		}
+		CPrintToChatAll("%t %t", "Tag", "StartMatch", sCfgConvar);
+		ServerCommand("sm_forcematch %s", sCfgConvar);
+	}
+	else if(iHumanCount < g_cvarPlayersToStart.IntValue)
+	{
+		CPrintToChatAll("%t %t", "Tag", "NotEnoughPlayers", iHumanCount, g_cvarPlayersToStart.IntValue);
 	}
 }
 

@@ -35,7 +35,7 @@ any Native_Log(Handle plugin, int numParams)
  */
 any Native_TypeMatch(Handle plugin, int numParams)
 {
-	return view_as<TypeMatch>(g_iRegion);
+	return g_TypeMatch;
 }
 
 /**

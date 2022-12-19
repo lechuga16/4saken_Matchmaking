@@ -18,8 +18,10 @@ public void OrganizeTeams()
 	if (!LGO_IsMatchModeLoaded())
 		return;
 
-	if (!g_bisPreMatch)
-		CreateTimer(15.0, Timer_PreventKillBot, _, TIMER_REPEAT);
+	if (g_bPreMatch)
+		return;
+		
+	CreateTimer(12.0, Timer_PreventKillBot, _, TIMER_REPEAT);
 }
 
 /** 

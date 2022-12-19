@@ -16,6 +16,14 @@
 	{
 		"en"		"The match is over, go back to 4saken.us"
 	}
+	"FailEndedReserved"
+	{
+		"en"		"The match has ended, but the reservation data could not be loaded."
+	}
+	"FailEndedPoints"
+	{
+		"en"		"The match has ended, but the points data could not be loaded."
+	}
 	"Ended"
 	{
 		"en"		"The match has ended, loading the data..."

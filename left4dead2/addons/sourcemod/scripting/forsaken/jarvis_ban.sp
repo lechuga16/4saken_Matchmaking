@@ -22,13 +22,13 @@ public void GotDatabase(Database db, const char[] error, any data)
 		return;
 
 	if (db == null)
+	{
 		ThrowError("Error while connecting to database: %s", error);
+		Forsaken_log("Connected to database successfully (%s).", error);
+	}
 
 	g_DBSourceBans = db;
 	SQL_SetCharset(g_DBSourceBans, "utf8mb4");
-
-	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Connected to database successfully.");
 }
 
 /*****************************************************************
@@ -40,7 +40,7 @@ public void GotDatabase(Database db, const char[] error, any data)
  *
  * @noreturn
  */
-stock void ReadConfig()
+stock void ReadConfigSourcebans()
 {
 	InitializeConfigParser();
 
@@ -151,7 +151,7 @@ public SMCResult ReadConfig_KeyValue(SMCParser smc, const char[] key, const char
  *
  * @return				True on success, false otherwise
  */
-public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason, any ...)
+public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason)
 {
 	// server information
 	char
@@ -179,12 +179,14 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	else
 	{
 		Forsaken_log("CreateOffLineBan: Team is invalid");
+		CPrintToChatAll("%s %T", "Tag",  "BanFail", LANG_SERVER, "ForsakenTeam is invalid");
 		return false;
 	}
 
 	if(StrEqual("", sAuth, false))
 	{
 		Forsaken_log("CreateOffLineBan: SteamID is invalid");
+		CPrintToChatAll("%s %T", "Tag",  "BanFail", LANG_SERVER, "SteamID is invalid");
 		return false;
 	}
 
@@ -200,8 +202,6 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	dataPack.WriteCell(iTime);
 	dataPack.WriteString(sReason);
 	dataPack.WriteString(sName);
-
-	dataPack.Reset();
 
 	if (g_DBSourceBans != INVALID_HANDLE)
 		UTIL_InsertBan(iTime, sName, sAuth, sIp, sReason, sAdminAuth, sAdminIp, dataPack);
@@ -226,12 +226,15 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 stock void UTIL_InsertBan(int iTime, const char[] sName, const char[] sAuthid, const char[] sIp, const char[] sReason, const char[] sAdminAuth, const char[] sAdminIp, DataPack dataPack)
 {
 	char
-		sQuery[1024];
+		sQuery[1024],
+		sBufferReason[128];
 
+	FormatEx(sBufferReason, sizeof(sBufferReason), "%s %s.", JVPrefix, sReason);
+	
 	FormatEx(sQuery, sizeof(sQuery), "INSERT INTO %s_bans \
  			(ip, authid, name, created, ends, length, reason, aid, adminIp, sid, country) VALUES \
  			('%s', '%s', '%s', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + %d, %d, '%s', IFNULL((SELECT aid FROM %s_admins WHERE authid = '%s' OR authid REGEXP '^STEAM_[0-9]: %s$'), '0'), '%s', %d, ' ')",
-			DatabasePrefix, sIp, sAuthid, sName, (iTime * 60), (iTime * 60), sReason, DatabasePrefix, sAdminAuth, sAdminAuth[8], sAdminIp, iServerID);
+			DatabasePrefix, sIp, sAuthid, sName, (iTime * 60), (iTime * 60), sBufferReason, DatabasePrefix, sAdminAuth, sAdminAuth[8], sAdminIp, iServerID);
 	g_DBSourceBans.Query(VerifyInsert, sQuery, dataPack, DBPrio_High);
 }
 
@@ -247,25 +250,29 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 {
 	if (dataPack == INVALID_HANDLE)
 	{
-		Forsaken_log("%t: %s", "Ban Fail", error);
+		CPrintToChatAll("%s %T", "Tag",  "BanFail", LANG_SERVER, error);
+		Forsaken_log("Failed to ban player: %s", error);
 		return;
 	}
 
 	if (results == null)
 	{
+		CPrintToChatAll("%s %T", "Tag",  "BanFailQuery", LANG_SERVER, error);
 		Forsaken_log("Verify Insert Query Failed: %s", error);
 		return;
 	}
 
-	int iTime;
 	char
 		sName[64],
 		sReason[128];
 
-	iTime  = dataPack.ReadCell();
+	dataPack.Reset();
+	int iTime  = dataPack.ReadCell();
 	dataPack.ReadString(sReason, sizeof(sReason));
 	dataPack.ReadString(sName, sizeof(sName));
 	delete dataPack;
+
+	CPrintToChatAll("%t %t", "Tag", "PrintBanSuccess", sName, iTime, sReason);
 
 	if(g_cvarDebug.BoolValue)
 		Forsaken_log("%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);

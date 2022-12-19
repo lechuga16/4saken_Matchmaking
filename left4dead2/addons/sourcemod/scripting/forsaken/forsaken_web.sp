@@ -67,9 +67,9 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 
 	joMatch	  = json_read_from_file(sPatch);
 
-	g_iRegion = joMatch.GetInt("region");
-	jaTA	  = view_as<JSON_Array>(joMatch.GetObject("team1"));
-	jaTB	  = view_as<JSON_Array>(joMatch.GetObject("team2"));
+	g_TypeMatch = view_as<TypeMatch>(joMatch.GetInt("region"));
+	jaTA	    = view_as<JSON_Array>(joMatch.GetObject("team1"));
+	jaTB	    = view_as<JSON_Array>(joMatch.GetObject("team2"));
 
 	if (joMatch == null)
 	{

@@ -40,6 +40,9 @@
 // ENUMS
 // ==================================================
 
+/**
+ * Enumeration of match types.
+ */
 enum TypeMatch
 {
 	invalid  = 0,
@@ -52,6 +55,9 @@ enum TypeMatch
 	TypeMatch_Size = 6
 };
 
+/**
+ * Enumeration of team types in forsaken format.
+ */
 enum ForsakenTeam
 {
 	Team0 = 0,
@@ -61,10 +67,25 @@ enum ForsakenTeam
 	ForsakenTeam_Size = 3
 };
 
+/**
+ * Enumeration of cancel match types.
+ */
+enum CancelMatch
+{
+	unknown   = 0,
+	ragequit  = 1,
+	desertion = 2,
+
+	CancelMatch_Size = 3
+};
+
 // ==================================================
 // Array
 // ==================================================
 
+/**
+ * Array that names the match types
+ */
 stock const char sTypeMatch[TypeMatch_Size][] =
 {
 	"Invalid",
@@ -75,6 +96,9 @@ stock const char sTypeMatch[TypeMatch_Size][] =
 	"Scrims"
 };
 
+/** 
+ * Array that names the team types in left4d format.
+ */
 stock const char sL4DTeam[4][] =
 {
 	"Unassigned",
@@ -83,11 +107,24 @@ stock const char sL4DTeam[4][] =
 	"Infected"
 };
 
+/** 
+ * Array that names the team types in forsaken format.
+ */
 stock const char sForsakenTeam[ForsakenTeam_Size][] =
 {
 	"Team0",
 	"TeamA",
 	"TeamB"
+};
+
+/** 
+ * Array that names the cancel match types.
+ */
+stock const char sCancelMatch[CancelMatch_Size][] =
+{
+	"Unknown",
+	"Ragequit",
+	"Desertion"
 };
 
 // ==================================================
@@ -232,4 +269,18 @@ stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSt
     {
         Format(sCommunityID, iSize, "765611979%s", sCommunityID);
     }
-} 
+}
+
+/**
+ * Tests whether a string is found inside another string.
+ *
+ * @param str           String to search in.
+ * @param substr        Substring to find inside the original string.
+ * @param caseSensitive If true (default), search is case sensitive.
+ *                      If false, search is case insensitive.
+ * @return 				True if find, false otherwise.
+ */
+stock bool FindString(const char[] str, const char[] substr, bool caseSensitive=true)
+{
+	return (StrContains(str, substr, caseSensitive) != -1);
+}

@@ -20,6 +20,9 @@ public void WaitingPlayers()
 	if (!LGO_IsMatchModeLoaded())
 		return;
 
+	if(g_bPreMatch)
+		return;
+
 	KillTimerWaitPlayers();
 	KillTimerWaitPlayersAnnouncer();
 	KillTimerCheckPlayers();
@@ -112,15 +115,15 @@ public Action Timer_CheckListPlayers(Handle timer)
 public void MissingPlayers()
 {
 	char
-		tmpBufferTA[64],
-		tmpBufferTB[64],
+		tmpBufferTA[128],
+		tmpBufferTB[128],
 		printBufferTA[512],
 		printBufferTB[512];
 
-	Format(tmpBufferTA, sizeof(tmpBufferTA), "%t %t:\n{blue}", "Tag", "WaitingSurvivors");
+	Format(tmpBufferTA, sizeof(tmpBufferTA), "%t %t:\n{olive}", "Tag", "WaitingSurvivors");
 	StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 
-	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t:\n{red}", "Tag", "WaitingInfected");
+	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t:\n{olive}", "Tag", "WaitingInfected");
 	StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 
 	for (int iID = 0; iID <= 4; iID++)
@@ -188,11 +191,15 @@ public void BanDesertionPlayers()
 	{
 		if (!g_bCheckSteamIDTA[iID]) 
 		{
-			CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, "%t %t", "Tag", "BanDesertion");
+			char sBuffer[128];
+			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
+			CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, sBuffer);
 		}
 		if (!g_bCheckSteamIDTB[iID])
 		{
-			CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, "%t %t", "Tag", "BanDesertion");
+			char sBuffer[128];
+			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
+			CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, sBuffer);
 		}
 	}
 }
@@ -260,6 +267,6 @@ public void KillTimerCheckPlayers()
  */
 public Action Timer_StartEndGame(Handle timer)
 {
-	ForceEndGame();
+	ForceEndGame(desertion);
 	return Plugin_Stop;
 }

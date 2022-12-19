@@ -7,7 +7,6 @@
 #include <left4dhooks>
 #include <sourcemod>
 #include <system2>
-#include <sourcebanspp>
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #include <readyup>
@@ -38,7 +37,8 @@ State	  ConfigState;
 SMCParser ConfigParser;
 
 TypeMatch
-	g_Lobby;
+	g_TypeMatch;
+
 ConVar
 	g_cvarDebug,
 	g_cvarEnable,
@@ -47,19 +47,24 @@ ConVar
 	g_cvarTimerRageQuit,
 	g_cvarBanRageQuit,
 	g_cvarBanDesertion,
-	g_cvarConfigCfg;
+	g_cvarConfigCfg,
+	g_cvarPlayersToStart;
+
 ConVar
 	survivor_limit,
 	z_max_player_zombies;
+
 char
 	g_sSteamIDTA[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
 	g_sSteamIDTB[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
 	g_sNameTA[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
 	g_sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH];
+
 bool
 	g_bCheckSteamIDTA[MAX_PLAYER_TEAM] = { false, false, false, false, false },
 	g_bCheckSteamIDTB[MAX_PLAYER_TEAM] = { false, false, false, false, false },
-	g_bisPreMatch = true;
+	g_bPreMatch						   = true;
+
 Handle
 	g_hTimerOT,
 	g_hTimerWait,
@@ -67,8 +72,10 @@ Handle
 	g_hTimerCheckList,
 	g_hTimerRageQuitTA[MAX_PLAYER_TEAM] = { null, null, null, null, null },
 	g_hTimerRageQuitTB[MAX_PLAYER_TEAM] = { null, null, null, null, null };
+
 Database
 	g_DBSourceBans;
+
 int
 	g_iPointsTeamA = 0,
 	g_iPointsTeamB = 0;
@@ -86,7 +93,6 @@ int
 /*****************************************************************
 			P L U G I N   I N F O
 *****************************************************************/
-
 public Plugin myinfo =
 {
 	name		= "Forsaken J.A.R.V.I.S",
@@ -94,6 +100,8 @@ public Plugin myinfo =
 	description = "Manage the players and the game",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/lechuga16/4saken_Matchmaking"
+
+
 }
 
 public APLRes
@@ -111,7 +119,6 @@ public APLRes
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-
 public void OnPluginStart()
 {
 	LoadTranslation("forsaken_jarvis.phrases");
@@ -122,9 +129,10 @@ public void OnPluginStart()
 	g_cvarTimeWait			= CreateConVar("sm_jarvis_timewait", "180.0", "The time to wait for the players to join the server", FCVAR_NONE, true, 0.0);
 	g_cvarTimeWaitAnnouncer = CreateConVar("sm_jarvis_timewaitannouncer", "30.0", "The time to announcer the players to join the server", FCVAR_NONE, true, 0.0);
 	g_cvarTimerRageQuit		= CreateConVar("sm_jarvis_timeragequit", "180.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
-	g_cvarBanRageQuit		= CreateConVar("sm_jarvis_banragequit", "7200", "The time to ban the player for (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarBanDesertion		= CreateConVar("sm_jarvis_bandesertion", "4320", "The time to ban the player for (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarBanRageQuit		= CreateConVar("sm_jarvis_banragequit", "7200", "The time to ban the player for (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertion		= CreateConVar("sm_jarvis_bandesertion", "4320", "The time to ban the player for (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0);
 	g_cvarConfigCfg			= CreateConVar("sm_jarvis_configcfg", "zonemod", "The config file to load", FCVAR_NONE);
+	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "2", "The minimum players to start the match", FCVAR_NONE, true, 2.0);
 
 	RegConsoleCmd("sm_jarvis_checkteams", Cmd_CheckTeams, "Check the client's ForsakenTeam and switch teams.");
 	RegConsoleCmd("sm_jarvis_deleteOT", Cmd_DeleteOT, "Kills the timer for organizing teams.");
@@ -133,7 +141,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_jarvis_listplayers", Cmd_ListPlayers, "Print the forsaken player list");
 	RegConsoleCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, "Print the missing players");
 	RegConsoleCmd("sm_jarvis_offlineban", Cmd_OffLineBan, "Ban offline players");
-	RegConsoleCmd("sm_jarvis_cancelmatch", Cmd_CancelMatch, "Cancel the match and execute the end of the game");
+	RegConsoleCmd("sm_jarvis_cfg", Cmd_Config, "Load the config file");
 
 	survivor_limit		 = FindConVar("survivor_limit");
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
@@ -151,10 +159,11 @@ public void OnMapStart()
 	PreMatch();
 	WaitingPlayers();
 	OrganizeTeams();
-	ReadConfig();
+	ReadConfigSourcebans();
+	CheckCFG();
 
 	if (LGO_IsMatchModeLoaded())
-		g_bisPreMatch = false;
+		g_bPreMatch = false;
 }
 
 public void OnMapEnd()
@@ -172,28 +181,24 @@ public void OnRoundIsLive()
 	KillTimerCheckPlayers();
 }
 
-public void OnClientAuthorized(int iClient, const char[] sAuth) 
+public void OnClientAuthorized(int iClient, const char[] sAuth)
 {
-	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
+	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (g_Lobby == unranked || g_Lobby == invalid)
+	if (g_TypeMatch == unranked || g_TypeMatch == invalid)
 		return;
 
-	if(!IsClientInGame(iClient) || IsFakeClient(iClient))
+	if (IsFakeClient(iClient))
 		return;
-	    
-	if (strcmp(sAuth, "BOT") == 0)
-		return;
-
-	if(IsRageQuiters(iClient, sAuth))
-	{
-		RemoveRageQuiters(iClient, sAuth);
-		if(g_cvarDebug.BoolValue)
-			Forsaken_log("OnClientConnected: %N is ragequiter", iClient);
-	}
 
 	StartMatch();
+
+	if (IsRageQuiters(iClient, sAuth))
+	{
+		RemoveRageQuiters(iClient, sAuth);
+		Forsaken_log("ClientConnected: %N is ragequiter", iClient);
+	}
 }
 
 public Action Cmd_CheckTeams(int iClient, int iArgs)
@@ -263,25 +268,49 @@ public Action Cmd_AddUser(int iClient, int iArgs)
 
 	if (iArgs == 0 || iArgs >= 2)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_adduser <#team> (1:survi|2:infect)");
+		CReplyToCommand(iClient, "Usage: sm_jarvis_adduser <#1:survi|#2:infect>");
 		return Plugin_Handled;
 	}
 
-	int	 iArg = GetCmdArgInt(1);
+	ForsakenTeam team = view_as<ForsakenTeam>(GetCmdArgInt(1));
 
-	char sSteamID[32];
-	GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID));
+	char
+		sSteamID[32],
+		sName[128];
 
-	if (iArg == 1)
+	if (!GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
 	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "AddSurv");
-		g_sSteamIDTA[4] = sSteamID;
+		CReplyToCommand(iClient, "%t %t", "Tag", "NoSteamID");
+		return Plugin_Handled;
 	}
-	else if (iArg == 2)
+
+	if (!GetClientName(iClient, sName, sizeof(sName)))
 	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "AddInfect");
-		g_sSteamIDTB[4] = sSteamID;
+		CReplyToCommand(iClient, "%t %t", "Tag", "NoName");
+		return Plugin_Handled;
 	}
+
+	switch (team)
+	{
+		case TeamA:
+		{
+			CReplyToCommand(iClient, "%t %t", "Tag", "AddSurv");
+			g_sSteamIDTA[4] = sSteamID;
+			g_sNameTA[4]	= sName;
+		}
+		case TeamB:
+		{
+			CReplyToCommand(iClient, "%t %t", "Tag", "AddInfect");
+			g_sSteamIDTB[4] = sSteamID;
+			g_sNameTB[4]	= sName;
+		}
+		default:
+		{
+			CReplyToCommand(iClient, "Usage: sm_jarvis_adduser <#1:survi|#2:infect>");
+			return Plugin_Handled;
+		}
+	}
+
 	return Plugin_Continue;
 }
 
@@ -293,7 +322,7 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	CReplyToCommand(iClient, "%t %t", "Tag", "TypeLobby", sTypeMatch[g_Lobby]);
+	CReplyToCommand(iClient, "%t %t", "Tag", "TypeLobby", sTypeMatch[g_TypeMatch]);
 
 	char
 		tmpBuffer[32],
@@ -358,7 +387,7 @@ public Action Cmd_OffLineBan(int iClient, int iArgs)
 	ForsakenTeam Team	 = view_as<ForsakenTeam>(GetCmdArgInt(1));
 	int			 iPlayer = GetCmdArgInt(2);
 
-	char sBuffer[128];
+	char		 sBuffer[128];
 	Format(sBuffer, sizeof(sBuffer), "%t %t", "Tag", "DesertionTest");
 
 	if (Team == TeamA)
@@ -374,17 +403,66 @@ public Action Cmd_OffLineBan(int iClient, int iArgs)
 		CReplyToCommand(iClient, "%t %t", "Tag", "InvalidTeam");
 	}
 
-	return Plugin_Continue;
+	return Plugin_Handled;
 }
 
-public Action Cmd_CancelMatch(int iClient, int iArgs)
+public Action Cmd_Config(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_cancelmatch");
+		CReplyToCommand(iClient, "Usage: sm_jarvis_config");
 		return Plugin_Handled;
 	}
 
-	ForceEndGame();
 	return Plugin_Handled;
+}
+
+public void CheckCFG()
+{
+	if (LGO_IsMatchModeLoaded() && !g_bPreMatch)
+		CreateTimer(40.0, Timer_ReadCFG);
+}
+
+public Action Timer_ReadCFG(Handle hTimer)
+{
+	char 
+		sCfgConvar[128],
+		sCfgName[128];
+	ConVar 
+		l4d_ready_cfg_name;
+
+	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
+	l4d_ready_cfg_name = FindConVar("l4d_ready_cfg_name");
+
+	if(l4d_ready_cfg_name == null)
+	{
+		Forsaken_log("ConVar l4d_ready_cfg_name not found");
+		return Plugin_Stop;
+	}
+
+	l4d_ready_cfg_name.GetString(sCfgName, sizeof(sCfgName));
+
+	if (FindString(sCfgName, sCfgConvar, false))
+	{
+		if(g_cvarDebug.BoolValue)
+		{
+			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCfgConvar);
+			Forsaken_log("The current cfg (%s) corresponds to %s", sCfgName, sCfgConvar);
+		}
+	}
+	else
+	{
+		CPrintToChatAll("%t %t", "Tag", "ConfigChange", sCfgName, sCfgConvar);
+		Forsaken_log("The current cfg (%s) does not correspond to %s", sCfgName, sCfgConvar);
+		CreateTimer(5.0, Timer_ForceMatch);
+	}
+
+
+	return Plugin_Stop;
+}
+
+public Action Timer_ForceMatch(Handle hTimer)
+{
+	ServerCommand("sm_resetmatch");
+	return Plugin_Stop;
 }

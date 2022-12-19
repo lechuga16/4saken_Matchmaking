@@ -12,23 +12,33 @@
 	}
     "DeleteOT"
     {
-        "en"        "Timer to organize eliminated teams."
-        "es"        "Cronómetro para organizar equipos eliminados."
+        "en"        "{green}Timer{default} to organize teams {red}eliminated{default}."
+        "es"        "{green}Cronómetro{default} para organizar equipos {red}eliminados{default}."
+    }
+    "NoSteamID"
+    {
+        "en"        "Failed to identify SteamID."
+        "es"        "No se logró identificar el SteamID."
+    }
+    "NoName"
+    {
+        "en"        "Failed to identify name."
+        "es"        "No se logró identificar el nombre."
     }
     "AddSurv"
     {
-        "en"        "Added as a survivor."
-        "es"        "Se agregó como superviviente."
+        "en"        "Added as a {blue}survivor{default}."
+        "es"        "Se agregó como {blue}superviviente{default}."
     }
     "AddInfect"
     {
-        "en"        "Added as an infected."
-        "es"        "Se agregó como infectado."
+        "en"        "Added as an {red}infected{default}."
+        "es"        "Se agregó como {red}infectado{default}."
     }
     "TypeLobby"
     {
-        "en"        "Type Lobby: %s."
-        "es"        "Tipo de Lobby: %s."
+        "en"        "Type Lobby: {olive}%s{default}."
+        "es"        "Tipo de Lobby: {olive}%s{default}."
     }
     "InvalidTeam"
     {
@@ -45,52 +55,87 @@
         "en"        "Desertion test."
         "es"        "Prueba de deserción."
     }
-    // jarvis_prematch.sp
-    "StartAnnouncer"
+    "ConfigConfirm"
     {
-        "en"        "Waiting for 1 player to start %s."
-        "es"        "Esperando 1 jugador para iniciar a %s."
+        "en"        "The current cfg ({green}%s{default}) corresponds to {olive}%s{default}."
+        "es"        "La cfg actual ({green}%s{default}) corresponde a {olive}%s{default}."
+    }
+    {
+        "en"        "The current cfg ({green}%s{default}) does not correspond to {olive}%s{default}."
+        "es"        "La cfg actual ({green}%s{default}) no corresponde a {olive}%s{default}."
+    }
+    "ConfigChange"
+    {
+        "en"        "The current cfg ({green}%s{default}) does not correspond to {olive}%s{default}."
+        "es"        "La cfg actual ({green}%s{default}) no corresponde a {olive}%s{default}."
+    }
+    // jarvis_prematch.sp
+    "NotEnoughPlayers"
+    {
+        "en"        "Not enough players to start the match  ({green}%d{default}/{green}%d{default})."
+        "es"        "No hay suficientes jugadores para iniciar la partida ({green}%d{default}/{green}%d{default})."
     }
     "StartMatch"
     {
-        "en"        "Starting %s."
-        "es"        "Iniciando %s."
+        "en"        "Starting {green}%s{default}."
+        "es"        "Iniciando {green}%s{default}."
+    }
+    // jarvis_ban.sp
+    "BanFail"
+    {
+        "en"        "Failed to ban player, ({red}%s{default})."
+        "es"        "No se logro sancionar al jugador, ({red}%s{default})."
+    }
+    "PrintBanSuccess"
+    {
+        "en"        "{olive}%s{default} was {red}banned{default} for {green}%d{default} minutes. Reason: {green}%s{default}."
+        "es"        "{olive}%s{default} fue {red}baneado{default} por {green}%d{default} minutos. Razon: {green}%s{default}."
+    }
+    "BanFailQuery"
+    {
+        "en"        "Failed to ban player, ({red}%s{default})."
+        "es"        "No se logro sancionar al jugador, ({red}%s{default})."
     }
     // jarvis_waiting.sp
     "AllConnected"
     {
-        "en"        "All players are connected."
-        "es"        "Todos los jugadores están conectados."
+        "en"        "{blue}All players{default} are connected."
+        "es"        "{blue}Todos los jugadores{default} están conectados."
     }
     "NotAllConnected"
     {
-        "en"        "Not all players are connected."
-        "es"        "No todos los jugadores están conectados."
+        "en"        "{red}Not all players{default} are connected."
+        "es"        "{red}No todos los jugadores{default} están conectados."
     }
     "WaitingSurvivors"
     {
-        "en"        "Waiting for survivors."
-        "es"        "Esperando supervivientes."
+        "en"        "Waiting for {blue}survivors{default}"
+        "es"        "Esperando {blue}supervivientes{default}"
     }
     "WaitingInfected"
     {
-        "en"        "Waiting for infected."
-        "es"        "Esperando infectados."
+        "en"        "Waiting for {red}infected{default}"
+        "es"        "Esperando {red}infectados{default}"
     }
     "BanDesertion"
     {
-        "en"        "Desertion before starting the game."
-        "es"        "Deserción antes del iniciar la partida."
+        "en"        "Desertion before starting the game"
+        "es"        "Deserción antes del iniciar la partida"
     }
     // jarvis_ragequit.sp
     "RageQuit"
     {
-        "en"        "%s (%s) left the game, timeout is %.1f seconds."
-        "es"        "%s (%s) dejó el juego, el tiempo de espera es de %.1f segundos."
+        "en"        "{olive}%s{default} ({green}%s{default}) {red}left the game{default}, timeout is {green}%d{default} seconds."
+        "es"        "{olive}%s{default} ({green}%s{default}) {red}dejó el juego{default}, el tiempo de espera es de {green}%d{default} segundos."
     }
-    "ReasonRageQuit"
+    "BanReasonRQ" 
     {
-        "en"        "RageQuit."
-        "es"        "RageQuit."
+        "en"        "RageQuit"
+        "es"        "RageQuit"
+    }
+    "PlayerReturned"
+    {
+        "en"        "{olive}%s{default} ({green}%s{default}) {blue}returned{default} to the game."
+        "es"        "{olive}%s{default} ({green}%s{default}) {blue}regresó{default} al juego."
     }
 }

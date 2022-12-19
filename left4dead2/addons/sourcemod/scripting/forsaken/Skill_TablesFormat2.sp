@@ -112,5 +112,5 @@ void QueryFormat2(TFormat2 iTable, const char[] sMapName, const char[] sSteamID,
 {
 	char sQuery[300];
 	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected, chip, overkill) VALUES ('%s', '%s', '%s', '%d', '%d');", sTFormat2[iTable], sMapName, sSteamID, sSteamID2, damage, view_as<int>(isOverkill));
-	g_Database.Query(OnUpdateTable, sQuery);
+	g_Database.Query(OnUpdateTable, sQuery, iTable);
 }

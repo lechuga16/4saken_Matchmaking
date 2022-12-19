@@ -28,8 +28,10 @@ char
 	g_sPatchIP[64];
 
 int
-	g_iPort,
-	g_iRegion = 0;
+	g_iPort;
+
+TypeMatch
+	g_TypeMatch = invalid;
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S

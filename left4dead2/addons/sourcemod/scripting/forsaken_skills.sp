@@ -231,8 +231,9 @@ public void OnCreateTable(Database db, DBResultSet results, const char[] error, 
 		ThrowError("Error while creating table: %s", error);
 }
 
-public void OnUpdateTable(Database db, DBResultSet results, const char[] error, any data)
+public void OnUpdateTable(Database db, DBResultSet results, const char[] error, any iTable)
 {
 	if (results == null)
-		ThrowError("Error OnUpdateTable: %s", error);
+		ThrowError("Error OnUpdateTable %s: %s", sTFormat[iTable], error);
+
 }

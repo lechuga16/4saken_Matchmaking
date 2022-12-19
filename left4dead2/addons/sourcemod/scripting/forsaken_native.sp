@@ -54,8 +54,7 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 		return Plugin_Continue;
 	}
 
-	TypeMatch tyMatch = Forsaken_TypeMatch();
-	CReplyToCommand(iClient, "Region: %d", tyMatch);
+	CReplyToCommand(iClient, "Type Match: %s", sTypeMatch[Forsaken_TypeMatch()]);
 
 	char
 		sSteamIDTA[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
