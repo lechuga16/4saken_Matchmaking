@@ -124,3 +124,18 @@ any Native_GetIPv4(Handle plugin, int numParams)
 	SetNativeString(1, g_sIPv4, maxlen);
 	return 0;
 }
+
+/** 
+ * Gets the name of the map provided by Forsaken
+ *
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+any Native_MapName(Handle plugin, int numParams)
+{
+	int maxlen = GetNativeCell(2);
+	
+	SetNativeString(1, g_sMapName, maxlen);
+	return 0;
+}

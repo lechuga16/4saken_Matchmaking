@@ -1,0 +1,112 @@
+"Phrases"
+{
+    // forsaken_jarvis.sp
+	"NoConsoleCMD"
+	{
+        "es"        "No puedes usar este comando desde la consola."
+	}
+    "DeleteOT"
+    {
+        "es"        "{green}Cronómetro{default} para organizar equipos {red}eliminados{default}."
+    }
+    "NoSteamID"
+    {
+        "es"        "No se logró identificar el SteamID."
+    }
+    "NoName"
+    {
+        "es"        "No se logró identificar el nombre."
+    }
+    "AddSurv"
+    {
+        "es"        "Se agregó como {blue}superviviente{default}."
+    }
+    "AddInfect"
+    {
+        "es"        "Se agregó como {red}infectado{default}."
+    }
+    "TypeLobby"
+    {
+        "es"        "Tipo de Lobby: {olive}%s{default}."
+    }
+    "InvalidTeam"
+    {
+        "es"        "Equipo inválido."
+    }
+    "PlayerInvalid"
+    {
+        "es"        "Jugador inválido."
+    }
+    "DesertionTest"
+    {
+        "es"        "Prueba de deserción."
+    }
+    "ConfigConfirm"
+    {
+        "es"        "La cfg actual ({green}%s{default}) corresponde a {olive}%s{default}."
+    }
+    "ConfigChange"
+    {
+        "es"        "La cfg actual ({green}%s{default}) no corresponde a {olive}%s{default}."
+    }
+    "MatchInfo"
+    {
+        "es"        "Información de la partida:\n Cfg ({olive}%s{default}) | Mapa ({olive}%s{default})."
+    }
+    // jarvis_prematch.sp
+    "NotEnoughPlayers"
+    {
+        "es"        "No hay suficientes jugadores para iniciar la partida ({green}%d{default}/{green}%d{default})."
+    }
+    "StartMatch"
+    {
+        "es"        "Iniciando la cfg ({olive}%s{default}) y cambiando el mapa a ({olive}%s{default})."
+    }
+    // jarvis_ban.sp
+    "BanFail"
+    {
+        "es"        "No se logro sancionar al jugador, ({red}%s{default})."
+    }
+    "PrintBanSuccess"
+    {
+        "es"        "{olive}%s{default} fue {red}baneado{default} por {green}%d{default} minutos. Razon: {green}%s{default}."
+    }
+    "BanFailQuery"
+    {
+        "es"        "No se logro sancionar al jugador, ({red}%s{default})."
+    }
+    // jarvis_waiting.sp
+    "AllConnected"
+    {
+        "es"        "{blue}Todos los jugadores{default} están conectados."
+    }
+    "NotAllConnected"
+    {
+        "es"        "{red}No todos los jugadores{default} están conectados."
+    }
+    "WaitingSurvivors"
+    {
+        "es"        "Esperando {blue}supervivientes{default}"
+    }
+    "WaitingInfected"
+    {
+        "es"        "Esperando {red}infectados{default}"
+    }
+    "BanDesertion"
+    {
+        "es"        "Deserción antes del iniciar la partida"
+    }
+    // jarvis_ragequit.sp
+    "RageQuit"
+    {
+        "es"        "{olive}%s{default} ({green}%s{default}) {red}dejó el juego{default}, el tiempo de espera es de {green}%d{default} segundos."
+    }
+    "BanReasonRQ" 
+    {
+        "es"        "RageQuit"
+    }
+    "PlayerReturned"
+    {
+        "es"        "{olive}%s{default} ({green}%s{default}) {blue}regresó{default} al juego."
+    }
+}

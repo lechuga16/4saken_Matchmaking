@@ -79,9 +79,9 @@ public void OnPluginStart()
 	g_cvarEnable   = CreateConVar("sm_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY | FCVAR_DONTRECORD, true, 0.0, true, 1.0);
 	g_cvarTimeKick = CreateConVar("sm_endgame_timekick", "10.0", "Set counter before kicking players", FCVAR_NOTIFY, true, 0.0, true, 10.0);
 
-	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_ROOT);
-	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_ROOT);
-	RegAdminCmd("sm_endgame_cancel", Cmd_Cancel, ADMFLAG_ROOT);
+	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_GENERIC);
+	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_GENERIC);
+	RegAdminCmd("sm_endgame_cancel", Cmd_Cancel, ADMFLAG_GENERIC);
 
 	DatabaseConnect();
 	AutoExecConfig(true, "forsaken_endgame");
@@ -141,7 +141,7 @@ public Action Cmd_Maplist(int iClient, int iArgs)
 		sTmpBuffer[32],
 		sPrintBuffer[512];
 
-	Format(sTmpBuffer, sizeof(sTmpBuffer), "%t :\n", "Tag");
+	Format(sTmpBuffer, sizeof(sTmpBuffer), "%t :\n", "MapList");
 	StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
 
 	for (int index = 0; index < iLength; index++)
@@ -149,7 +149,7 @@ public Action Cmd_Maplist(int iClient, int iArgs)
 		char sListMap[32];
 		jaMaps.GetString(index, sListMap, sizeof(sListMap));
 
-		Format(sTmpBuffer, sizeof(sTmpBuffer), "%s ", sListMap);
+		Format(sTmpBuffer, sizeof(sTmpBuffer), "{green}%s{default} ", sListMap);
 		StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
 		if (index == 3 || index == 7)
 		{

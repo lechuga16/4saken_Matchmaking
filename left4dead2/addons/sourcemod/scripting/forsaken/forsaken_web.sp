@@ -66,6 +66,7 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 	}
 
 	joMatch	  = json_read_from_file(sPatch);
+	g_sMapName = "c10m1_caves";
 
 	g_TypeMatch = view_as<TypeMatch>(joMatch.GetInt("region"));
 	jaTA	    = view_as<JSON_Array>(joMatch.GetObject("team1"));
@@ -102,14 +103,9 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 
 		joPlayerTA.GetString("personaname", g_sNameTA[i], MAX_NAME_LENGTH);
 		joPlayerTB.GetString("personaname", g_sNameTB[i], MAX_NAME_LENGTH);
-
-		json_cleanup_and_delete(joPlayerTA);
-		json_cleanup_and_delete(joPlayerTB);
 	}
 
-	joMatch = null;
-	jaTA = null;
-	jaTB = null;
+	json_cleanup_and_delete(joMatch);
 }
 
 /** 

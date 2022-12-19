@@ -8,16 +8,24 @@
 	{
 		"es"		"El capítulo actual {red}no será el final{default}."
 	}
+	"MapList"
+	{
+		"es"		"Lista de mapas:"
+	}
 	"KickAll"
 	{
 		"es"		"El partido ha terminado, vuelva a 4saken.us"
 	}
-	"FailEnded"
+	"FailEndedReserved"
 	{
-		"es"		"El partido ha terminado, pero no se han podido cargar los datos."
+		"es"		"El partido ha finalizado, pero {red}no se han podido cargar los datos de la reserva{default}."
+	}
+	"FailEndedPoints"
+	{
+		"es"		"El partido ha terminado, pero {red}no se han podido cargar los datos de puntos{default}."
 	}
 	"Ended"
 	{
-		"es"		"El partido ha finalizado, cargando los datos..."
+		"es"		"El partido ha finalizado, {blue}cargando los datos{default}..."
 	}
 }

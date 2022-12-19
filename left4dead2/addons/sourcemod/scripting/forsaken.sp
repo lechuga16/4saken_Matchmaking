@@ -25,7 +25,8 @@ char
 	g_sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
 	g_sURL[256],
 	g_sIPv4[32],
-	g_sPatchIP[64];
+	g_sPatchIP[64],
+	g_sMapName[32];
 
 int
 	g_iPort;
@@ -70,6 +71,7 @@ public APLRes
 	CreateNative("Forsaken_NameTA", Native_NameTA);
 	CreateNative("Forsaken_NameTB", Native_NameTB);
 	CreateNative("Forsaken_GetIPv4", Native_GetIPv4);
+	CreateNative("Forsaken_MapName", Native_MapName);
 	RegPluginLibrary("forsaken");
 	return APLRes_Success;
 }
@@ -84,7 +86,8 @@ public void OnPluginStart()
 	g_cvarDebug = CreateConVar("sm_forsaken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_forsaken_showip", Cmd_ShowIP, "Get ip and port server");
 	RegConsoleCmd("sm_forsaken_showipv4", Cmd_ShowIPv4, "Get ipv4 and port server");
-	RegConsoleCmd("sm_forsaken_playersinfo", Cmd_PlayersInfo, "Get players info");
+	RegAdminCmd("sm_forsaken_playersinfo", Cmd_PlayersInfo, ADMFLAG_GENERIC, "Shows the name and SteamID of the players");
+	
 	AutoExecConfig(true, "forsaken");
 
 	g_iPort = FindConVar("hostport").IntValue;
@@ -138,10 +141,10 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 		Forsaken_log("TeamB Steamid: %s %s %s %s", g_sSteamIDTB[0], g_sSteamIDTB[1], g_sSteamIDTB[2], g_sSteamIDTB[3]);
 	}
 
-	CReplyToCommand(iClient, "TeamA Name: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}", g_sNameTA[0], g_sNameTA[1], g_sNameTA[2], g_sNameTA[3]);
-	CReplyToCommand(iClient, "TeamA Steamid: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}", g_sSteamIDTA[0], g_sSteamIDTA[1], g_sSteamIDTA[2], g_sSteamIDTA[3]);
+	CReplyToCommand(iClient, "TeamA Name: {blue}%s{default} {blue}%s{default} {blue}%s{default} {blue}%s{default}", g_sNameTA[0], g_sNameTA[1], g_sNameTA[2], g_sNameTA[3]);
+	CReplyToCommand(iClient, "TeamA Steamid: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}\n", g_sSteamIDTA[0], g_sSteamIDTA[1], g_sSteamIDTA[2], g_sSteamIDTA[3]);
 
-	CReplyToCommand(iClient, "TeamB Name: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}", g_sNameTB[0], g_sNameTB[1], g_sNameTB[2], g_sNameTB[3]);
+	CReplyToCommand(iClient, "TeamB Name: {red}%s{default} {red}%s{default} {red}%s{default} {red}%s{default}", g_sNameTB[0], g_sNameTB[1], g_sNameTB[2], g_sNameTB[3]);
 	CReplyToCommand(iClient, "TeamB Steamid: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}", g_sSteamIDTB[0], g_sSteamIDTB[1], g_sSteamIDTB[2], g_sSteamIDTB[3]);
 
 	return Plugin_Handled;

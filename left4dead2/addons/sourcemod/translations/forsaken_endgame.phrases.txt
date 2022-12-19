@@ -8,6 +8,10 @@
 	{
 		"en"		"The current chapter {blue}will be the end{default}."
 	}
+	"MapList"
+	{
+		"en"		"Map list:"
+	}
 	"NotLastMap"
 	{
 		"en"		"The current chapter will {red}not be the end{default}."
@@ -18,14 +22,14 @@
 	}
 	"FailEndedReserved"
 	{
-		"en"		"The match has ended, but the reservation data could not be loaded."
+		"en"		"The match has ended, but {red}the reservation data could not be loaded{default}."
 	}
 	"FailEndedPoints"
 	{
-		"en"		"The match has ended, but the points data could not be loaded."
+		"en"		"The match has ended, but {red}the points data could not be loaded{default}."
 	}
 	"Ended"
 	{
-		"en"		"The match has ended, loading the data..."
+		"en"		"The match has ended, {blue}loading the data{default}..."
 	}
 }

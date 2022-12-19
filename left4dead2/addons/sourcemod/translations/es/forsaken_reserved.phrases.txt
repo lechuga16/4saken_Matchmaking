@@ -1,0 +1,19 @@
+"Phrases"
+{
+	"CmdReserved"
+	{
+		"es"		"El servidor está: %s"
+	}
+	"Reserved"
+	{
+		"es"		"{blue}Reservado{default}"
+	}
+	"Unreserved"
+	{
+		"es"		"{red}Sin Reserva{default}"
+	}
+	"KickMsg"
+	{
+		"es"		"Este servidor solo puede ser usado bajo una reserva desde 4saken\nPara jugar entra a https://4saken.us/"
+	}
+}

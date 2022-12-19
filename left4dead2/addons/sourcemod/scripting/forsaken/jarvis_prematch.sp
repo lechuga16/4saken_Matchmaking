@@ -35,6 +35,7 @@ public Action Timer_GetMatchData(Handle timer)
 		Forsaken_NameTA(i, g_sNameTA[i], MAX_NAME_LENGTH);
 		Forsaken_NameTB(i, g_sNameTB[i], MAX_NAME_LENGTH);
 	}
+	Forsaken_MapName(g_sMapName, sizeof(g_sMapName));
 
 	if(g_cvarDebug.BoolValue)
 		CPrintToChatAll("%t GetMatchData", "Tag");
@@ -51,19 +52,30 @@ public void StartMatch()
 	if (LGO_IsMatchModeLoaded())
 		return;
 
-	char sCfgConvar[128];
+	char sCfgConvar[32];
 	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	int iHumanCount = GetHumanCount();
 
 	if(iHumanCount == g_cvarPlayersToStart.IntValue)
 	{
-		CPrintToChatAll("%t %t", "Tag", "StartMatch", sCfgConvar);
+		char
+			sMatchMap[32];
+		ConVar
+			match_restart;
+
+		CPrintToChatAll("%t %t", "Tag", "StartMatch", sCfgConvar, g_sMapName);
+		
+		match_restart = FindConVar("confogl_match_map");
+		match_restart.GetString(sMatchMap, sizeof(sMatchMap));
+		
+		if(!StrEqual("", sMatchMap, false))
+			return;
+
+		ServerCommand("confogl_match_map %s", g_sMapName);
 		ServerCommand("sm_forcematch %s", sCfgConvar);
 	}
 	else if(iHumanCount < g_cvarPlayersToStart.IntValue)
-	{
 		CPrintToChatAll("%t %t", "Tag", "NotEnoughPlayers", iHumanCount, g_cvarPlayersToStart.IntValue);
-	}
 }
 
 /**

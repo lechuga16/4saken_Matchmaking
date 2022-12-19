@@ -89,6 +89,15 @@ native void Forsaken_NameTB(int index, char[] buffer, int maxlength);
  */
 native void Forsaken_GetIPv4(char[] buffer, int maxlength);
 
+/**
+ * Gets the name of the map provided by Forsaken
+ *
+ * @param buffer        Buffer to copy to.
+ * @param maxlength     Maximum size of the buffer.
+ * @noreturn
+ */
+native void Forsaken_MapName(char[] buffer, int maxlength);
+
 public SharedPlugin __pl_forsaken =
 {
     name = "forsaken",
@@ -110,5 +119,6 @@ public __pl_forsaken_SetNTVOptional()
     MarkNativeAsOptional("Forsaken_NameTA");
     MarkNativeAsOptional("Forsaken_NameTB");
     MarkNativeAsOptional("Forsaken_GetIPv4");
+    MarkNativeAsOptional("Forsaken_MapName");
 }
 #endif

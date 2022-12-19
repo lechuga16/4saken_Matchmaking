@@ -58,7 +58,8 @@ char
 	g_sSteamIDTA[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
 	g_sSteamIDTB[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
 	g_sNameTA[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
-	g_sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH];
+	g_sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
+	g_sMapName[32];
 
 bool
 	g_bCheckSteamIDTA[MAX_PLAYER_TEAM] = { false, false, false, false, false },
@@ -134,14 +135,14 @@ public void OnPluginStart()
 	g_cvarConfigCfg			= CreateConVar("sm_jarvis_configcfg", "zonemod", "The config file to load", FCVAR_NONE);
 	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "2", "The minimum players to start the match", FCVAR_NONE, true, 2.0);
 
-	RegConsoleCmd("sm_jarvis_checkteams", Cmd_CheckTeams, "Check the client's ForsakenTeam and switch teams.");
-	RegConsoleCmd("sm_jarvis_deleteOT", Cmd_DeleteOT, "Kills the timer for organizing teams.");
-	RegConsoleCmd("sm_jarvis_adduser", Cmd_AddUser, "Add user to forsaken player list");
-	RegConsoleCmd("sm_jarvis_pointsteam", Cmd_PointsTeam, "Print the points of each team");
 	RegConsoleCmd("sm_jarvis_listplayers", Cmd_ListPlayers, "Print the forsaken player list");
-	RegConsoleCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, "Print the missing players");
-	RegConsoleCmd("sm_jarvis_offlineban", Cmd_OffLineBan, "Ban offline players");
-	RegConsoleCmd("sm_jarvis_cfg", Cmd_Config, "Load the config file");
+	RegConsoleCmd("sm_jarvis_info", Cmd_MatchInfo, "Displays the cfg and map that will be used..");
+
+	RegAdminCmd("sm_jarvis_deleteOT", Cmd_DeleteOT, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
+	RegAdminCmd("sm_jarvis_adduser", Cmd_AddUser, ADMFLAG_ROOT, "Add user to forsaken player list");
+	RegAdminCmd("sm_jarvis_pointsteam", Cmd_PointsTeam, ADMFLAG_ROOT, "Print the points of each team");
+	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
+	RegAdminCmd("sm_jarvis_offlineban", Cmd_OffLineBan, ADMFLAG_ROOT, "Ban offline players");
 
 	survivor_limit		 = FindConVar("survivor_limit");
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
@@ -199,24 +200,6 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 		RemoveRageQuiters(iClient, sAuth);
 		Forsaken_log("ClientConnected: %N is ragequiter", iClient);
 	}
-}
-
-public Action Cmd_CheckTeams(int iClient, int iArgs)
-{
-	if (iClient == 0)
-	{
-		CReplyToCommand(iClient, "%t", "NoConsoleCMD");
-		return Plugin_Handled;
-	}
-
-	if (iArgs != 0)
-	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_checkteams");
-		return Plugin_Handled;
-	}
-
-	CheckTeam(iClient);
-	return Plugin_Continue;
 }
 
 public Action Cmd_PointsTeam(int iClient, int iArgs)
@@ -406,14 +389,18 @@ public Action Cmd_OffLineBan(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public Action Cmd_Config(int iClient, int iArgs)
+public Action Cmd_MatchInfo(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_config");
+		CReplyToCommand(iClient, "Usage: sm_jarvis_matchinfo");
 		return Plugin_Handled;
 	}
 
+	char sCfgConvar[128];
+	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
+	CReplyToCommand(iClient, "%t %t", "Tag", "MatchInfo", sCfgConvar, g_sMapName);
+	
 	return Plugin_Handled;
 }
 

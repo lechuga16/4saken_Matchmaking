@@ -64,15 +64,15 @@ public APLRes
 
 public void OnPluginStart()
 {
-	LoadTranslation("forsaken_reserve.phrases");
-	CreateConVar("sm_reserve_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug	 = CreateConVar("sm_reserve_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarEnable = CreateConVar("sm_reserve_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	RegConsoleCmd("sm_reserved", Cmd_Reserve, "Reserve the server");
+	LoadTranslation("forsaken_reserved.phrases");
+	CreateConVar("sm_reserved_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	g_cvarDebug	 = CreateConVar("sm_reserved_debug", "0", "Debug messages", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarEnable = CreateConVar("sm_reserved_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	RegConsoleCmd("sm_reserved", Cmd_Reserved, "Check if the server is reserved");
 
 	g_iPort		 = FindConVar("hostport").IntValue;
 	g_sIp		 = Forsaken_GetIP();
-	AutoExecConfig(true, "forsaken_reserve");
+	AutoExecConfig(true, "forsaken_reserved");
 }
 
 public void OnClientPutInServer(int iClient)
@@ -86,14 +86,15 @@ public void OnClientPutInServer(int iClient)
 	GetReserve(iClient);
 }
 
-public Action Cmd_Reserve(int iClient, int iArgs)
+public Action Cmd_Reserved(int iClient, int iArgs)
 {
 	if(iArgs != 0)
 	{
 		CReplyToCommand(iClient, "Usage: sm_reserved");
 		return Plugin_Handled;
 	}
-	CReplyToCommand(iClient, "%s", g_bReserve ? "Reserved" : "Unreserved");
+
+	CReplyToCommand(iClient, "% %t", "Tag", "CmdReserved", g_bReserve ? "Reserved" : "Unreserved");
 	return Plugin_Handled;
 }
 
