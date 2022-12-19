@@ -28,10 +28,10 @@ public void OrganizeTeams()
  * Create a timer that organizes the teams.
  * 		Only works if confogl is started.
  * 
- * @param timer		Timer handle.
+ * @param hTimer	Timer handle.
  * @return			Stop the timer.
  */
-public Action Timer_PreventKillBot(Handle timer)
+public Action Timer_PreventKillBot(Handle hTimer)
 {
 	g_hTimerOT = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
 	return Plugin_Stop;
@@ -41,10 +41,10 @@ public Action Timer_PreventKillBot(Handle timer)
  * Organize the teams.
  * 		Only works if confogl is started.
  * 
- * @param timer		Timer handle.
+ * @param hTimer		Timer handle.
  * @return			Continue the timer.
  */
-public Action Timer_OrganizeTeams(Handle timer)
+public Action Timer_OrganizeTeams(Handle hTimer)
 {
 	for (int index = 1; index <= MaxClients; index++)
 	{

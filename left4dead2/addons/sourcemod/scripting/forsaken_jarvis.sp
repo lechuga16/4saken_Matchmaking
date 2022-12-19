@@ -417,12 +417,26 @@ public Action Cmd_Config(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
+/** 
+ * @brief Check if the game mode is loaded.
+ * 
+ */
 public void CheckCFG()
 {
 	if (LGO_IsMatchModeLoaded() && !g_bPreMatch)
 		CreateTimer(40.0, Timer_ReadCFG);
 }
 
+/** 
+ * @brief Read the cfg name and download the game mode.
+ * 
+ * @param hTimer	Timer handle
+ * @return 			Stop the timer.
+ */
 public Action Timer_ReadCFG(Handle hTimer)
 {
 	char 
@@ -457,10 +471,15 @@ public Action Timer_ReadCFG(Handle hTimer)
 		CreateTimer(5.0, Timer_ForceMatch);
 	}
 
-
 	return Plugin_Stop;
 }
 
+/** 
+ * @brief Force the match to restart
+ * 
+ * @param hTimer  Timer handle
+ * @return        Stop the timer.
+ */
 public Action Timer_ForceMatch(Handle hTimer)
 {
 	ServerCommand("sm_resetmatch");
