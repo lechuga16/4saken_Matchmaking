@@ -15,10 +15,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#if defined forsaken_stocks_l4d2util_included
+#if defined forsaken_l4d2util_included
   #endinput
 #endif
-#define forsaken_stocks_l4d2util_included
+#define forsaken_l4d2util_included
 
 /**
  * Return true if the client is on the infected team.

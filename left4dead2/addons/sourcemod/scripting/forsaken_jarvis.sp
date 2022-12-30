@@ -1,5 +1,5 @@
 
-#define forsaken_stocks_left4dhooks_included 1
+#define forsaken_left4dhooks_included 1
 #include <colors>
 #include <forsaken>
 #include <forsaken_endgame>
@@ -19,7 +19,8 @@
 #define MAX_PLAYER_TEAM 5	 // nota: recordatorio de poner este valor en  4 cuando este en produccion
 #define JVPrefix		"[J.A.R.V.I.S]"
 
-int iServerID = 0;
+int 
+	iServerID = 0;
 char
 	DatabasePrefix[10] = "sb",
 	WebsiteAddress[128];
@@ -33,12 +34,33 @@ enum State
 	ConfigStateTime
 }
 
-State	  ConfigState;
-SMCParser ConfigParser;
+/** 
+ * 	Contains values to tell if a player is in the game or has raged.
+ */
+enum struct PlayerRageQuit
+{
+	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
+	bool ispresent;						// Is the player in the game?
+	Handle timer;						// Timer to check if the player has ragequitting.
+}
+
+State
+	ConfigState;
+
+SMCParser
+	ConfigParser;
 
 TypeMatch
 	g_TypeMatch;
 
+PlayerInfo
+	g_PlayersTA[MAX_PLAYER_TEAM],
+	g_PlayersTB[MAX_PLAYER_TEAM];
+
+PlayerRageQuit
+	g_RageQuitTA[MAX_PLAYER_TEAM],
+	g_RageQuitTB[MAX_PLAYER_TEAM];
+	
 ConVar
 	g_cvarDebug,
 	g_cvarEnable,
@@ -48,31 +70,22 @@ ConVar
 	g_cvarBanRageQuit,
 	g_cvarBanDesertion,
 	g_cvarConfigCfg,
-	g_cvarPlayersToStart;
+	g_cvarPlayersToStart,
 
-ConVar
 	survivor_limit,
 	z_max_player_zombies;
 
 char
-	g_sSteamIDTA[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
-	g_sSteamIDTB[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
-	g_sNameTA[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
-	g_sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
 	g_sMapName[32];
 
 bool
-	g_bCheckSteamIDTA[MAX_PLAYER_TEAM] = { false, false, false, false, false },
-	g_bCheckSteamIDTB[MAX_PLAYER_TEAM] = { false, false, false, false, false },
-	g_bPreMatch						   = true;
+	g_bPreMatch	 = true;
 
 Handle
 	g_hTimerOT,
 	g_hTimerWait,
 	g_hTimerWaitAnnouncer,
-	g_hTimerCheckList,
-	g_hTimerRageQuitTA[MAX_PLAYER_TEAM] = { null, null, null, null, null },
-	g_hTimerRageQuitTB[MAX_PLAYER_TEAM] = { null, null, null, null, null };
+	g_hTimerCheckList;
 
 Database
 	g_DBSourceBans;
@@ -198,7 +211,7 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	if (IsRageQuiters(iClient, sAuth))
 	{
 		RemoveRageQuiters(iClient, sAuth);
-		Forsaken_log("ClientConnected: %N is ragequiter", iClient);
+		fkn_log("ClientConnected: %N is ragequiter", iClient);
 	}
 }
 
@@ -278,14 +291,14 @@ public Action Cmd_AddUser(int iClient, int iArgs)
 		case TeamA:
 		{
 			CReplyToCommand(iClient, "%t %t", "Tag", "AddSurv");
-			g_sSteamIDTA[4] = sSteamID;
-			g_sNameTA[4]	= sName;
+			g_PlayersTA[4].steamid = sSteamID;
+			g_PlayersTA[4].name	= sName;
 		}
 		case TeamB:
 		{
 			CReplyToCommand(iClient, "%t %t", "Tag", "AddInfect");
-			g_sSteamIDTB[4] = sSteamID;
-			g_sNameTB[4]	= sName;
+			g_PlayersTB[4].steamid = sSteamID;
+			g_PlayersTB[4].name	= sName;
 		}
 		default:
 		{
@@ -315,7 +328,7 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	for (int i = 0; i <= 4; i++)
 	{
-		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_sSteamIDTA[i]);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_PlayersTA[i].steamid);
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
 
@@ -326,7 +339,7 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	for (int i = 0; i <= 4; i++)
 	{
-		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_sSteamIDTB[i]);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_PlayersTB[i].steamid);
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
 	CReplyToCommand(iClient, "%s", printBuffer);
@@ -437,7 +450,7 @@ public Action Timer_ReadCFG(Handle hTimer)
 
 	if(l4d_ready_cfg_name == null)
 	{
-		Forsaken_log("ConVar l4d_ready_cfg_name not found");
+		fkn_log("ConVar l4d_ready_cfg_name not found");
 		return Plugin_Stop;
 	}
 
@@ -448,13 +461,13 @@ public Action Timer_ReadCFG(Handle hTimer)
 		if(g_cvarDebug.BoolValue)
 		{
 			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCfgConvar);
-			Forsaken_log("The current cfg (%s) corresponds to %s", sCfgName, sCfgConvar);
+			fkn_log("The current cfg (%s) corresponds to %s", sCfgName, sCfgConvar);
 		}
 	}
 	else
 	{
 		CPrintToChatAll("%t %t", "Tag", "ConfigChange", sCfgName, sCfgConvar);
-		Forsaken_log("The current cfg (%s) does not correspond to %s", sCfgName, sCfgConvar);
+		fkn_log("The current cfg (%s) does not correspond to %s", sCfgName, sCfgConvar);
 		CreateTimer(5.0, Timer_ForceMatch);
 	}
 

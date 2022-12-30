@@ -1,7 +1,7 @@
-#if defined jarvis_waiting_included
+#if defined _jarvis_waiting_included
 	#endinput
 #endif
-#define jarvis_waiting_included
+#define _jarvis_waiting_included
 
 /*****************************************************************
 			P L U G I N   F U N C T I O N S
@@ -12,7 +12,7 @@
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
  * 		Only works if the cvar is enabled.
- * 
+ *
  * @noreturn
  */
 public void WaitingPlayers()
@@ -20,16 +20,16 @@ public void WaitingPlayers()
 	if (!LGO_IsMatchModeLoaded())
 		return;
 
-	if(g_bPreMatch)
+	if (g_bPreMatch)
 		return;
 
 	KillTimerWaitPlayers();
 	KillTimerWaitPlayersAnnouncer();
 	KillTimerCheckPlayers();
-	
-	g_hTimerWait		 = CreateTimer(g_cvarTimeWait.FloatValue, Timer_WaitPlayers, _, TIMER_REPEAT);
+
+	g_hTimerWait		  = CreateTimer(g_cvarTimeWait.FloatValue, Timer_WaitPlayers, _, TIMER_REPEAT);
 	g_hTimerWaitAnnouncer = CreateTimer(g_cvarTimeWaitAnnouncer.FloatValue, Timer_WaitPlayersAnnounce, _, TIMER_REPEAT);
-	g_hTimerCheckList	 = CreateTimer(2.0, Timer_CheckListPlayers, _, TIMER_REPEAT);
+	g_hTimerCheckList	  = CreateTimer(2.0, Timer_CheckListPlayers, _, TIMER_REPEAT);
 }
 
 /**
@@ -37,7 +37,7 @@ public void WaitingPlayers()
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
  * 		Only works if the cvar is enabled.
- * 
+ *
  * @return			Stop the timer.
  */
 public Action Timer_WaitPlayers(Handle timer)
@@ -65,7 +65,7 @@ public Action Timer_WaitPlayers(Handle timer)
  * 		Only works if the cvar is enabled.
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
- * 
+ *
  * @return			Continue the timer.
  */
 public Action Timer_WaitPlayersAnnounce(Handle timer)
@@ -79,14 +79,14 @@ public Action Timer_WaitPlayersAnnounce(Handle timer)
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
  * 		Only works if the cvar is enabled.
- * 
+ *
  * @return			Continue the timer.
  */
 public Action Timer_CheckListPlayers(Handle timer)
 {
 	for (int index = 1; index <= MaxClients; index++)
 	{
-		if(!IsClientInGame(index) || IsFakeClient(index))
+		if (!IsClientInGame(index) || IsFakeClient(index))
 			continue;
 
 		char sSteamid[32];
@@ -94,12 +94,11 @@ public Action Timer_CheckListPlayers(Handle timer)
 
 		for (int iID = 0; iID <= 4; iID++)
 		{
-			if (StrEqual(sSteamid, g_sSteamIDTA[iID], false))
-				g_bCheckSteamIDTA[iID] = true;
-			else if (StrEqual(sSteamid, g_sSteamIDTB[iID], false))
-				g_bCheckSteamIDTB[iID] = true;
+			if (StrEqual(sSteamid, g_PlayersTA[iID].steamid, false))
+				g_RageQuitTA[iID].ispresent = true;
+			else if (StrEqual(sSteamid, g_PlayersTB[iID].steamid, false))
+				g_RageQuitTB[iID].ispresent = true;
 		}
-		
 	}
 	return Plugin_Continue;
 }
@@ -109,7 +108,7 @@ public Action Timer_CheckListPlayers(Handle timer)
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
  * 		Only works if the cvar is enabled.
- * 
+ *
  * @noreturn
  */
 public void MissingPlayers()
@@ -128,15 +127,15 @@ public void MissingPlayers()
 
 	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (!g_bCheckSteamIDTA[iID])
+		if (!g_RageQuitTA[iID].ispresent)
 		{
-			Format(tmpBufferTA, sizeof(tmpBufferTA), "%s ", g_sNameTA[iID]);
+			Format(tmpBufferTA, sizeof(tmpBufferTA), "%s ", g_PlayersTA[iID].name);
 			StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 		}
 
-		if (!g_bCheckSteamIDTB[iID])
+		if (!g_RageQuitTB[iID].ispresent)
 		{
-			Format(tmpBufferTB, sizeof(tmpBufferTB), "%s ", g_sNameTB[iID]);
+			Format(tmpBufferTB, sizeof(tmpBufferTB), "%s ", g_PlayersTB[iID].name);
 			StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 		}
 	}
@@ -151,7 +150,7 @@ public void MissingPlayers()
  * @brief Check if all players are connected
  *
  * @param Team		Team to check.
- * 
+ *
  * @return bool		True if all players are connected, false otherwise.
  */
 public bool CheckMissingPlayers(ForsakenTeam Team)
@@ -160,7 +159,7 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 	{
 		for (int iID = 0; iID <= 3; iID++)
 		{
-			if (!g_bCheckSteamIDTA[iID])
+			if (!g_RageQuitTA[iID].ispresent)
 				return false;
 		}
 	}
@@ -168,7 +167,7 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 	{
 		for (int iID = 0; iID <= 3; iID++)
 		{
-			if (!g_bCheckSteamIDTB[iID])
+			if (!g_RageQuitTB[iID].ispresent)
 				return false;
 		}
 	}
@@ -182,20 +181,20 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
  * 		Only works if the cvar is enabled.
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
- * 
+ *
  * @noreturn
  */
 public void BanDesertionPlayers()
 {
 	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (!g_bCheckSteamIDTA[iID]) 
+		if (!g_RageQuitTA[iID].ispresent)
 		{
 			char sBuffer[128];
 			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
 			CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, sBuffer);
 		}
-		if (!g_bCheckSteamIDTB[iID])
+		if (!g_RageQuitTB[iID].ispresent)
 		{
 			char sBuffer[128];
 			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
@@ -208,7 +207,7 @@ public void BanDesertionPlayers()
  * @brief Kills the timer stored in the g_hTimerWait Handle.
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
- * 
+ *
  * @noreturn
  */
 public void KillTimerWaitPlayers()
@@ -226,7 +225,7 @@ public void KillTimerWaitPlayers()
  * @brief Kills the timer stored in the g_hTimerWaitAnnouncer Handle.
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
- * 
+ *
  * @noreturn
  */
 public void KillTimerWaitPlayersAnnouncer()
@@ -244,7 +243,7 @@ public void KillTimerWaitPlayersAnnouncer()
  * @brief Kills the timer stored in the g_hTimerCheckList Handle.
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
- * 
+ *
  * @noreturn
  */
 public void KillTimerCheckPlayers()
@@ -262,7 +261,7 @@ public void KillTimerCheckPlayers()
  * @brief Start the timer that runs the end of the game.
  * 		Only works if the game is not started.
  * 		Only works if the game is not in the waiting room.
- * 
+ *
  * @return			Stop the timer.
  */
 public Action Timer_StartEndGame(Handle timer)

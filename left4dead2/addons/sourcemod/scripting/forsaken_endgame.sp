@@ -1,4 +1,4 @@
-#define forsaken_stocks_left4dhooks_included 1
+#define forsaken_left4dhooks_included 1
 #include <forsaken>
 #include <forsaken_endgame>
 #include <colors>
@@ -116,9 +116,6 @@ public void OnRoundLiveCountdown()
 
 public void OnRoundIsLive()
 {
-	if (!g_bRound_End)
-		g_bRound_End = !g_bRound_End;
-
 	g_bAnnounce = true;
 }
 
@@ -133,7 +130,7 @@ public Action Cmd_CheckMap(int iClient, int iArgs)
 
 public Action Cmd_Maplist(int iClient, int iArgs)
 {
-	JSON_Array jaMaps = Forsaken_Maps();
+	JSON_Array jaMaps = fkn_Maps();
 
 	int
 		iLength = jaMaps.Length;
@@ -202,7 +199,7 @@ any Native_ForceEndGame(Handle plugin, int numParams)
 	if (!g_bNativeAvailable)
 	{
 		ThrowNativeError(SP_ERROR_NATIVE, "Endgame has already been forced");
-		Forsaken_log("The attempt to force the game to close was rejected due to the timeout, Reason: %s", sCancelMatch[g_CancelMatch]);
+		fkn_log("The attempt to force the game to close was rejected due to the timeout, Reason: %s", sCancelMatch[g_CancelMatch]);
 		CreateTimer(10.0, Timer_NativeAvailable);
 		return 0;
 	}
@@ -264,13 +261,13 @@ public void DatabaseConnect()
 		return;
 
 	if (!SQL_CheckConfig("4saken"))
-		Forsaken_log("The 4saken configuration is not found in databases.cfg");
+		fkn_log("The 4saken configuration is not found in databases.cfg");
 
 	char error[255];
 	g_dbForsaken = SQL_Connect("4saken", true, error, sizeof(error));
 
 	if (g_dbForsaken == null)
-		Forsaken_log("Could not connect to database: %s", error);
+		fkn_log("Could not connect to database: %s", error);
 }
 
 /**
@@ -284,17 +281,17 @@ bool StartEndGame(bool iscallback = false)
 {
 	Call_StartForward(g_gfEndGame);
 	if (Call_Finish() != 0)
-		Forsaken_log("ForceEndGame: error in forward Call_Finish");
+		fkn_log("ForceEndGame: error in forward Call_Finish");
 
 	char sQuery[256];
-	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", Forsaken_GetIP(), FindConVar("hostport").IntValue);
+	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", fkn_GetIP(), FindConVar("hostport").IntValue);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{
 		char error[255];
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
 
-		Forsaken_log("Failed to query (error: %s)", error);
+		fkn_log("Failed to query (error: %s)", error);
 		CPrintToChatAll("%t %t", "Tag", "FailEndedReserved");
 
 		if (iscallback)
@@ -317,7 +314,7 @@ bool StartEndGame(bool iscallback = false)
  */
 public bool CurrentMapEndGame()
 {
-	JSON_Array jaMaps  = Forsaken_Maps();
+	JSON_Array jaMaps  = fkn_Maps();
 
 	int		   iLength = jaMaps.Length;
 	for (int index = 0; index < iLength; index += 1)
@@ -338,7 +335,7 @@ public bool CurrentMapEndGame()
 
 public void ChapterPoints()
 {
-	TypeMatch Match = Forsaken_TypeMatch();
+	TypeMatch Match = fkn_TypeMatch();
 
 	if (Match == unranked || Match == invalid)
 		return;
@@ -348,7 +345,7 @@ public void ChapterPoints()
 		iInfectedTeamIndex,
 		iPointsTeamA,
 		iPointsTeamB,
-		iQueueID = 1;
+		iQueueID;
 
 	char
 		sMapName[32],
@@ -361,6 +358,8 @@ public void ChapterPoints()
 	iPointsTeamA	   = L4D2Direct_GetVSCampaignScore(iSurvivorTeamIndex);
 	iPointsTeamB	   = L4D2Direct_GetVSCampaignScore(iInfectedTeamIndex);
 
+	iQueueID = fkn_QueueID();
+
 	Format(sQuery, sizeof(sQuery), "INSERT INTO `l4d2_queue_result` \
 	(QueueID, MapCode, TeamsFlipped, PointsTeamA, PointsTeamB, GameCanceled) VALUES \
 	('%d', '%s', '%d', '%d', '%d', '%s');",
@@ -371,7 +370,7 @@ public void ChapterPoints()
 		char error[255];
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
 
-		Forsaken_log("Failed to query (error: %s)", error);
+		fkn_log("Failed to query (error: %s)", error);
 		CPrintToChatAll("%t %t", "Tag", "FailEndedPoints");
 	}
 }

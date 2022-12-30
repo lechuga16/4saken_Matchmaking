@@ -13,7 +13,10 @@
 
 #define PLUGIN_VERSION	"0.2"
 #define MAX_PLAYER_TEAM 4
-#define PREFIX "[{olive}Native{default}]"
+#define PREFIX			"[{olive}Native{default}]"
+
+Database
+	g_dbForsaken;
 
 /*****************************************************************
 			P L U G I N   I N F O
@@ -39,7 +42,9 @@ public void
 	CreateConVar("sm_native_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	RegConsoleCmd("sm_native_forsaken", Cmd_Forsaken);
 	RegConsoleCmd("sm_native_endgame", Cmd_Endgame);
-	RegConsoleCmd("sm_native_steamid", Cmd_SteamID);
+	RegConsoleCmd("sm_native_mmr", Cmd_MMR);
+
+	SQLConnect();
 }
 
 public void OnEndGame()
@@ -55,24 +60,26 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 		return Plugin_Continue;
 	}
 
-	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[Forsaken_TypeMatch()]);
+	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[fkn_TypeMatch()]);
+
+	PlayerInfo
+		PlayersTA[MAX_PLAYER_TEAM],
+		PlayersTB[MAX_PLAYER_TEAM];
 
 	char
-		sSteamIDTA[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
-		sSteamIDTB[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
-		sNameTA[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
-		sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
 		sMapName[32];
 
-	Forsaken_MapName(sMapName, sizeof(sMapName));
+	CReplyToCommand(iClient, "%s QueueID: ({green}%d{default})", PREFIX, fkn_QueueID());
+	fkn_MapName(sMapName, sizeof(sMapName));
 	CReplyToCommand(iClient, "%s Map Name: ({olive}%s{default})", PREFIX, sMapName);
 
 	for (int i = 0; i <= 3; i++)
 	{
-		Forsaken_TeamA(i, sSteamIDTA[i], MAX_AUTHID_LENGTH);
-		Forsaken_TeamB(i, sSteamIDTB[i], MAX_AUTHID_LENGTH);
-		Forsaken_NameTA(i, sNameTA[i], MAX_NAME_LENGTH);
-		Forsaken_NameTB(i, sNameTB[i], MAX_NAME_LENGTH);
+		fkn_SteamIDTA(i, PlayersTA[i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(i, PlayersTB[i].steamid, MAX_AUTHID_LENGTH);
+		
+		fkn_NameTA(i, PlayersTA[i].name, MAX_NAME_LENGTH);
+		fkn_NameTB(i, PlayersTA[i].name, MAX_NAME_LENGTH);
 	}
 
 	char
@@ -89,10 +96,10 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 
 	for (int iID = 0; iID <= 3; iID++)
 	{
-		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "{olive}%s{default}:", sSteamIDTA[iID]);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "({olive}%s{default}:", PlayersTA[iID].steamid);
 		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
-		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "{green}%s{default} ", sNameTA[iID]);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%s) ", PlayersTA[iID].name);
 		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
 		if (iID == 1)
@@ -101,10 +108,10 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 			StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 		}
 
-		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "{olive}%s{default}:", sSteamIDTB[iID]);
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "({olive}%s{default}:", PlayersTB[iID].steamid);
 		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
-		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "{green}%s{default} ", sNameTB[iID]);
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%s) ", PlayersTB[iID].name);
 		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
 		if (iID == 1)
@@ -132,29 +139,66 @@ public Action Cmd_Endgame(int iClient, int iArgs)
 	return Plugin_Continue;
 }
 
-public Action Cmd_SteamID(int iClient, int iArgs)
+public Action Cmd_MMR(int iClient, int iArgs)
 {
-	if (iArgs != 0)
-	{
-		CReplyToCommand(iClient, "Usage: sm_native_steamid");
-		return Plugin_Continue;
-	}
-
-	if (iClient == 0)
-	{
-		CReplyToCommand(iClient, "[Native] No puedes usar este comando desde la consola");
-		return Plugin_Continue;
-	}
-
 	char
 		sSteamID[32],
 		sCommunityID[32];
 
+	DBResultSet rsForsaken;
+
 	GetClientAuthId(iClient, AuthId_Engine, sSteamID, sizeof(sSteamID));
-	CPrintToChat(iClient, "%s You SteamID: {olive}%s{default}", PREFIX, sSteamID);
-
 	SteamIDToCommunityID(sCommunityID, sizeof(sCommunityID), sSteamID);
-	CPrintToChat(iClient, "%s You CommunityID: {olive}%s{default}", PREFIX, sCommunityID);
 
+	char
+		sQuery[256],
+		error[255];
+
+	Format(sQuery, sizeof(sQuery), "SELECT `Rating`, `Deviation`, `Volatility` FROM `Glicko` WHERE `SteamID64` = '%s'", sCommunityID);
+	fkn_log("Query: %s", sQuery);
+
+	if ((rsForsaken = SQL_Query(g_dbForsaken, sQuery)) == null)
+	{
+		SQL_GetError(g_dbForsaken, error, sizeof(error));
+		LogError("FetchUsers() query failed: %s", sQuery);
+		LogError("Query error: %s", error);
+		return Plugin_Continue;
+	}
+
+	float
+		fRating,
+		fDeviation,
+		fVolatility;
+	
+	while (rsForsaken.FetchRow())
+	{
+		fRating		= rsForsaken.FetchFloat(0);
+		fDeviation	= rsForsaken.FetchFloat(1);
+		fVolatility = rsForsaken.FetchFloat(2);
+	}
+
+	fkn_log("%s has an Rating:%.1f, Deviation:%.1f ,Volatility:%.1f", sSteamID, fRating, fDeviation, fVolatility);
+	CPrintToChatAll("%s %s has an Rating:{olive}%.1f{default}, Deviation:{olive}%.1f{default} ,Volatility:{olive}%.1f{default}", PREFIX, sSteamID, fRating, fDeviation, fVolatility);
 	return Plugin_Continue;
+}
+
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
+public void SQLConnect()
+{
+	if (!SQL_CheckConfig("4saken"))
+		fkn_log("The 4saken configuration is not found in databases.cfg");
+	else
+		Database.Connect(SQL4saken, "4saken");
+}
+
+public void SQL4saken(Database db, const char[] error, any data)
+{
+	if (db == null)
+		ThrowError("Error while connecting to database: %s", error);
+	else
+		g_dbForsaken = db;
 }

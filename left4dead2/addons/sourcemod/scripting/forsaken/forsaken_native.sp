@@ -1,7 +1,7 @@
-#if defined _4saken_native_included
+#if defined _forsaken_native_included
 	#endinput
 #endif
-#define _4saken_native_included
+#define _forsaken_native_included
 
 /*****************************************************************
 			N A T I V E S
@@ -31,11 +31,21 @@ any Native_Log(Handle plugin, int numParams)
 /**
  * Gets the type of match broadcast on 4saken.us
  *
- * @return An integer, 0 is that information is not yet obtained
+ * @return 				An integer, 0 is that information is not yet obtained
  */
 any Native_TypeMatch(Handle plugin, int numParams)
 {
 	return g_TypeMatch;
+}
+
+/** 
+ * Get lobby queue number
+ *
+ * @return 				An integer, 0 is that information is not yet obtained
+ */
+any Native_QueueID(Handle plugin, int numParams)
+{
+	return g_iQueueID;
 }
 
 /**
@@ -46,13 +56,13 @@ any Native_TypeMatch(Handle plugin, int numParams)
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-any Native_TeamA(Handle plugin, int numParams)
+any Native_SteamIDTA(Handle plugin, int numParams)
 {
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_sSteamIDTA[index], maxlen);
+	SetNativeString(2, g_PlayersTA[index].steamid, maxlen);
 	return 0;
 }
 
@@ -64,13 +74,13 @@ any Native_TeamA(Handle plugin, int numParams)
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-any Native_TeamB(Handle plugin, int numParams)
+any Native_SteamIDTB(Handle plugin, int numParams)
 {
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_sSteamIDTB[index], maxlen);
+	SetNativeString(2, g_PlayersTB[index].steamid, maxlen);
 	return 0;
 }
 
@@ -88,7 +98,7 @@ any Native_NameTA(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_sNameTA[index], maxlen);
+	SetNativeString(2, g_PlayersTB[index].name, maxlen);
 	return 0;
 }
 
@@ -106,7 +116,7 @@ any Native_NameTB(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_sNameTB[index], maxlen);
+	SetNativeString(2, g_PlayersTB[index].name, maxlen);
 	return 0;
 }
 /**

@@ -218,7 +218,7 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 
 	g_Database = db;
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Connected to database successfully.");
+		fkn_log("Connected to database successfully.");
 
 	SQLTablesFormat();
 	SQLTablesFormat2();

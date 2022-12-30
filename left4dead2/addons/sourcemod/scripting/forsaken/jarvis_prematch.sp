@@ -1,7 +1,7 @@
-#if defined jarvis_prematch_included
+#if defined _jarvis_prematch_included
 	#endinput
 #endif
-#define jarvis_prematch_included
+#define _jarvis_prematch_included
 
 /*****************************************************************
 			P L U G I N   F U N C T I O N S
@@ -27,15 +27,22 @@ public void PreMatch()
  */
 public Action Timer_GetMatchData(Handle timer)
 {
-	g_TypeMatch = Forsaken_TypeMatch();
+	g_TypeMatch = fkn_TypeMatch();
 	for (int i = 0; i <= 3; i++)
-	{
-		Forsaken_TeamA(i, g_sSteamIDTA[i], MAX_AUTHID_LENGTH);
-		Forsaken_TeamB(i, g_sSteamIDTB[i], MAX_AUTHID_LENGTH);
-		Forsaken_NameTA(i, g_sNameTA[i], MAX_NAME_LENGTH);
-		Forsaken_NameTB(i, g_sNameTB[i], MAX_NAME_LENGTH);
+	{	
+		// Get the steamids from the player index
+		fkn_SteamIDTA(i, g_PlayersTA[i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(i, g_PlayersTB[i].steamid, MAX_AUTHID_LENGTH);
+
+		// Get the player names from the steamid
+		fkn_NameTA(i, g_PlayersTA[i].name, MAX_NAME_LENGTH);
+		fkn_NameTB(i, g_PlayersTB[i].name, MAX_NAME_LENGTH);
+
+		// Get the steamids from the player index
+		fkn_SteamIDTA(i, g_RageQuitTA[i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(i, g_RageQuitTB[i].steamid, MAX_AUTHID_LENGTH);
 	}
-	Forsaken_MapName(g_sMapName, sizeof(g_sMapName));
+	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 
 	if(g_cvarDebug.BoolValue)
 		CPrintToChatAll("%t GetMatchData", "Tag");

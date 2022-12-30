@@ -1,7 +1,7 @@
-#if defined jarvis_teams_included
+#if defined _jarvis_teams_included
 	#endinput
 #endif
-#define jarvis_teams_included
+#define _jarvis_teams_included
 
 /*****************************************************************
 			F O R W A R D   P U B L I C S
@@ -195,11 +195,11 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
 
 	bool bAreTeamsFlipped = L4D2_AreTeamsFlipped();
 
-	for (int i = 0; i <= 4; i++)
+	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (StrEqual(sSteamID, g_sSteamIDTA[i], false))
+		if (StrEqual(sSteamID, g_PlayersTA[iID].steamid, false))
 			return bAreTeamsFlipped ? TeamB : TeamA;
-		else if (StrEqual(sSteamID, g_sSteamIDTB[i], false))
+		else if (StrEqual(sSteamID, g_PlayersTB[iID].steamid, false))
 			return bAreTeamsFlipped ? TeamA : TeamB;
 	}
 	return Team0;

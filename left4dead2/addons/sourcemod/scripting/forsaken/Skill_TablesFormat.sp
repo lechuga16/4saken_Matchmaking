@@ -10,10 +10,10 @@ sTFormat
 - void OnTankRockSkeeted(int survivor, int tank)
 - void OnTankRockEaten(int tank, int survivor)
 */
-#if defined _4sakenSkill_TablesFormat_included
+#if defined _Skill_TablesFormat_included
 	#endinput
 #endif
-#define _4sakenSkill_TablesFormat_included
+#define _Skill_TablesFormat_included
 
 
 
@@ -40,8 +40,11 @@ public void OnSkeet(int survivor, int hunter)
 	if (!g_cvarSkeet.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet | Survivor:%N Hunter:%N", survivor, hunter);
+		fkn_log("Skill detected | Skeet | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -54,7 +57,7 @@ public void OnSkeet(int survivor, int hunter)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -67,8 +70,12 @@ public void OnSkeetMelee(int survivor, int hunter)
 	if (!g_cvarSkeetMelee.BoolValue)
 		return;
 
+
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet-Melee | Survivor:%N Hunter:%N", survivor, hunter);
+		fkn_log("Skill detected | Skeet-Melee | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -81,7 +88,7 @@ public void OnSkeetMelee(int survivor, int hunter)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -94,8 +101,11 @@ public void OnSkeetGL(int survivor, int hunter)
 	if (!g_cvarSkeetGL.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet Granate Laucher | Survivor:%N Hunter:%N", survivor, hunter);
+		fkn_log("Skill detected | Skeet Granate Laucher | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -108,7 +118,7 @@ public void OnSkeetGL(int survivor, int hunter)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -121,8 +131,11 @@ public void OnSkeetSniper(int survivor, int hunter)
 	if (!g_cvarSkeetSniper.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet-Sniper | Survivor:%N Hunter:%N", survivor, hunter);
+		fkn_log("Skill detected | Skeet-Sniper | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -135,7 +148,7 @@ public void OnSkeetSniper(int survivor, int hunter)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -148,8 +161,11 @@ public void OnChargerLevel(int survivor, int charger)
 	if (!g_cvarChargerLevel.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(charger))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Charger-Level | Survivor:%N Charger:%N", survivor, charger);
+		fkn_log("Skill detected | Charger-Level | Survivor:%N Charger:%N", survivor, charger);
 
 	char
 		sSteamID[64],
@@ -162,7 +178,7 @@ public void OnChargerLevel(int survivor, int charger)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(charger))
-		StrCat(sSteamID2, sizeof(sSteamID2), "charger");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(charger, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -175,8 +191,11 @@ public void OnHunterDeadstop(int survivor, int hunter)
 	if (!g_cvarHunterDeadstop.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Hunter-Deadstop | Survivor:%N Hunter:%N", survivor, hunter);
+		fkn_log("Skill detected | Hunter-Deadstop | Survivor:%N Hunter:%N", survivor, hunter);
 
 	char
 		sSteamID[64],
@@ -189,7 +208,7 @@ public void OnHunterDeadstop(int survivor, int hunter)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -202,8 +221,11 @@ public void OnTongueCut(int survivor, int smoker)
 	if (!g_cvarTongueCut.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(smoker))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Tongue-Cut | Survivor:%N Smoker:%N", survivor, smoker);
+		fkn_log("Skill detected | Tongue-Cut | Survivor:%N Smoker:%N", survivor, smoker);
 
 	char
 		sSteamID[64],
@@ -216,7 +238,7 @@ public void OnTongueCut(int survivor, int smoker)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(smoker))
-		StrCat(sSteamID2, sizeof(sSteamID2), "smoker");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(smoker, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -229,13 +251,19 @@ public void OnTankRockSkeeted(int survivor, int tank)
 	if (!g_cvarTankRockSkeeted.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(tank))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Tank Skeet-Rock | Survivor:%N Tank:%N", survivor, tank);
+		fkn_log("Skill detected | Tank Skeet-Rock | Survivor:%N Tank:%N", survivor, tank);
 
 	char
 		sSteamID[64],
 		sSteamID2[64],
 		sMapName[32];
+
+	if(IsFakeClient(survivor) && IsFakeClient(tank))
+		return;
 
 	if(IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
@@ -243,7 +271,7 @@ public void OnTankRockSkeeted(int survivor, int tank)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(tank))
-		StrCat(sSteamID2, sizeof(sSteamID2), "tank");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -256,8 +284,11 @@ public void OnTankRockEaten(int tank, int survivor)
 	if (!g_cvarTankRockEaten.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(tank))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Tank Skeet-Rock Eaten | Survivor:%N Tank:%N", survivor, tank);
+		fkn_log("Skill detected | Tank Skeet-Rock Eaten | Survivor:%N Tank:%N", survivor, tank);
 
 	char
 		sSteamID[64],
@@ -270,7 +301,7 @@ public void OnTankRockEaten(int tank, int survivor)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(tank))
-		StrCat(sSteamID2, sizeof(sSteamID2), "tank");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 

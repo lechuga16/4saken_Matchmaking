@@ -4,10 +4,10 @@ sTFormat2
 - void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverkill)
 - void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverkill)
 */
-#if defined _4sakenSkill_TablesFormat2_included
+#if defined _Skill_TablesFormat2_included
 	#endinput
 #endif
-#define _4sakenSkill_TablesFormat2_included
+#define _Skill_TablesFormat2_included
 
 /****************************************************************
             C A L L B A C K   F U N C T I O N S
@@ -32,8 +32,11 @@ public void OnSkeetHurt(int survivor, int hunter, int damage, bool isOverkill)
 	if (!g_cvarSkeetHurt.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet-Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
+		fkn_log("Skill detected | Skeet-Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
 
 	char
 		sSteamID[64],
@@ -46,7 +49,7 @@ public void OnSkeetHurt(int survivor, int hunter, int damage, bool isOverkill)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -59,8 +62,11 @@ public void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverki
 	if (!g_cvarSkeetMeleeHurt.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet-Melee Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
+		fkn_log("Skill detected | Skeet-Melee Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
 
 	char
 		sSteamID[64],
@@ -73,7 +79,7 @@ public void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverki
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -86,8 +92,11 @@ public void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverk
 	if (!g_cvarSkeetSniperHurt.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Skeet-Sniper Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
+		fkn_log("Skill detected | Skeet-Sniper Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
 
 	char
 		sSteamID[64],
@@ -100,7 +109,7 @@ public void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverk
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "hunter");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 

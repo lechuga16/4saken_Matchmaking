@@ -49,7 +49,7 @@ public APLRes
 		strcopy(error, err_max, "Plugin only support L4D2 engine");
 	}
 
-	if (StrEqual(Forsaken_GetIP(), "0.0.0.0", false))
+	if (StrEqual(fkn_GetIP(), "0.0.0.0", false))
 	{
 		strcopy(error, err_max, "ERROR: The server ip was not configured");
 		return APLRes_Failure;
@@ -71,7 +71,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_reserved", Cmd_Reserved, "Check if the server is reserved");
 
 	g_iPort		 = FindConVar("hostport").IntValue;
-	g_sIp		 = Forsaken_GetIP();
+	g_sIp		 = fkn_GetIP();
 	AutoExecConfig(true, "forsaken_reserved");
 }
 
@@ -111,7 +111,7 @@ public void GetReserve(int iClient)
 {
 	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_FORSAKEN, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("URL: %s", g_sURL);
+		fkn_log("URL: %s", g_sURL);
 
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpReserve, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
@@ -126,7 +126,7 @@ public void GetReserve(int iClient)
 public void HttpProgressReserved(System2HTTPRequest request, int dlTotal, int dlNow, int ulTotal, int ulNow)
 {
 	PrintToServer("[forsaken_reserve] Reserved progress %d of %d bytes", dlNow, dlTotal);
-	Forsaken_log("Reserved progress %d of %d bytes", dlNow, dlTotal);
+	fkn_log("Reserved progress %d of %d bytes", dlNow, dlTotal);
 }
 
 public void HttpReserve(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
@@ -139,24 +139,24 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 
 	if (!success)
 	{
-		Forsaken_log("ERROR: Couldn't retrieve URL %s. Error: %s", sUrl, error);
+		fkn_log("ERROR: Couldn't retrieve URL %s. Error: %s", sUrl, error);
 		return;
 	}
 
 	response.GetContent(sContent, sizeof(sContent));
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("GET request: %s", sContent);
+		fkn_log("GET request: %s", sContent);
 
 	g_bReserve = view_as<bool>(StringToInt(sContent, 10));
 
 	if(!g_bReserve)
 	{
 		if (g_cvarDebug.BoolValue)
-			Forsaken_log("%N was kicked, server without unreserved.", request.Any);
+			fkn_log("%N was kicked, server without unreserved.", request.Any);
 		KickClient(request.Any, "%t", "KickMsg");
 	}
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("%N was allowed in, the server was reserved.", request.Any);
+		fkn_log("%N was allowed in, the server was reserved.", request.Any);
 }

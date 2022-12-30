@@ -14,21 +14,23 @@
 
 #define PLUGIN_VERSION	"0.1"
 #define MAX_PLAYER_TEAM 4
+#define PREFIX "[{olive}4saken{default}]"
 
 ConVar
 	g_cvarDebug;
 
+PlayerInfo
+	g_PlayersTA[MAX_PLAYER_TEAM],
+	g_PlayersTB[MAX_PLAYER_TEAM];
+
 char
-	g_sSteamIDTA[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
-	g_sSteamIDTB[MAX_PLAYER_TEAM][MAX_AUTHID_LENGTH],
-	g_sNameTA[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
-	g_sNameTB[MAX_PLAYER_TEAM][MAX_NAME_LENGTH],
 	g_sURL[256],
 	g_sIPv4[32],
 	g_sPatchIP[64],
-	g_sMapName[32];
+	g_sMapName[32] = "c5m1_waterfront_sndscape";
 
 int
+	g_iQueueID = 0,
 	g_iPort;
 
 TypeMatch
@@ -64,14 +66,15 @@ public APLRes
 		return APLRes_Failure;
 	}
 
-	CreateNative("Forsaken_log", Native_Log);
-	CreateNative("Forsaken_TypeMatch", Native_TypeMatch);
-	CreateNative("Forsaken_TeamA", Native_TeamA);
-	CreateNative("Forsaken_TeamB", Native_TeamB);
-	CreateNative("Forsaken_NameTA", Native_NameTA);
-	CreateNative("Forsaken_NameTB", Native_NameTB);
-	CreateNative("Forsaken_GetIPv4", Native_GetIPv4);
-	CreateNative("Forsaken_MapName", Native_MapName);
+	CreateNative("fkn_log", Native_Log);
+	CreateNative("fkn_TypeMatch", Native_TypeMatch);
+	CreateNative("fkn_QueueID", Native_QueueID);
+	CreateNative("fkn_SteamIDTA", Native_SteamIDTA);
+	CreateNative("fkn_SteamIDTB", Native_SteamIDTB);
+	CreateNative("fkn_NameTA", Native_NameTA);
+	CreateNative("fkn_NameTB", Native_NameTB);
+	CreateNative("fkn_GetIPv4", Native_GetIPv4);
+	CreateNative("fkn_MapName", Native_MapName);
 	RegPluginLibrary("forsaken");
 	return APLRes_Success;
 }
@@ -82,11 +85,10 @@ public APLRes
 
 public void OnPluginStart()
 {
-	CreateConVar("sm_forsaken_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug = CreateConVar("sm_forsaken_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
-	RegConsoleCmd("sm_forsaken_showip", Cmd_ShowIP, "Get ip and port server");
-	RegConsoleCmd("sm_forsaken_showipv4", Cmd_ShowIPv4, "Get ipv4 and port server");
-	RegAdminCmd("sm_forsaken_playersinfo", Cmd_PlayersInfo, ADMFLAG_GENERIC, "Shows the name and SteamID of the players");
+	CreateConVar("sm_fkn_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
+	g_cvarDebug = CreateConVar("sm_fkn_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
+	RegConsoleCmd("sm_fkn_showip", Cmd_ShowIP, "Get ip and port server");
+	RegAdminCmd("sm_fkn_playersinfo", Cmd_PlayersInfo, ADMFLAG_GENERIC, "Shows the name and SteamID of the players");
 	
 	AutoExecConfig(true, "forsaken");
 
@@ -100,27 +102,13 @@ public void OnPluginStart()
 public Action Cmd_ShowIP(int iClient, int iArgs)
 {
 	if (iArgs != 0)
-		CReplyToCommand(iClient, "Usage: sm_forsaken_showip");
+		CReplyToCommand(iClient, "Usage: sm_fkn_showip");
 	
 	char sIp[64];
-	sIp = Forsaken_GetIP();
+	sIp = fkn_GetIP();
 
-	if(g_cvarDebug.BoolValue)
-		Forsaken_log("ServerIP: {green}%s{default}:{green}%d{default}", sIp, g_iPort);
-
-	CReplyToCommand(iClient, "ServerIP: {green}%s{default}:{green}%d{default}", sIp, g_iPort);
-	return Plugin_Handled;
-}
-
-public Action Cmd_ShowIPv4(int iClient, int iArgs)
-{
-	if (iArgs != 0)
-		CReplyToCommand(iClient, "Usage: sm_forsaken_showipv4");
-	
-	if(g_cvarDebug.BoolValue)
-		Forsaken_log("ServerIPv4: {green}%s{default}:{green}%d{default}", g_sIPv4, g_iPort);
-	
-	CReplyToCommand(iClient, "ServerIPv4: {green}%s{default}:{green}%d{default}", g_sIPv4, g_iPort);
+	CReplyToCommand(iClient, "%s ServerIP: {green}%s{default}:{green}%d{default}", PREFIX, sIp, g_iPort);
+	CReplyToCommand(iClient, "%s ServerIPv4: {green}%s{default}:{green}%d{default}", PREFIX, g_sIPv4, g_iPort);
 	return Plugin_Handled;
 }
 
@@ -128,24 +116,18 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_forsaken_playersinfo");
+		CReplyToCommand(iClient, "Usage: sm_fkn_playersinfo");
 		return Plugin_Handled;
 	}
 
-	if(g_cvarDebug.BoolValue)
-	{
-		Forsaken_log("TeamA Name: %s %s %s %s", g_sNameTA[0], g_sNameTA[1], g_sNameTA[2], g_sNameTA[3]);
-		Forsaken_log("TeamA Steamid: %s %s %s %s", g_sSteamIDTA[0], g_sSteamIDTA[1], g_sSteamIDTA[2], g_sSteamIDTA[3]);
+	CReplyToCommand(iClient, "%s QueueID: {green}%d{default}", PREFIX, g_iQueueID);
+	CReplyToCommand(iClient, "%s MapName: {green}%s{default}", PREFIX, g_sMapName);
 
-		Forsaken_log("TeamB Name: %s %s %s %s", g_sNameTB[0], g_sNameTB[1], g_sNameTB[2], g_sNameTB[3]);
-		Forsaken_log("TeamB Steamid: %s %s %s %s", g_sSteamIDTB[0], g_sSteamIDTB[1], g_sSteamIDTB[2], g_sSteamIDTB[3]);
-	}
-
-	CReplyToCommand(iClient, "TeamA Name: {blue}%s{default} {blue}%s{default} {blue}%s{default} {blue}%s{default}", g_sNameTA[0], g_sNameTA[1], g_sNameTA[2], g_sNameTA[3]);
-	CReplyToCommand(iClient, "TeamA Steamid: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}\n", g_sSteamIDTA[0], g_sSteamIDTA[1], g_sSteamIDTA[2], g_sSteamIDTA[3]);
-
-	CReplyToCommand(iClient, "TeamB Name: {red}%s{default} {red}%s{default} {red}%s{default} {red}%s{default}", g_sNameTB[0], g_sNameTB[1], g_sNameTB[2], g_sNameTB[3]);
-	CReplyToCommand(iClient, "TeamB Steamid: {green}%s{default} {green}%s{default} {green}%s{default} {green}%s{default}", g_sSteamIDTB[0], g_sSteamIDTB[1], g_sSteamIDTB[2], g_sSteamIDTB[3]);
+	CReplyToCommand(iClient, "%s TeamA:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)", 
+		PREFIX, g_PlayersTB[0].name, g_PlayersTA[0].steamid, g_PlayersTB[1].name, g_PlayersTA[1].steamid, g_PlayersTB[2].name, g_PlayersTA[2].steamid, g_PlayersTB[3].name, g_PlayersTA[3].steamid);
+	
+	CReplyToCommand(iClient, "%s TeamB:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
+		PREFIX, g_PlayersTB[0].name, g_PlayersTB[0].steamid, g_PlayersTB[1].name, g_PlayersTB[1].steamid, g_PlayersTB[2].name, g_PlayersTB[2].steamid, g_PlayersTB[3].name, g_PlayersTB[3].steamid);
 
 	return Plugin_Handled;
 }
@@ -166,7 +148,7 @@ public void JSON_Check()
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("%s Not found", DIR_IP);
+		fkn_log("%s Not found", DIR_IP);
 
 	JSON_Create();
 }
@@ -186,14 +168,14 @@ public void JSON_Create()
 
 	if(!FileExists(g_sPatchIP))
 	{
-		Forsaken_log("Error: %s Invalid file path", DIR_IP);
+		fkn_log("Error: %s Invalid file path", DIR_IP);
 		return;
 	}
 
 	json_write_to_file(JoIp, g_sPatchIP, JSON_ENCODE_PRETTY);
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("%s Created !", DIR_IP);
+		fkn_log("%s Created !", DIR_IP);
 
 	json_cleanup_and_delete(JoIp);
 }

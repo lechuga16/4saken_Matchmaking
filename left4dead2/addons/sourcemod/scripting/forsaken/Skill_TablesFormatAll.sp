@@ -14,10 +14,10 @@ sTFormatAll
 - void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieClass, float timeA, float timeB, bool withShove)
 - void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float calculatedDamage, float height, bool reportedHigh)
 */
-#if defined _4sakenSkill_TablesFormatAll_included
+#if defined _Skill_TablesFormatAll_included
 	#endinput
 #endif
-#define _4sakenSkill_TablesFormatAll_included
+#define _Skill_TablesFormatAll_included
 
 /****************************************************************
             C A L L B A C K   F U N C T I O N S
@@ -69,8 +69,11 @@ public void OnChargerLevelHurt(int survivor, int charger, int damage)
 	if (!g_cvarChargerLevelHurt.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(charger))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Charger-Level Hurt | Survivor:%N Charger:%N Damage:%d", survivor, charger, damage);
+		fkn_log("Skill detected | Charger-Level Hurt | Survivor:%N Charger:%N Damage:%d", survivor, charger, damage);
 
 	char
 		sSteamID[64],
@@ -83,7 +86,7 @@ public void OnChargerLevelHurt(int survivor, int charger, int damage)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 		
 	if(IsFakeClient(charger))
-		StrCat(sSteamID2, sizeof(sSteamID2), "charger");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(charger, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -104,14 +107,14 @@ public void OnWitchCrown(int survivor, int damage)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d", survivor, damage);
+		fkn_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d", survivor, damage);
 
 	char
 		sSteamID[64],
 		sMapName[32];
 
 	if(IsFakeClient(survivor))
-		StrCat(sSteamID, sizeof(sSteamID), "survivor");
+		StrCat(sSteamID, sizeof(sSteamID), "infected");
 	else
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
@@ -133,7 +136,7 @@ public void OnWitchCrownHurt(int survivor, int damage, int chipdamage)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d Chip:%d", survivor, damage, chipdamage);
+		fkn_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d Chip:%d", survivor, damage, chipdamage);
 
 	char
 		sSteamID[64],
@@ -160,8 +163,11 @@ public void OnSmokerSelfClear(int survivor, int smoker, bool withShove)
 	if (!g_cvarSmokerSelfClear.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(smoker))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | SmokerSelfClear | Survivor:%N Smoker:%N Shove:%d", survivor, smoker, view_as<int>(withShove));
+		fkn_log("Skill detected | SmokerSelfClear | Survivor:%N Smoker:%N Shove:%d", survivor, smoker, view_as<int>(withShove));
 
 	char
 		sSteamID[64],
@@ -174,7 +180,7 @@ public void OnSmokerSelfClear(int survivor, int smoker, bool withShove)
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
 	if(IsFakeClient(smoker))
-		StrCat(sSteamID2, sizeof(sSteamID2), "smoker");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(smoker, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -194,8 +200,11 @@ public void OnJockeyHighPounce(int jockey, int victim, float height, bool report
 	if (!g_cvarJockeyHighPounce.BoolValue)
 		return;
 
+	if(IsFakeClient(victim) && IsFakeClient(jockey))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | JockeyHighPounce | Survivor:%N Jockey:%N Height:%.1f ReportedHigh:%d", victim, jockey, height, view_as<int>(reportedHigh));
+		fkn_log("Skill detected | JockeyHighPounce | Survivor:%N Jockey:%N Height:%.1f ReportedHigh:%d", victim, jockey, height, view_as<int>(reportedHigh));
 
 	char
 		sSteamID[64],
@@ -208,7 +217,7 @@ public void OnJockeyHighPounce(int jockey, int victim, float height, bool report
 		GetClientAuthId(victim, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
 	if(IsFakeClient(jockey))
-		StrCat(sSteamID2, sizeof(sSteamID2), "jockey");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(jockey, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -228,8 +237,11 @@ public void OnDeathCharge(int charger, int survivor, float height, float distanc
 	if (!g_cvarDeathCharge.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(charger))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | DeathCharger | Survivor:%N Charger:%N Height:%.1f Distance:%.1f Carried:%d", survivor, charger, height, distance, view_as<int>(wasCarried));
+		fkn_log("Skill detected | DeathCharger | Survivor:%N Charger:%N Height:%.1f Distance:%.1f Carried:%d", survivor, charger, height, distance, view_as<int>(wasCarried));
 
 	char
 		sSteamID[64],
@@ -242,7 +254,7 @@ public void OnDeathCharge(int charger, int survivor, float height, float distanc
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
 	if(IsFakeClient(charger))
-		StrCat(sSteamID2, sizeof(sSteamID2), "charger");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(charger, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -263,14 +275,14 @@ public void OnBoomerVomitLanded(int boomer, int amount)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | BoomerVomitLanded | Boomer:%N Amount:%d ", boomer, amount);
+		fkn_log("Skill detected | BoomerVomitLanded | Boomer:%N Amount:%d ", boomer, amount);
 
 	char
 		sSteamID[64],
 		sMapName[32];
 
 	if(IsFakeClient(boomer))
-		StrCat(sSteamID, sizeof(sSteamID), "boomer");
+		StrCat(sSteamID, sizeof(sSteamID), "infected");
 	else
 		GetClientAuthId(boomer, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
@@ -290,8 +302,11 @@ public void OnSpecialShoved(int survivor, int infected, int zombieClass)
 	if (!g_cvarSpecialShoved.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(infected))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | SpecialShoved | Survivor:%N Infected:%N ZombieClass:%s", survivor, infected, L4D2ZombieClassname[zombieClass])
+		fkn_log("Skill detected | SpecialShoved | Survivor:%N Infected:%N ZombieClass:%s", survivor, infected, L4D2ZombieClassname[zombieClass])
 
 	char
 		sSteamID[64],
@@ -325,7 +340,7 @@ public void OnBunnyHopStreak(int survivor, int streak, float maxVelocity)
 		return;
 
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | BunnyHopStreak | Survivor:%N Streak:%d MaxVelocity:%.1f", survivor, streak, maxVelocity)
+		fkn_log("Skill detected | BunnyHopStreak | Survivor:%N Streak:%d MaxVelocity:%.1f", survivor, streak, maxVelocity)
 
 	char
 		sSteamID[64],
@@ -352,8 +367,11 @@ public void OnCarAlarmTriggered(int survivor, int infected, CarAlarmTriggerReaso
 	if (!g_cvarCarAlarmTriggered.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(infected))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | CarAlarmTriggered | Survivor:%N Infected:%N CarAlarmTriggerReason:%s", survivor, infected, reason)
+		fkn_log("Skill detected | CarAlarmTriggered | Survivor:%N Infected:%N CarAlarmTriggerReason:%s", survivor, infected, reason)
 
 	char
 		sSteamID[64],
@@ -386,8 +404,11 @@ public void OnBoomerPop(int survivor, int boomer, int shoveCount, float timeAliv
 	if (!g_cvarBoomerPop.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(boomer))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | BoomerPop | Survivor:%N Boomer:%N ShoveCount:%d TimeAlive:%.1f", survivor, boomer, shoveCount, timeAlive)
+		fkn_log("Skill detected | BoomerPop | Survivor:%N Boomer:%N ShoveCount:%d TimeAlive:%.1f", survivor, boomer, shoveCount, timeAlive)
 
 	char
 		sSteamID[64],
@@ -400,7 +421,7 @@ public void OnBoomerPop(int survivor, int boomer, int shoveCount, float timeAliv
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
 	if(IsFakeClient(boomer))
-		StrCat(sSteamID2, sizeof(sSteamID2), "boomer");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(boomer, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -420,8 +441,11 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 	if (!g_cvarSpecialClear.BoolValue)
 		return;
 
+	if(IsFakeClient(clearer) && IsFakeClient(pinvictim))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | SpecialClear | Clearer:%N Pinner:%N PinVictim:%N ZombieClass:%s TimeA:%.1f TimeB:%.1f WithShove:%s", clearer, pinner, pinvictim, L4D2ZombieClassname[zombieClass], timeA, timeB, withShove, view_as<char>(withShove))
+		fkn_log("Skill detected | SpecialClear | Clearer:%N Pinner:%N PinVictim:%N ZombieClass:%s TimeA:%.1f TimeB:%.1f WithShove:%s", clearer, pinner, pinvictim, L4D2ZombieClassname[zombieClass], timeA, timeB, withShove, view_as<char>(withShove))
 
 	char
 		sSteamID[64],
@@ -435,7 +459,7 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 		GetClientAuthId(clearer, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
 	if(IsFakeClient(pinner))
-		StrCat(sSteamID2, sizeof(sSteamID2), "Infected");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(pinner, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 
@@ -460,8 +484,11 @@ public void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float
 	if (!g_cvarHunterHighPounce.BoolValue)
 		return;
 
+	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+		return;
+
 	if (g_cvarDebug.BoolValue)
-		Forsaken_log("Skill detected | HunterHighPounce | Survivor:%N Hunter:%N ActualDamage:%d ZombieClass:%s CalculatedDamage:%.1f Height:%.1f ReportedHigh:%d", survivor, hunter, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh))
+		fkn_log("Skill detected | HunterHighPounce | Survivor:%N Hunter:%N ActualDamage:%d ZombieClass:%s CalculatedDamage:%.1f Height:%.1f ReportedHigh:%d", survivor, hunter, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh))
 
 	char
 		sSteamID[64],
@@ -474,7 +501,7 @@ public void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float
 		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
 
 	if(IsFakeClient(hunter))
-		StrCat(sSteamID2, sizeof(sSteamID2), "Infected");
+		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
 		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
 

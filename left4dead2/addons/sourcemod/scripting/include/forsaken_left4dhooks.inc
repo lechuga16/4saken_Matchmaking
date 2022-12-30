@@ -16,10 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined forsaken_stocks_left4dhooks_included
+#if defined forsaken_left4dhooks_included
   #endinput
 #endif
-#define forsaken_stocks_left4dhooks_included
+#define forsaken_left4dhooks_included
 
 // ==================================================
 // ENGINE STOCKS

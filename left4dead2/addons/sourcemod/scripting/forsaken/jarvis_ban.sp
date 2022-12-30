@@ -1,7 +1,7 @@
-#if defined jarvis_ban_included
+#if defined _jarvis_ban_included
 	#endinput
 #endif
-#define jarvis_ban_included
+#define _jarvis_ban_included
 
 /*****************************************************************
 			F O R W A R D   P U B L I C S
@@ -24,7 +24,7 @@ public void GotDatabase(Database db, const char[] error, any data)
 	if (db == null)
 	{
 		ThrowError("Error while connecting to database: %s", error);
-		Forsaken_log("Connected to database successfully (%s).", error);
+		fkn_log("Connected to database successfully (%s).", error);
 	}
 
 	g_DBSourceBans = db;
@@ -60,7 +60,7 @@ stock void ReadConfigSourcebans()
 	{
 		char Error[PLATFORM_MAX_PATH + 64];
 		FormatEx(Error, sizeof(Error), "%s FATAL *** ERROR *** can not find %s", JVPrefix, ConfigFile);
-		Forsaken_log("FATAL *** ERROR *** can not find %s", ConfigFile);
+		fkn_log("FATAL *** ERROR *** can not find %s", ConfigFile);
 		SetFailState(Error);
 	}
 }
@@ -158,7 +158,7 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 		sAdminIp[24]   = "",
 		sAdminAuth[64] = "STEAM_ID_SERVER";
 		
-	Forsaken_GetIPv4(sAdminIp, sizeof(sAdminIp));
+	fkn_GetIPv4(sAdminIp, sizeof(sAdminIp));
 
 	// iTarget information
 	char
@@ -168,31 +168,31 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 
 	if (Team == TeamA)
 	{
-		sAuth = g_sSteamIDTA[iTarget];
-		sName = g_sNameTA[iTarget];
+		sAuth = g_PlayersTA[iTarget].steamid;
+		sName = g_PlayersTA[iTarget].name;
 	}
 	else if (Team == TeamB)
 	{
-		sAuth = g_sSteamIDTB[iTarget];
-		sName = g_sNameTB[iTarget];
+		sAuth = g_PlayersTB[iTarget].steamid;
+		sName = g_PlayersTB[iTarget].name;
 	}
 	else
 	{
-		Forsaken_log("CreateOffLineBan: Team is invalid");
+		fkn_log("CreateOffLineBan: Team is invalid");
 		CPrintToChatAll("%s %T", "Tag",  "BanFail", LANG_SERVER, "ForsakenTeam is invalid");
 		return false;
 	}
 
 	if(StrEqual("", sAuth, false))
 	{
-		Forsaken_log("CreateOffLineBan: SteamID is invalid");
+		fkn_log("CreateOffLineBan: SteamID is invalid");
 		CPrintToChatAll("%s %T", "Tag",  "BanFail", LANG_SERVER, "SteamID is invalid");
 		return false;
 	}
 
 	if(StrEqual("", sName, false))
 	{
-		Forsaken_log("CreateOffLineBan: %s sName is invalid", sAuth);
+		fkn_log("CreateOffLineBan: %s sName is invalid", sAuth);
 		sName = "Unknown";
 	}
 
@@ -251,14 +251,14 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 	if (dataPack == INVALID_HANDLE)
 	{
 		CPrintToChatAll("%s %T", "Tag",  "BanFail", LANG_SERVER, error);
-		Forsaken_log("Failed to ban player: %s", error);
+		fkn_log("Failed to ban player: %s", error);
 		return;
 	}
 
 	if (results == null)
 	{
 		CPrintToChatAll("%s %T", "Tag",  "BanFailQuery", LANG_SERVER, error);
-		Forsaken_log("Verify Insert Query Failed: %s", error);
+		fkn_log("Verify Insert Query Failed: %s", error);
 		return;
 	}
 
@@ -275,5 +275,5 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 	CPrintToChatAll("%t %t", "Tag", "PrintBanSuccess", sName, iTime, sReason);
 
 	if(g_cvarDebug.BoolValue)
-		Forsaken_log("%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);
+		fkn_log("%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);
 }

@@ -31,14 +31,21 @@
  * @param ...           Variable number of format parameters.
  * @noreturn
  */
-native void Forsaken_log(const char[] format, any ...);
+native void fkn_log(const char[] format, any ...);
 
 /**
  * Gets the type of match broadcast on 4saken.us
  *
- * @return An integer, -1 is that information is not yet obtained
+ * @return              An integer, 0 is that information is not yet obtained
  */
-native TypeMatch Forsaken_TypeMatch();
+native TypeMatch fkn_TypeMatch();
+
+/**
+ * Get lobby queue number
+ *
+ * @return              An integer, 0 is that information is not yet obtained
+ */
+native int fkn_QueueID();
 
 /**
  * Gets the steamid of the players that are assigned to Team A
@@ -48,7 +55,7 @@ native TypeMatch Forsaken_TypeMatch();
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void Forsaken_TeamA(int index, char[] buffer, int maxlength);
+native void fkn_SteamIDTA(int index, char[] buffer, int maxlength);
 
 /**
  * Gets the steamid of the players that are assigned to Team B
@@ -58,7 +65,7 @@ native void Forsaken_TeamA(int index, char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void Forsaken_TeamB(int index, char[] buffer, int maxlength);
+native void fkn_SteamIDTB(int index, char[] buffer, int maxlength);
 
 /**
  * Gets the name of the players that are assigned to Team A
@@ -68,7 +75,7 @@ native void Forsaken_TeamB(int index, char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void Forsaken_NameTA(int index, char[] buffer, int maxlength);
+native void fkn_NameTA(int index, char[] buffer, int maxlength);
 
 /**
  * Gets the name of the players that are assigned to Team B
@@ -78,7 +85,7 @@ native void Forsaken_NameTA(int index, char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void Forsaken_NameTB(int index, char[] buffer, int maxlength);
+native void fkn_NameTB(int index, char[] buffer, int maxlength);
 
 /**
  * Gets the IP of the server
@@ -87,7 +94,7 @@ native void Forsaken_NameTB(int index, char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void Forsaken_GetIPv4(char[] buffer, int maxlength);
+native void fkn_GetIPv4(char[] buffer, int maxlength);
 
 /**
  * Gets the name of the map provided by Forsaken
@@ -96,7 +103,7 @@ native void Forsaken_GetIPv4(char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void Forsaken_MapName(char[] buffer, int maxlength);
+native void fkn_MapName(char[] buffer, int maxlength);
 
 public SharedPlugin __pl_forsaken =
 {
@@ -114,8 +121,9 @@ public __pl_forsaken_SetNTVOptional()
 {
     MarkNativeAsOptional("Forsaken_log");
     MarkNativeAsOptional("Forsaken_TypeMatch");
-    MarkNativeAsOptional("Forsaken_Team1");
-    MarkNativeAsOptional("Forsaken_TeamB");
+    MarkNativeAsOptional("Forsaken_QueueID");
+    MarkNativeAsOptional("Forsaken_SteamIDTA");
+    MarkNativeAsOptional("Forsaken_SteamIDTB");
     MarkNativeAsOptional("Forsaken_NameTA");
     MarkNativeAsOptional("Forsaken_NameTB");
     MarkNativeAsOptional("Forsaken_GetIPv4");

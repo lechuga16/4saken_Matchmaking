@@ -1,82 +1,95 @@
 /*
-    4Saken_stocks.inc
-    Copyright (C) 2022 Lechuga
+	4Saken_stocks.inc
+	Copyright (C) 2022 Lechuga
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #if defined forsaken_stocks_included
-  #endinput
+	#endinput
 #endif
 #define forsaken_stocks_included
 
 #include <sdktools_gamerules>
 #include <json>
-#include <forsaken_stocks_left4dhooks>
-#include <forsaken_stocks_l4d2util>
+#include <forsaken_left4dhooks>
+#include <forsaken_l4d2util>
 
-#define URL_FORSAKEN     	"forsaken-blk.herokuapp.com/queue/matchstatus"
-#define URL_FORSAKEN_MATCH	"forsaken-blk.herokuapp.com/queue/get-match-info"
-#define URL_IPV4			"api.ipify.org?format=json"
-#define DIR_CACHEMATCH		"logs/forsaken_match.json"
-#define DIR_IP				"configs/forsaken/IP.json"
-#define DIR_MAP				"configs/forsaken/Maps.json"
-#define DIR_FORSAKENLOG		"logs/forsaken.log"
-#define CONSOLE 0
-
+#define URL_FORSAKEN	   "forsaken-blk.herokuapp.com/queue/matchstatus"
+#define URL_FORSAKEN_MATCH "forsaken-blk.herokuapp.com/queue/get-match-info"
+#define URL_IPV4		   "api.ipify.org?format=json"
+#define DIR_CACHEMATCH	   "logs/forsaken_match.json"
+#define DIR_IP			   "configs/forsaken/IP.json"
+#define DIR_MAP			   "configs/forsaken/Maps.json"
+#define DIR_FORSAKENLOG	   "logs/forsaken.log"
+#define CONSOLE			   0
 
 // ==================================================
 // ENUMS
 // ==================================================
 
 /**
- * Enumeration of match types.
+ * Types of match.
  */
 enum TypeMatch
 {
-	invalid  = 0,
-	scout    = 1,
-	adept    = 2,
-	veteran  = 3,
-	unranked = 4,
-	scrims   = 5,
+	invalid		   = 0,
+	scout		   = 1,
+	adept		   = 2,
+	veteran		   = 3,
+	unranked	   = 4,
+	scrims		   = 5,
 
 	TypeMatch_Size = 6
 };
 
 /**
- * Enumeration of team types in forsaken format.
+ * Team types in forsaken format.
  */
 enum ForsakenTeam
 {
-	Team0 = 0,
-	TeamA = 1,
-	TeamB = 2,
+	Team0			  = 0,
+	TeamA			  = 1,
+	TeamB			  = 2,
 
 	ForsakenTeam_Size = 3
 };
 
 /**
- * Enumeration of cancel match types.
+ * Types of game cancellation
  */
 enum CancelMatch
 {
-	unknown   = 0,
-	ragequit  = 1,
-	desertion = 2,
+	unknown			 = 0,
+	ragequit		 = 1,
+	desertion		 = 2,
 
 	CancelMatch_Size = 3
+};
+
+/**
+ * Unix time.
+ */
+enum UnixTime
+{
+	Sec			  = 0,
+	Min			  = 1,
+	Hour		  = 2,
+	Day			  = 3,
+	Week		  = 4,
+
+	UnixTime_Size = 5
 };
 
 // ==================================================
@@ -86,8 +99,7 @@ enum CancelMatch
 /**
  * Array that names the match types
  */
-stock const char sTypeMatch[TypeMatch_Size][] =
-{
+stock const char sTypeMatch[TypeMatch_Size][] = {
 	"Invalid",
 	"Scout",
 	"Adept",
@@ -96,32 +108,29 @@ stock const char sTypeMatch[TypeMatch_Size][] =
 	"Scrims"
 };
 
-/** 
+/**
  * Array that names the team types in left4d format.
  */
-stock const char sL4DTeam[4][] =
-{
+stock const char sL4DTeam[4][] = {
 	"Unassigned",
 	"Spectator",
 	"Survivor",
 	"Infected"
 };
 
-/** 
+/**
  * Array that names the team types in forsaken format.
  */
-stock const char sForsakenTeam[ForsakenTeam_Size][] =
-{
+stock const char sForsakenTeam[ForsakenTeam_Size][] = {
 	"Team0",
 	"TeamA",
 	"TeamB"
 };
 
-/** 
+/**
  * Array that names the cancel match types.
  */
-stock const char sCancelMatch[CancelMatch_Size][] =
-{
+stock const char sCancelMatch[CancelMatch_Size][] = {
 	"Unknown",
 	"Ragequit",
 	"Desertion"
@@ -134,16 +143,15 @@ stock const char sCancelMatch[CancelMatch_Size][] =
 /**
  * Returns the name of the plugin.
  */
-stock void GetPluginBasename(Handle plugin, char[] buffer,int maxlength)
+stock void GetPluginBasename(Handle plugin, char[] buffer, int maxlength)
 {
-    GetPluginFilename(plugin, buffer, maxlength);
+	GetPluginFilename(plugin, buffer, maxlength);
 
-    int check = -1;
-    if ((check = FindCharInString(buffer, '/', true)) != -1 ||
-        (check = FindCharInString(buffer, '\\', true)) != -1)
-    {
-        Format(buffer, maxlength, "%s", buffer[check+1]);
-    }
+	int check = -1;
+	if ((check = FindCharInString(buffer, '/', true)) != -1 || (check = FindCharInString(buffer, '\\', true)) != -1)
+	{
+		Format(buffer, maxlength, "%s", buffer[check + 1]);
+	}
 }
 
 stock bool IsHuman(int iClient)
@@ -183,8 +191,8 @@ stock bool IsValidClientConsole(int iClient)
  * Server ip written in IP.json
  *
  * @return				IP
-*/
-stock char[] Forsaken_GetIP()
+ */
+stock char[] fkn_GetIP()
 {
 	char
 		sIp[64],
@@ -203,7 +211,7 @@ stock char[] Forsaken_GetIP()
  * @return				a JSON_Array
  * @noreturn
  */
-stock JSON_Array Forsaken_Maps()
+stock JSON_Array fkn_Maps()
 {
 	char
 		sPatch[128];
@@ -246,29 +254,29 @@ stock bool InSecondHalfOfRound()
 }
 
 /**
- * Convierte cualquier formato de SteamId a SteamID64
- * 
+ * Convert any SteamId format to SteamID64
+ *
  * @param sCommunityID		SteamID64
  * @param iSize				Max size of sCommunityID
  * @param sSteamID			SteamID
  */
 stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSteamID)
 {
-    char sBuffer[3][32];
-    ExplodeString(sSteamID, ":", sBuffer, 3, 32);
-    int accountID = StringToInt(sBuffer[2]) * 2 + StringToInt(sBuffer[1]);
+	char sBuffer[3][32];
+	ExplodeString(sSteamID, ":", sBuffer, 3, 32);
+	int accountID = StringToInt(sBuffer[2]) * 2 + StringToInt(sBuffer[1]);
 
-    IntToString((accountID + 60265728), sCommunityID, iSize);
+	IntToString((accountID + 60265728), sCommunityID, iSize);
 
-    if (accountID >= 39734272)
-    {
-        strcopy(sCommunityID, iSize, sCommunityID[1]);
-        Format(sCommunityID, iSize, "765611980%s", sCommunityID);
-    }
-    else
-    {
-        Format(sCommunityID, iSize, "765611979%s", sCommunityID);
-    }
+	if (accountID >= 39734272)
+	{
+		strcopy(sCommunityID, iSize, sCommunityID[1]);
+		Format(sCommunityID, iSize, "765611980%s", sCommunityID);
+	}
+	else
+	{
+		Format(sCommunityID, iSize, "765611979%s", sCommunityID);
+	}
 }
 
 /**
@@ -280,7 +288,38 @@ stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSt
  *                      If false, search is case insensitive.
  * @return 				True if find, false otherwise.
  */
-stock bool FindString(const char[] str, const char[] substr, bool caseSensitive=true)
+stock bool FindString(const char[] str, const char[] substr, bool caseSensitive = true)
 {
 	return (StrContains(str, substr, caseSensitive) != -1);
+}
+
+/**
+ * Returns amounts of a set format from a unix date.
+ *
+ * @param iUnixTime		Unix date.
+ * @param type			UnixTime Format.
+ * @return				Amount of the format.
+ * @error				Invalid UnixTime Format.
+ * @note				Week = 604800, Day = 86400, Hour = 3600, Min = 60, Sec = 1
+ */
+stock int FromUnixTime(int iUnixTime, UnixTime type)
+{
+	if(iUnixTime == 0)
+		return 0;
+
+	switch (type)
+	{
+		case Week:
+			return (iUnixTime / 604800);
+		case Day:
+			return (iUnixTime / 86400);
+		case Hour:
+			return (iUnixTime / 3600);
+		case Min:
+			return (iUnixTime / 60);
+		case Sec:
+			return (iUnixTime % 60);
+		default:
+			return 0;
+	}
 }
