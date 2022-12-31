@@ -16,11 +16,14 @@
  */
 any Native_Log(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	char
 		sFilename[64],
 		sBuffer[PLATFORM_MAX_PATH],
 		sLogPath[PLATFORM_MAX_PATH];
-	
+
 	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), DIR_FORSAKENLOG);
 	GetPluginBasename(plugin, sFilename, sizeof(sFilename));
 	FormatNativeString(0, 1, 2, sizeof(sBuffer), _, sBuffer);
@@ -35,16 +38,20 @@ any Native_Log(Handle plugin, int numParams)
  */
 any Native_TypeMatch(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
 	return g_TypeMatch;
 }
 
-/** 
+/**
  * Get lobby queue number
  *
  * @return 				An integer, 0 is that information is not yet obtained
  */
 any Native_QueueID(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
 	return g_iQueueID;
 }
 
@@ -58,6 +65,9 @@ any Native_QueueID(Handle plugin, int numParams)
  */
 any Native_SteamIDTA(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -76,6 +86,9 @@ any Native_SteamIDTA(Handle plugin, int numParams)
  */
 any Native_SteamIDTB(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -94,6 +107,9 @@ any Native_SteamIDTB(Handle plugin, int numParams)
  */
 any Native_NameTA(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -112,6 +128,9 @@ any Native_NameTA(Handle plugin, int numParams)
  */
 any Native_NameTB(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -129,13 +148,16 @@ any Native_NameTB(Handle plugin, int numParams)
  */
 any Native_GetIPv4(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	int maxlen = GetNativeCell(2);
-	
+
 	SetNativeString(1, g_sIPv4, maxlen);
 	return 0;
 }
 
-/** 
+/**
  * Gets the name of the map provided by Forsaken
  *
  * @param buffer        Buffer to copy to.
@@ -144,8 +166,11 @@ any Native_GetIPv4(Handle plugin, int numParams)
  */
 any Native_MapName(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
+
 	int maxlen = GetNativeCell(2);
-	
+
 	SetNativeString(1, g_sMapName, maxlen);
 	return 0;
 }

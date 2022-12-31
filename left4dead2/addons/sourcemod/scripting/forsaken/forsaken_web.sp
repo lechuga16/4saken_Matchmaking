@@ -7,13 +7,16 @@
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
 
-/** 
+/**
  * @brief Create an httpRequest, and retrieve the match data.
- * 
+ *
  * @noreturn
  */
 void GetMatch()
 {
+	if (!g_cvarEnable.BoolValue)
+		return;
+
 	char sPatch[128];
 	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
 
@@ -24,7 +27,7 @@ void GetMatch()
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpMatchInfo, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
 	httpRequest.SetOutputFile(sPatch);
-	if(g_cvarDebug.BoolValue)
+	if (g_cvarDebug.BoolValue)
 		httpRequest.SetProgressCallback(HttpProgressMatch);
 	httpRequest.GET();
 	delete httpRequest;
@@ -59,18 +62,18 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 
 	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
 
-	if(!FileExists(sPatch))
+	if (!FileExists(sPatch))
 	{
 		fkn_log("Error: %s File not found", DIR_CACHEMATCH);
 		return;
 	}
 
-	joMatch	  = json_read_from_file(sPatch);
+	joMatch		= json_read_from_file(sPatch);
 
-	g_iQueueID = joMatch.GetInt("queueid");
+	g_iQueueID	= joMatch.GetInt("queueid");
 	g_TypeMatch = view_as<TypeMatch>(joMatch.GetInt("region"));
-	jaTA	    = view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	jaTB	    = view_as<JSON_Array>(joMatch.GetObject("teamB"));
+	jaTA		= view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	jaTB		= view_as<JSON_Array>(joMatch.GetObject("teamB"));
 	joMatch.GetString("map", g_sMapName, sizeof(g_sMapName));
 
 	if (joMatch == null)
@@ -109,16 +112,19 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 	json_cleanup_and_delete(joMatch);
 }
 
-/** 
+/**
  * @brief Create an http request and retrieve the IPv4 of the server.
- * 
+ *
  * @noreturn
  */
 public void GetIPv4()
 {
+	if (!g_cvarEnable.BoolValue)
+		return;
+
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpIPv4, URL_IPV4);
 	httpRequest.SetHeader("Content-Type", "application/json");
-	if(g_cvarDebug.BoolValue)
+	if (g_cvarDebug.BoolValue)
 		httpRequest.SetProgressCallback(HttpProgressIpv4);
 	httpRequest.GET();
 	delete httpRequest;

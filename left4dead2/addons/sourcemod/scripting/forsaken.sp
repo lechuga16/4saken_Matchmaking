@@ -14,10 +14,21 @@
 
 #define PLUGIN_VERSION	"0.1"
 #define MAX_PLAYER_TEAM 4
-#define PREFIX "[{olive}4saken{default}]"
+#define PREFIX			"[{olive}4saken{default}]"
+
+/**
+ * Player profile.
+ *
+ */
+enum struct PlayerInfo
+{
+	char  steamid[MAX_AUTHID_LENGTH];	 // Player SteamID
+	char  name[MAX_NAME_LENGTH];		 // Player name
+}
 
 ConVar
-	g_cvarDebug;
+	g_cvarDebug,
+	g_cvarEnable;
 
 PlayerInfo
 	g_PlayersTA[MAX_PLAYER_TEAM],
@@ -46,7 +57,6 @@ TypeMatch
 /*****************************************************************
 			P L U G I N   I N F O
 *****************************************************************/
-
 public Plugin myinfo =
 {
 	name		= "Forsaken Core",
@@ -55,10 +65,10 @@ public Plugin myinfo =
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/lechuga16/4saken_Matchmaking"
 
+
 }
 
-public APLRes
-	AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	if (!L4D_IsEngineLeft4Dead2())
 	{
@@ -82,14 +92,14 @@ public APLRes
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-
 public void OnPluginStart()
 {
 	CreateConVar("sm_fkn_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug = CreateConVar("sm_fkn_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarDebug	 = CreateConVar("sm_fkn_debug", "0", "Debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarEnable = CreateConVar("sm_fkn_enable", "1", "Activate forsaken", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_fkn_showip", Cmd_ShowIP, "Get ip and port server");
 	RegAdminCmd("sm_fkn_playersinfo", Cmd_PlayersInfo, ADMFLAG_GENERIC, "Shows the name and SteamID of the players");
-	
+
 	AutoExecConfig(true, "forsaken");
 
 	g_iPort = FindConVar("hostport").IntValue;
@@ -103,7 +113,7 @@ public Action Cmd_ShowIP(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 		CReplyToCommand(iClient, "Usage: sm_fkn_showip");
-	
+
 	char sIp[64];
 	sIp = fkn_GetIP();
 
@@ -123,11 +133,11 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 	CReplyToCommand(iClient, "%s QueueID: {green}%d{default}", PREFIX, g_iQueueID);
 	CReplyToCommand(iClient, "%s MapName: {green}%s{default}", PREFIX, g_sMapName);
 
-	CReplyToCommand(iClient, "%s TeamA:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)", 
-		PREFIX, g_PlayersTB[0].name, g_PlayersTA[0].steamid, g_PlayersTB[1].name, g_PlayersTA[1].steamid, g_PlayersTB[2].name, g_PlayersTA[2].steamid, g_PlayersTB[3].name, g_PlayersTA[3].steamid);
-	
+	CReplyToCommand(iClient, "%s TeamA:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
+					PREFIX, g_PlayersTB[0].name, g_PlayersTA[0].steamid, g_PlayersTB[1].name, g_PlayersTA[1].steamid, g_PlayersTB[2].name, g_PlayersTA[2].steamid, g_PlayersTB[3].name, g_PlayersTA[3].steamid);
+
 	CReplyToCommand(iClient, "%s TeamB:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
-		PREFIX, g_PlayersTB[0].name, g_PlayersTB[0].steamid, g_PlayersTB[1].name, g_PlayersTB[1].steamid, g_PlayersTB[2].name, g_PlayersTB[2].steamid, g_PlayersTB[3].name, g_PlayersTB[3].steamid);
+					PREFIX, g_PlayersTB[0].name, g_PlayersTB[0].steamid, g_PlayersTB[1].name, g_PlayersTB[1].steamid, g_PlayersTB[2].name, g_PlayersTB[2].steamid, g_PlayersTB[3].name, g_PlayersTB[3].steamid);
 
 	return Plugin_Handled;
 }
@@ -136,14 +146,17 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
 
-/** 
+/**
  * @brief checks for the existence of the "configs/forsaken/IP.json" file.
  *     if it does not exist, it creates it.
- * 
+ *
  * @noreturn
  */
 public void JSON_Check()
 {
+	if (!g_cvarEnable.BoolValue)
+		return;
+
 	if (FileExists(g_sPatchIP))
 		return;
 
@@ -153,20 +166,20 @@ public void JSON_Check()
 	JSON_Create();
 }
 
-/** 
+/**
  * @brief creates the "configs/forsaken/IP.json" file.
- * 
+ *
  * @noreturn
  */
 public void JSON_Create()
 {
-	char output[32];
+	char		output[32];
 
 	JSON_Object JoIp = new JSON_Object();
 	JoIp.SetString("IP", "0.0.0.0");
 	JoIp.Encode(output, sizeof(output));
 
-	if(!FileExists(g_sPatchIP))
+	if (!FileExists(g_sPatchIP))
 	{
 		fkn_log("Error: %s Invalid file path", DIR_IP);
 		return;

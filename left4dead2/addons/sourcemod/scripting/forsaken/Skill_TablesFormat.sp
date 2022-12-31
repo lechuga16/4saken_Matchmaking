@@ -262,9 +262,6 @@ public void OnTankRockSkeeted(int survivor, int tank)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor) && IsFakeClient(tank))
-		return;
-
 	if(IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
