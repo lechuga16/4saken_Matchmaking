@@ -22,8 +22,11 @@ public Action Timer_TeamsMatchData(Handle timer)
 	if (g_cvarDebug.BoolValue)
 		CPrintToChatAll("TeamsMatchData");
 
-	g_TeamTA.id = 1;	// inventar forma de recuperar el ID de los equipos
-	g_TeamTA.id = 2;	// inventar forma de recuperar el ID de los equipos
+	// g_TeamTA.id = 1;	// inventar forma de recuperar el ID de los equipos
+	// g_TeamTA.id = 2;	// inventar forma de recuperar el ID de los equipos
+
+	g_TeamInfo[TeamA].id = 1;
+	g_TeamInfo[TeamB].id = 2;
 
 	DBInfoTeams(TeamA);
 	DBInfoTeams(TeamB);
@@ -40,7 +43,7 @@ public void DBInfoTeams(ForsakenTeam Team)
 		error[255];
 
 	Format(sQuery, sizeof(sQuery), "SELECT `Name`, `Rating`, `Deviation`, `GamesPlayed`, `LastGame`, `GamesWon` FROM `teams_mmr` WHERE `SteamID64` = 'ID'",
-		   (Team == TeamA) ? g_TeamTA.id : g_TeamTB.id);
+		   (Team == TeamA) ? g_TeamInfo[TeamA].id : g_TeamInfo[TeamB].id);
 
 	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
 	{
@@ -54,21 +57,21 @@ public void DBInfoTeams(ForsakenTeam Team)
 	{
 		if (Team == TeamA)
 		{
-			DBResul.FetchString(0, g_TeamTA.name, MAX_NAME_LENGTH);
-			g_TeamTA.rating		 = DBResul.FetchFloat(1);
-			g_TeamTA.deviation	 = DBResul.FetchFloat(2);
-			g_TeamTA.gamesplayed = DBResul.FetchInt(3);
-			g_TeamTA.lastgame	 = DBResul.FetchInt(4);
-			g_TeamTA.gameswon	 = DBResul.FetchInt(5);
+			DBResul.FetchString(0, g_TeamInfo[TeamA].name, MAX_NAME_LENGTH);
+			g_TeamInfo[TeamA].rating	  = DBResul.FetchFloat(1);
+			g_TeamInfo[TeamA].deviation	  = DBResul.FetchFloat(2);
+			g_TeamInfo[TeamA].gamesplayed = DBResul.FetchInt(3);
+			g_TeamInfo[TeamA].lastgame	  = DBResul.FetchInt(4);
+			g_TeamInfo[TeamA].gameswon	  = DBResul.FetchInt(5);
 		}
 		else if (Team == TeamB)
 		{
-			DBResul.FetchString(0, g_TeamTB.name, MAX_NAME_LENGTH);
-			g_TeamTB.rating		 = DBResul.FetchFloat(1);
-			g_TeamTB.deviation	 = DBResul.FetchFloat(2);
-			g_TeamTB.gamesplayed = DBResul.FetchInt(3);
-			g_TeamTB.lastgame	 = DBResul.FetchInt(4);
-			g_TeamTB.gameswon	 = DBResul.FetchInt(5);
+			DBResul.FetchString(0, g_TeamInfo[TeamB].name, MAX_NAME_LENGTH);
+			g_TeamInfo[TeamB].rating	  = DBResul.FetchFloat(1);
+			g_TeamInfo[TeamB].deviation	  = DBResul.FetchFloat(2);
+			g_TeamInfo[TeamB].gamesplayed = DBResul.FetchInt(3);
+			g_TeamInfo[TeamB].lastgame	  = DBResul.FetchInt(4);
+			g_TeamInfo[TeamB].gameswon	  = DBResul.FetchInt(5);
 		}
 	}
 }

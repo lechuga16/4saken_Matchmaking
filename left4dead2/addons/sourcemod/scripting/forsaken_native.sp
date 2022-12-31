@@ -62,12 +62,8 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 
 	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[fkn_TypeMatch()]);
 
-	PlayerInfo
-		PlayersTA[MAX_PLAYER_TEAM],
-		PlayersTB[MAX_PLAYER_TEAM];
-
-	char
-		sMapName[32];
+	PlayerBasic Players[ForsakenTeam][MAX_PLAYER_TEAM];
+	char sMapName[32];
 
 	CReplyToCommand(iClient, "%s QueueID: ({green}%d{default})", PREFIX, fkn_QueueID());
 	fkn_MapName(sMapName, sizeof(sMapName));
@@ -75,11 +71,11 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 
 	for (int i = 0; i <= 3; i++)
 	{
-		fkn_SteamIDTA(i, PlayersTA[i].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(i, PlayersTB[i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTA(i, Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(i, Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
 		
-		fkn_NameTA(i, PlayersTA[i].name, MAX_NAME_LENGTH);
-		fkn_NameTB(i, PlayersTA[i].name, MAX_NAME_LENGTH);
+		fkn_NameTA(i, Players[TeamA][i].name, MAX_NAME_LENGTH);
+		fkn_NameTB(i, Players[TeamB][i].name, MAX_NAME_LENGTH);
 	}
 
 	char
@@ -96,10 +92,10 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 
 	for (int iID = 0; iID <= 3; iID++)
 	{
-		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "({olive}%s{default}:", PlayersTA[iID].steamid);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "({olive}%s{default}:", Players[TeamA][iID].steamid);
 		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
-		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%s) ", PlayersTA[iID].name);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%s) ", Players[TeamA][iID].name);
 		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
 		if (iID == 1)
@@ -108,10 +104,10 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 			StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 		}
 
-		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "({olive}%s{default}:", PlayersTB[iID].steamid);
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "({olive}%s{default}:", Players[TeamB][iID].steamid);
 		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
-		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%s) ", PlayersTB[iID].name);
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%s) ", Players[TeamB][iID].name);
 		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
 		if (iID == 1)

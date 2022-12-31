@@ -99,14 +99,11 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 		JSON_Object joPlayerTA = jaTA.GetObject(i);
 		JSON_Object joPlayerTB = jaTB.GetObject(i);
 
-		joPlayerTA.GetString("steamid", g_PlayersTA[i].steamid, MAX_AUTHID_LENGTH);
-		joPlayerTB.GetString("steamid", g_PlayersTB[i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTA.GetString("steamid", g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
 
-		// ReplaceString(g_PlayersTA[i].steamid, MAX_AUTHID_LENGTH, "STEAM_0", "STEAM_1", false);
-		// ReplaceString(g_PlayersTB[i].steamid, MAX_AUTHID_LENGTH, "STEAM_0", "STEAM_1", false);
-
-		joPlayerTA.GetString("personaname", g_PlayersTB[i].name, MAX_NAME_LENGTH);
-		joPlayerTB.GetString("personaname", g_PlayersTB[i].name, MAX_NAME_LENGTH);
+		joPlayerTA.GetString("personaname", g_Players[TeamA][i].name, MAX_NAME_LENGTH);
+		joPlayerTB.GetString("personaname", g_Players[TeamB][i].name, MAX_NAME_LENGTH);
 	}
 
 	json_cleanup_and_delete(joMatch);

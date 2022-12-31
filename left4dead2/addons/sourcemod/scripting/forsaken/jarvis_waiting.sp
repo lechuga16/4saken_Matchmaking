@@ -94,9 +94,9 @@ public Action Timer_CheckListPlayers(Handle timer)
 
 		for (int iID = 0; iID <= 4; iID++)
 		{
-			if (StrEqual(sSteamid, g_PlayersTA[iID].steamid, false))
+			if (StrEqual(sSteamid, g_Players[TeamA][iID].steamid, false))
 				g_RageQuitTA[iID].ispresent = true;
-			else if (StrEqual(sSteamid, g_PlayersTB[iID].steamid, false))
+			else if (StrEqual(sSteamid, g_Players[TeamB][iID].steamid, false))
 				g_RageQuitTB[iID].ispresent = true;
 		}
 	}
@@ -129,13 +129,13 @@ public void MissingPlayers()
 	{
 		if (!g_RageQuitTA[iID].ispresent)
 		{
-			Format(tmpBufferTA, sizeof(tmpBufferTA), "%s ", g_PlayersTA[iID].name);
+			Format(tmpBufferTA, sizeof(tmpBufferTA), "%s ", g_Players[TeamA][iID].name);
 			StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 		}
 
 		if (!g_RageQuitTB[iID].ispresent)
 		{
-			Format(tmpBufferTB, sizeof(tmpBufferTB), "%s ", g_PlayersTB[iID].name);
+			Format(tmpBufferTB, sizeof(tmpBufferTB), "%s ", g_Players[TeamB][iID].name);
 			StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 		}
 	}

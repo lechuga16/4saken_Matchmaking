@@ -28,7 +28,7 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 
 	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (StrEqual(sSteamId, g_PlayersTA[iID].steamid, false))
+		if (StrEqual(sSteamId, g_Players[TeamA][iID].steamid, false))
 		{
 			g_RageQuitTA[iID].ispresent = false;
 
@@ -40,13 +40,13 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 			hdataPack.WriteCell(iID);
 			hdataPack.WriteCell(TeamA);
 
-			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_PlayersTA[iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
+			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
 
 			if(g_cvarDebug.BoolValue)
-				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_PlayersTA[iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
+				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 
-		if (StrEqual(sSteamId, g_PlayersTB[iID].steamid, false))
+		if (StrEqual(sSteamId, g_Players[TeamB][iID].steamid, false))
 		{
 			g_RageQuitTB[iID].ispresent = false;
 
@@ -58,10 +58,10 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 			hdataPack.WriteCell(iID);
 			hdataPack.WriteCell(TeamB);
 
-			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_PlayersTB[iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
+			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
 
 			if(g_cvarDebug.BoolValue)
-				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_PlayersTB[iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
+				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 	}
 }
@@ -81,13 +81,13 @@ public bool IsRageQuiters(int iClient, const char[] sAuth)
 {
 	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (StrEqual(sAuth, g_PlayersTA[iID].steamid, false))
+		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
 		{
 			if (g_RageQuitTA[iID].timer != null)
 				return true;
 		}
 
-		if (StrEqual(sAuth, g_PlayersTB[iID].steamid, false))
+		if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
 		{
 			if (g_RageQuitTB[iID].timer != null)
 				return true;
@@ -107,19 +107,19 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 {
 	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (StrEqual(sAuth, g_PlayersTA[iID].steamid, false))
+		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
 		{
 			KillTimer(g_RageQuitTA[iID].timer);
 			g_RageQuitTA[iID].timer = null;
-			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_PlayersTA[iID].name, g_PlayersTA[iID].steamid);
+			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid);
 			fkn_log("ClientConnected: %N no longer ragequiter", iClient);
 		}
 
-		if (StrEqual(sAuth, g_PlayersTB[iID].steamid, false))
+		if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
 		{
 			KillTimer(g_RageQuitTB[iID].timer);
 			g_RageQuitTB[iID].timer = null;
-			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_PlayersTB[iID].name, g_PlayersTB[iID].steamid);
+			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamB][iID].name, g_Players[TeamB][iID].steamid);
 			fkn_log("ClientConnected: %N no longer ragequiter", iClient);
 		}
 	}

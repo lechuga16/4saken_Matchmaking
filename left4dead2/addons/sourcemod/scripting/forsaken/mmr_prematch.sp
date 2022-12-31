@@ -36,6 +36,8 @@ public Action Timer_PlayersMatchData(Handle timer)
 		DBInfoPlayers(i, TeamB);
 	}
 
+	CreateCompositePlayer();
+
 	return Plugin_Stop;
 }
 
@@ -49,16 +51,17 @@ public void DBInfoPlayers(int Index, ForsakenTeam Team)
 
 	if (Team == TeamA)
 	{
-		fkn_SteamIDTA(Index, g_PlayersTA[Index].steamid, MAX_AUTHID_LENGTH);
-		fkn_NameTA(Index, g_PlayersTA[Index].name, MAX_NAME_LENGTH);
+		fkn_SteamIDTA(Index, g_Players[TeamA][Index].steamid, MAX_AUTHID_LENGTH);
+		fkn_NameTA(Index, g_Players[TeamA][Index].name, MAX_NAME_LENGTH);
 	}
 	else if (Team == TeamB)
 	{
-		fkn_SteamIDTB(Index, g_PlayersTB[Index].steamid, MAX_AUTHID_LENGTH);
-		fkn_NameTB(Index, g_PlayersTB[Index].name, MAX_NAME_LENGTH);
+		fkn_SteamIDTB(Index, g_Players[TeamB][Index].steamid, MAX_AUTHID_LENGTH);
+		fkn_NameTB(Index, g_Players[TeamB][Index].name, MAX_NAME_LENGTH);
 	}
 
-	Format(sQuery, sizeof(sQuery), "SELECT `Rating`, `Deviation`, `GamesPlayed`, `LastGame` FROM `users_mmr` WHERE `SteamID64` = '%s'", (Team == TeamA) ? g_PlayersTA[Index].steamid : g_PlayersTB[Index].steamid);
+	Format(sQuery, sizeof(sQuery), "SELECT m.`Rating`, m.`Deviation`, m.`GamesPlayed`, m.`LastGame` FROM `users_general` AS g INNER JOIN `users_mmr`AS m on g.`MMRID` = m.`MMRID` WHERE g.`SteamID64` LIKE '%s'",
+		   (Team == TeamA) ? g_Players[TeamA][Index].steamid : g_Players[TeamB][Index].steamid);
 
 	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
 	{
@@ -72,17 +75,38 @@ public void DBInfoPlayers(int Index, ForsakenTeam Team)
 	{
 		if (Team == TeamA)
 		{
-			g_PlayersTA[Index].rating	   = DBResul.FetchFloat(0);
-			g_PlayersTA[Index].deviation   = DBResul.FetchFloat(1);
-			g_PlayersTA[Index].gamesplayed = DBResul.FetchInt(2);
-			g_PlayersTA[Index].lastgame	   = DBResul.FetchInt(3);
+			g_Players[TeamA][Index].rating		= DBResul.FetchFloat(0);
+			g_Players[TeamA][Index].deviation	= DBResul.FetchFloat(1);
+			g_Players[TeamA][Index].gamesplayed = DBResul.FetchInt(2);
+			g_Players[TeamA][Index].lastgame	= DBResul.FetchInt(3);
 		}
 		else if (Team == TeamB)
 		{
-			g_PlayersTB[Index].rating	   = DBResul.FetchFloat(0);
-			g_PlayersTB[Index].deviation   = DBResul.FetchFloat(1);
-			g_PlayersTB[Index].gamesplayed = DBResul.FetchInt(2);
-			g_PlayersTB[Index].lastgame	   = DBResul.FetchInt(43);
+			g_Players[TeamB][Index].rating		= DBResul.FetchFloat(0);
+			g_Players[TeamB][Index].deviation	= DBResul.FetchFloat(1);
+			g_Players[TeamB][Index].gamesplayed = DBResul.FetchInt(2);
+			g_Players[TeamB][Index].lastgame	= DBResul.FetchInt(3);
+		}
+	}
+}
+
+public void CreateCompositePlayer()
+{
+	for (int i = 0; i <= 3; i++)
+	{
+		g_CPlayer[TeamA].rating += g_Players[TeamA][i].rating;
+		g_CPlayer[TeamA].deviation += g_Players[TeamA][i].deviation;
+
+		g_CPlayer[TeamB].rating += g_Players[TeamB][i].rating;
+		g_CPlayer[TeamB].deviation += g_Players[TeamB][i].deviation;
+
+		if (i == 3)
+		{
+			g_CPlayer[TeamA].rating	   = g_CPlayer[TeamA].rating / 4;
+			g_CPlayer[TeamA].deviation = g_CPlayer[TeamA].deviation / 4;
+
+			g_CPlayer[TeamB].rating	   = g_CPlayer[TeamB].rating / 4;
+			g_CPlayer[TeamB].deviation = g_CPlayer[TeamB].deviation / 4;
 		}
 	}
 }

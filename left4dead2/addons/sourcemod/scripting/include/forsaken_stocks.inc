@@ -92,6 +92,18 @@ enum UnixTime
 	UnixTime_Size = 5
 };
 
+enum struct PlayerBasic
+{
+	char  steamid[MAX_AUTHID_LENGTH];	 // Player SteamID
+	char  name[MAX_NAME_LENGTH];		 // Player name
+}
+
+enum struct GlickoBasic
+{
+	float rating;						 // Glicko Score
+	float deviation;					 // Glicko deviation
+}
+
 // ==================================================
 // Array
 // ==================================================

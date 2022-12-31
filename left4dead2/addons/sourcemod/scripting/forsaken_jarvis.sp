@@ -53,9 +53,7 @@ SMCParser
 TypeMatch
 	g_TypeMatch;
 
-PlayerInfo
-	g_PlayersTA[MAX_PLAYER_TEAM],
-	g_PlayersTB[MAX_PLAYER_TEAM];
+PlayerBasic g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
 
 PlayerRageQuit
 	g_RageQuitTA[MAX_PLAYER_TEAM],
@@ -291,14 +289,14 @@ public Action Cmd_AddUser(int iClient, int iArgs)
 		case TeamA:
 		{
 			CReplyToCommand(iClient, "%t %t", "Tag", "AddSurv");
-			g_PlayersTA[4].steamid = sSteamID;
-			g_PlayersTA[4].name	= sName;
+			g_Players[TeamA][4].steamid = sSteamID;
+			g_Players[TeamA][4].name	= sName;
 		}
 		case TeamB:
 		{
 			CReplyToCommand(iClient, "%t %t", "Tag", "AddInfect");
-			g_PlayersTB[4].steamid = sSteamID;
-			g_PlayersTB[4].name	= sName;
+			g_Players[TeamB][4].steamid = sSteamID;
+			g_Players[TeamB][4].name	= sName;
 		}
 		default:
 		{
@@ -328,7 +326,7 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	for (int i = 0; i <= 4; i++)
 	{
-		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_PlayersTA[i].steamid);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_Players[TeamA][i].steamid);
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
 
@@ -339,7 +337,7 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	for (int i = 0; i <= 4; i++)
 	{
-		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_PlayersTB[i].steamid);
+		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_Players[TeamB][i].steamid);
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
 	}
 	CReplyToCommand(iClient, "%s", printBuffer);

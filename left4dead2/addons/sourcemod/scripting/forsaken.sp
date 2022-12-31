@@ -14,25 +14,13 @@
 
 #define PLUGIN_VERSION	"0.1"
 #define MAX_PLAYER_TEAM 4
-#define PREFIX			"[{olive}4saken{default}]"
-
-/**
- * Player profile.
- *
- */
-enum struct PlayerInfo
-{
-	char  steamid[MAX_AUTHID_LENGTH];	 // Player SteamID
-	char  name[MAX_NAME_LENGTH];		 // Player name
-}
+#define PREFIX			"[{olive}Forsaken{default}]"
 
 ConVar
 	g_cvarDebug,
 	g_cvarEnable;
 
-PlayerInfo
-	g_PlayersTA[MAX_PLAYER_TEAM],
-	g_PlayersTB[MAX_PLAYER_TEAM];
+PlayerBasic g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
 
 char
 	g_sURL[256],
@@ -134,10 +122,16 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 	CReplyToCommand(iClient, "%s MapName: {green}%s{default}", PREFIX, g_sMapName);
 
 	CReplyToCommand(iClient, "%s TeamA:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
-					PREFIX, g_PlayersTB[0].name, g_PlayersTA[0].steamid, g_PlayersTB[1].name, g_PlayersTA[1].steamid, g_PlayersTB[2].name, g_PlayersTA[2].steamid, g_PlayersTB[3].name, g_PlayersTA[3].steamid);
+					PREFIX, g_Players[TeamA][0].name, g_Players[TeamA][0].steamid, 	
+							g_Players[TeamA][1].name, g_Players[TeamA][1].steamid,
+							g_Players[TeamA][2].name, g_Players[TeamA][2].steamid,
+							g_Players[TeamA][3].name, g_Players[TeamA][3].steamid);
 
 	CReplyToCommand(iClient, "%s TeamB:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
-					PREFIX, g_PlayersTB[0].name, g_PlayersTB[0].steamid, g_PlayersTB[1].name, g_PlayersTB[1].steamid, g_PlayersTB[2].name, g_PlayersTB[2].steamid, g_PlayersTB[3].name, g_PlayersTB[3].steamid);
+					PREFIX, g_Players[TeamB][0].name, g_Players[TeamB][0].steamid,
+							g_Players[TeamB][1].name, g_Players[TeamB][1].steamid,
+							g_Players[TeamB][2].name, g_Players[TeamB][2].steamid,
+							g_Players[TeamB][3].name, g_Players[TeamB][3].steamid);
 
 	return Plugin_Handled;
 }

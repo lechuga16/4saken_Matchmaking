@@ -31,12 +31,12 @@ public Action Timer_GetMatchData(Handle timer)
 	for (int i = 0; i <= 3; i++)
 	{	
 		// Get the steamids from the player index
-		fkn_SteamIDTA(i, g_PlayersTA[i].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(i, g_PlayersTB[i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTA(i, g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(i, g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
 
 		// Get the player names from the steamid
-		fkn_NameTA(i, g_PlayersTA[i].name, MAX_NAME_LENGTH);
-		fkn_NameTB(i, g_PlayersTB[i].name, MAX_NAME_LENGTH);
+		fkn_NameTA(i, g_Players[TeamA][i].name, MAX_NAME_LENGTH);
+		fkn_NameTB(i, g_Players[TeamB][i].name, MAX_NAME_LENGTH);
 
 		// Get the steamids from the player index
 		fkn_SteamIDTA(i, g_RageQuitTA[i].steamid, MAX_AUTHID_LENGTH);

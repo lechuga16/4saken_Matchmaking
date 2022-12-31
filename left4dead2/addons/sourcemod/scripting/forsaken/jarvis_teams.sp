@@ -197,9 +197,9 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
 
 	for (int iID = 0; iID <= 4; iID++)
 	{
-		if (StrEqual(sSteamID, g_PlayersTA[iID].steamid, false))
+		if (StrEqual(sSteamID, g_Players[TeamA][iID].steamid, false))
 			return bAreTeamsFlipped ? TeamB : TeamA;
-		else if (StrEqual(sSteamID, g_PlayersTB[iID].steamid, false))
+		else if (StrEqual(sSteamID, g_Players[TeamB][iID].steamid, false))
 			return bAreTeamsFlipped ? TeamA : TeamB;
 	}
 	return Team0;

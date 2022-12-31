@@ -168,13 +168,13 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 
 	if (Team == TeamA)
 	{
-		sAuth = g_PlayersTA[iTarget].steamid;
-		sName = g_PlayersTA[iTarget].name;
+		sAuth = g_Players[TeamA][iTarget].steamid;
+		sName = g_Players[TeamA][iTarget].name;
 	}
 	else if (Team == TeamB)
 	{
-		sAuth = g_PlayersTB[iTarget].steamid;
-		sName = g_PlayersTB[iTarget].name;
+		sAuth = g_Players[TeamB][iTarget].steamid;
+		sName = g_Players[TeamB][iTarget].name;
 	}
 	else
 	{

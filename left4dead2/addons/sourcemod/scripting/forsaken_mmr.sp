@@ -17,8 +17,8 @@
 			G L O B A L   V A R S
 *****************************************************************/
 
-#define PLUGIN_VERSION	  "1.0"
-#define MAX_PLAYER_TEAM	  5
+#define PLUGIN_VERSION	"1.0"
+#define MAX_PLAYER_TEAM 5
 
 /**
  * Player profile.
@@ -52,7 +52,7 @@ enum struct TeamsInfo
 
 ConVar
 	g_cvarDebug,
-	g_cvarEnable; 
+	g_cvarEnable;
 
 Database
 	g_dbForsaken;
@@ -60,13 +60,9 @@ Database
 TypeMatch
 	g_TypeMatch;
 
-PlayerInfo
-	g_PlayersTA[MAX_PLAYER_TEAM],	 // Information to calculate mmr of a TeamA
-	g_PlayersTB[MAX_PLAYER_TEAM];	 // Information to calculate mmr of a TeamB
-
-TeamsInfo
-	g_TeamTA,	 // Information to calculate mmr of a TeamA
-	g_TeamTB;	 // Information to calculate mmr of a TeamB
+PlayerInfo g_Players[ForsakenTeam][MAX_PLAYER_TEAM];	 // Information to calculate mmr of a team
+TeamsInfo g_TeamInfo[ForsakenTeam];	 // Information to calculate mmr of a team
+GlickoBasic g_CPlayer[ForsakenTeam]; // Composite of the members of a team
 
 char
 	g_sMapName[32],
@@ -175,14 +171,22 @@ public Action CMD_MMR(int iClient, int iArgs)
 	CReplyToCommand(iClient, "TeamA :\n");
 
 	for (int i = 0; i <= 3; i++)
+	{
 		CReplyToCommand(iClient, "Name: %s SteamID: %s\nRating: %.0f Deviation: %.0f\n Games: %d Lastgame: %d days",
-						g_PlayersTA[i].name, g_PlayersTA[i].steamid, g_PlayersTA[i].rating, g_PlayersTA[i].deviation, g_PlayersTA[i].gamesplayed, DaysLastGame(g_PlayersTA[i]));
+						g_Players[TeamA][i].name, g_Players[TeamA][i].steamid, g_Players[TeamA][i].rating, g_Players[TeamA][i].deviation, g_Players[TeamA][i].gamesplayed, DaysLastGame(g_Players[TeamA][i]));
+	}
 
 	CReplyToCommand(iClient, "----------------------------------------\nTeamB :\n");
-
 	for (int i = 0; i <= 3; i++)
+	{
 		CReplyToCommand(iClient, "Name: %s SteamID: %s\nRating: %.0f Deviation: %.0f\n Games: %d LastGame: %d days",
-						g_PlayersTB[i].name, g_PlayersTB[i].steamid, g_PlayersTB[i].rating, g_PlayersTB[i].deviation, g_PlayersTB[i].gamesplayed, DaysLastGame(g_PlayersTB[i]));
+						g_Players[TeamB][i].name, g_Players[TeamB][i].steamid, g_Players[TeamB][i].rating, g_Players[TeamB][i].deviation, g_Players[TeamB][i].gamesplayed, DaysLastGame(g_Players[TeamB][i]));
+	}
+
+	CReplyToCommand(iClient, "----------------------------------------\nCompositePlayer :\n");
+	CReplyToCommand(iClient, "[TeamA] Rating: %.0f Deviation: %.0f", g_CPlayer[TeamA].rating, g_CPlayer[TeamA].deviation);
+	CReplyToCommand(iClient, "[TeamB] Rating: %.0f Deviation: %.0f", g_CPlayer[TeamB].rating, g_CPlayer[TeamB].deviation);
+	
 	return Plugin_Handled;
 }
 

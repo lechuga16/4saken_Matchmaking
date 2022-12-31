@@ -72,7 +72,7 @@ any Native_SteamIDTA(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_PlayersTA[index].steamid, maxlen);
+	SetNativeString(2, g_Players[TeamA][index].steamid, maxlen);
 	return 0;
 }
 
@@ -93,7 +93,7 @@ any Native_SteamIDTB(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_PlayersTB[index].steamid, maxlen);
+	SetNativeString(2, g_Players[TeamB][index].steamid, maxlen);
 	return 0;
 }
 
@@ -114,7 +114,7 @@ any Native_NameTA(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_PlayersTB[index].name, maxlen);
+	SetNativeString(2, g_Players[TeamA][index].name, maxlen);
 	return 0;
 }
 
@@ -135,7 +135,7 @@ any Native_NameTB(Handle plugin, int numParams)
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
 
-	SetNativeString(2, g_PlayersTB[index].name, maxlen);
+	SetNativeString(2, g_Players[TeamB][index].name, maxlen);
 	return 0;
 }
 /**
