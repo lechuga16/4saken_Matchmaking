@@ -183,6 +183,8 @@ public Action Cmd_Cancel(int iClient, int iArgs)
  */
 public int Native_IsEndGame(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Endgame is disabled");
 	return g_bIsEndGame;
 }
 
@@ -194,6 +196,9 @@ public int Native_IsEndGame(Handle plugin, int numParams)
  */
 any Native_ForceEndGame(Handle plugin, int numParams)
 {
+	if (!g_cvarEnable.BoolValue)
+		return ThrowNativeError(SP_ERROR_NATIVE, "Endgame is disabled");
+
 	g_CancelMatch = view_as<CancelMatch>(GetNativeCell(1));
 
 	if (!g_bNativeAvailable)
