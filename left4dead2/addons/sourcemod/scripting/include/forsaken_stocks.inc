@@ -33,6 +33,8 @@
 #define DIR_IP			   "configs/forsaken/IP.json"
 #define DIR_MAP			   "configs/forsaken/Maps.json"
 #define DIR_FORSAKENLOG	   "logs/forsaken.log"
+#define MAX_PLAYER_TEAM    4
+#define MAX_INDEX_PLAYER   3
 #define CONSOLE			   0
 
 // ==================================================
@@ -92,16 +94,22 @@ enum UnixTime
 	UnixTime_Size = 5
 };
 
+/**
+ * Basic structure of a player.
+ */
 enum struct PlayerBasic
 {
-	char  steamid[MAX_AUTHID_LENGTH];	 // Player SteamID
-	char  name[MAX_NAME_LENGTH];		 // Player name
+	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
+	char name[MAX_NAME_LENGTH];			// Player name
 }
 
+/**
+ * Basic structure of an entity for Glicko calculation.
+ */
 enum struct GlickoBasic
 {
-	float rating;						 // Glicko Score
-	float deviation;					 // Glicko deviation
+	float rating;		// Glicko Score
+	float deviation;	// Glicko deviation
 }
 
 // ==================================================
@@ -316,7 +324,7 @@ stock bool FindString(const char[] str, const char[] substr, bool caseSensitive 
  */
 stock int FromUnixTime(int iUnixTime, UnixTime type)
 {
-	if(iUnixTime == 0)
+	if (iUnixTime == 0)
 		return 0;
 
 	switch (type)

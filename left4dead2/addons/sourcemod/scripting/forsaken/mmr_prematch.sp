@@ -30,13 +30,14 @@ public Action Timer_PlayersMatchData(Handle timer)
 	g_TypeMatch = fkn_TypeMatch();
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 
-	for (int i = 0; i <= 3; i++)
+	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{
 		DBInfoPlayers(i, TeamA);
 		DBInfoPlayers(i, TeamB);
 	}
 
-	CreateCompositePlayer();
+	CreateCompositePlayer(TeamA);
+	CreateCompositePlayer(TeamB);
 
 	return Plugin_Stop;
 }
@@ -60,8 +61,7 @@ public void DBInfoPlayers(int Index, ForsakenTeam Team)
 		fkn_NameTB(Index, g_Players[TeamB][Index].name, MAX_NAME_LENGTH);
 	}
 
-	Format(sQuery, sizeof(sQuery), "SELECT m.`Rating`, m.`Deviation`, m.`GamesPlayed`, m.`LastGame` FROM `users_general` AS g INNER JOIN `users_mmr`AS m on g.`MMRID` = m.`MMRID` WHERE g.`SteamID64` LIKE '%s'",
-		   (Team == TeamA) ? g_Players[TeamA][Index].steamid : g_Players[TeamB][Index].steamid);
+	Format(sQuery, sizeof(sQuery), "SELECT m.`Rating`, m.`Deviation`, m.`GamesPlayed`, m.`LastGame` FROM `users_general` AS g INNER JOIN `users_mmr`AS m on g.`MMRID` = m.`MMRID` WHERE g.`SteamID64` LIKE '%s'", g_Players[Team][Index].steamid);
 
 	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
 	{
@@ -73,40 +73,24 @@ public void DBInfoPlayers(int Index, ForsakenTeam Team)
 
 	while (DBResul.FetchRow())
 	{
-		if (Team == TeamA)
-		{
-			g_Players[TeamA][Index].rating		= DBResul.FetchFloat(0);
-			g_Players[TeamA][Index].deviation	= DBResul.FetchFloat(1);
-			g_Players[TeamA][Index].gamesplayed = DBResul.FetchInt(2);
-			g_Players[TeamA][Index].lastgame	= DBResul.FetchInt(3);
-		}
-		else if (Team == TeamB)
-		{
-			g_Players[TeamB][Index].rating		= DBResul.FetchFloat(0);
-			g_Players[TeamB][Index].deviation	= DBResul.FetchFloat(1);
-			g_Players[TeamB][Index].gamesplayed = DBResul.FetchInt(2);
-			g_Players[TeamB][Index].lastgame	= DBResul.FetchInt(3);
-		}
+		g_Players[Team][Index].rating	   = DBResul.FetchFloat(0);
+		g_Players[Team][Index].deviation   = DBResul.FetchFloat(1);
+		g_Players[Team][Index].gamesplayed = DBResul.FetchInt(2);
+		g_Players[Team][Index].lastgame	   = DBResul.FetchInt(3);
 	}
 }
 
-public void CreateCompositePlayer()
+public void CreateCompositePlayer(ForsakenTeam Team)
 {
-	for (int i = 0; i <= 3; i++)
+	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{
-		g_CPlayer[TeamA].rating += g_Players[TeamA][i].rating;
-		g_CPlayer[TeamA].deviation += g_Players[TeamA][i].deviation;
-
-		g_CPlayer[TeamB].rating += g_Players[TeamB][i].rating;
-		g_CPlayer[TeamB].deviation += g_Players[TeamB][i].deviation;
+		g_CPlayer[Team].rating += g_Players[Team][i].rating;
+		g_CPlayer[Team].deviation += g_Players[Team][i].deviation;
 
 		if (i == 3)
 		{
-			g_CPlayer[TeamA].rating	   = g_CPlayer[TeamA].rating / 4;
-			g_CPlayer[TeamA].deviation = g_CPlayer[TeamA].deviation / 4;
-
-			g_CPlayer[TeamB].rating	   = g_CPlayer[TeamB].rating / 4;
-			g_CPlayer[TeamB].deviation = g_CPlayer[TeamB].deviation / 4;
+			g_CPlayer[Team].rating	  = g_CPlayer[Team].rating / 4;
+			g_CPlayer[Team].deviation = g_CPlayer[Team].deviation / 4;
 		}
 	}
 }

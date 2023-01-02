@@ -119,14 +119,14 @@ public SharedPlugin __pl_forsaken =
 #if !defined REQUIRE_PLUGIN
 public __pl_forsaken_SetNTVOptional()
 {
-    MarkNativeAsOptional("Forsaken_log");
-    MarkNativeAsOptional("Forsaken_TypeMatch");
-    MarkNativeAsOptional("Forsaken_QueueID");
-    MarkNativeAsOptional("Forsaken_SteamIDTA");
-    MarkNativeAsOptional("Forsaken_SteamIDTB");
-    MarkNativeAsOptional("Forsaken_NameTA");
-    MarkNativeAsOptional("Forsaken_NameTB");
-    MarkNativeAsOptional("Forsaken_GetIPv4");
-    MarkNativeAsOptional("Forsaken_MapName");
+    MarkNativeAsOptional("fkn_log");
+    MarkNativeAsOptional("fkn_TypeMatch");
+    MarkNativeAsOptional("fkn_QueueID");
+    MarkNativeAsOptional("fkn_teamIDTA");
+    MarkNativeAsOptional("fkn_SteamIDTB");
+    MarkNativeAsOptional("fkn_NameTA");
+    MarkNativeAsOptional("fkn_NameTB");
+    MarkNativeAsOptional("fkn_GetIPv4");
+    MarkNativeAsOptional("fkn_MapName");
 }
 #endif

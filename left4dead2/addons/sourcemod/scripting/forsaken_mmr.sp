@@ -17,8 +17,7 @@
 			G L O B A L   V A R S
 *****************************************************************/
 
-#define PLUGIN_VERSION	"1.0"
-#define MAX_PLAYER_TEAM 5
+#define PLUGIN_VERSION "1.0"
 
 /**
  * Player profile.
@@ -54,15 +53,12 @@ ConVar
 	g_cvarDebug,
 	g_cvarEnable;
 
-Database
-	g_dbForsaken;
+Database	g_dbForsaken;
+TypeMatch	g_TypeMatch;
 
-TypeMatch
-	g_TypeMatch;
-
-PlayerInfo g_Players[ForsakenTeam][MAX_PLAYER_TEAM];	 // Information to calculate mmr of a team
-TeamsInfo g_TeamInfo[ForsakenTeam];	 // Information to calculate mmr of a team
-GlickoBasic g_CPlayer[ForsakenTeam]; // Composite of the members of a team
+PlayerInfo	g_Players[ForsakenTeam][MAX_PLAYER_TEAM];	 // Information to calculate mmr of a team
+TeamsInfo	g_TeamInfo[ForsakenTeam];					 // Information to calculate mmr of a team
+GlickoBasic g_CPlayer[ForsakenTeam];					 // Composite of the members of a team
 
 char
 	g_sMapName[32],
@@ -120,6 +116,7 @@ public void OnPluginStart()
 
 	RegConsoleCmd("sm_mmr", CMD_MMR);
 	RegConsoleCmd("sm_score", CMD_Score);
+	RegConsoleCmd("sm_win", CMD_Win);
 
 	HookEvent("round_end", Event_RoundEnd);
 	SQLConnect();
@@ -170,7 +167,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 
 	CReplyToCommand(iClient, "TeamA :\n");
 
-	for (int i = 0; i <= 3; i++)
+	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{
 		CReplyToCommand(iClient, "Name: %s SteamID: %s\nRating: %.0f Deviation: %.0f\n Games: %d Lastgame: %d days",
 						g_Players[TeamA][i].name, g_Players[TeamA][i].steamid, g_Players[TeamA][i].rating, g_Players[TeamA][i].deviation, g_Players[TeamA][i].gamesplayed, DaysLastGame(g_Players[TeamA][i]));
@@ -186,7 +183,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 	CReplyToCommand(iClient, "----------------------------------------\nCompositePlayer :\n");
 	CReplyToCommand(iClient, "[TeamA] Rating: %.0f Deviation: %.0f", g_CPlayer[TeamA].rating, g_CPlayer[TeamA].deviation);
 	CReplyToCommand(iClient, "[TeamB] Rating: %.0f Deviation: %.0f", g_CPlayer[TeamB].rating, g_CPlayer[TeamB].deviation);
-	
+
 	return Plugin_Handled;
 }
 
@@ -200,6 +197,34 @@ public Action CMD_Score(int iClient, int iArgs)
 
 	ReplyToCommand(iClient, "ScoreTA: %d", L4D_GetTeamScore(view_as<int>(TeamA)));
 	ReplyToCommand(iClient, "ScoreTB: %d", L4D_GetTeamScore(view_as<int>(TeamB)));
+	return Plugin_Handled;
+}
+
+public Action CMD_Win(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CPrintToChat(iClient, "Usage: sm_win");
+		return Plugin_Handled;
+	}
+
+	ProcessMMR(TeamA, Result_Win);
+
+	CReplyToCommand(iClient, "TeamA :\n");
+
+	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
+	{
+		CReplyToCommand(iClient, "Name: %s SteamID: %s\nRating: %.0f Deviation: %.0f\n Games: %d Lastgame: %d days",
+						g_Players[TeamA][i].name, g_Players[TeamA][i].steamid, g_Players[TeamA][i].rating, g_Players[TeamA][i].deviation, g_Players[TeamA][i].gamesplayed, DaysLastGame(g_Players[TeamA][i]));
+	}
+
+	CReplyToCommand(iClient, "----------------------------------------\nTeamB :\n");
+	for (int i = 0; i <= 3; i++)
+	{
+		CReplyToCommand(iClient, "Name: %s SteamID: %s\nRating: %.0f Deviation: %.0f\n Games: %d LastGame: %d days",
+						g_Players[TeamB][i].name, g_Players[TeamB][i].steamid, g_Players[TeamB][i].rating, g_Players[TeamB][i].deviation, g_Players[TeamB][i].gamesplayed, DaysLastGame(g_Players[TeamB][i]));
+	}
+
 	return Plugin_Handled;
 }
 
