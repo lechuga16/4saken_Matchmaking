@@ -42,7 +42,7 @@ public void DBInfoTeams(ForsakenTeam Team)
 		sQuery[256],
 		error[255];
 
-	Format(sQuery, sizeof(sQuery), "SELECT `Name`, `Rating`, `Deviation`, `GamesPlayed`, `LastGame`, `GamesWon` FROM `teams_mmr` WHERE `SteamID64` = 'ID'",
+	Format(sQuery, sizeof(sQuery), "SELECT `Name`, `Rating`, `Deviation`, `GamesPlayed`, `LastGame`, `Wins` FROM `teams_mmr` WHERE `SteamID64` = 'ID'",
 		   (Team == TeamA) ? g_TeamInfo[TeamA].id : g_TeamInfo[TeamB].id);
 
 	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
@@ -62,7 +62,7 @@ public void DBInfoTeams(ForsakenTeam Team)
 			g_TeamInfo[TeamA].deviation	  = DBResul.FetchFloat(2);
 			g_TeamInfo[TeamA].gamesplayed = DBResul.FetchInt(3);
 			g_TeamInfo[TeamA].lastgame	  = DBResul.FetchInt(4);
-			g_TeamInfo[TeamA].gameswon	  = DBResul.FetchInt(5);
+			g_TeamInfo[TeamA].wins	  = DBResul.FetchInt(5);
 		}
 		else if (Team == TeamB)
 		{
@@ -71,7 +71,7 @@ public void DBInfoTeams(ForsakenTeam Team)
 			g_TeamInfo[TeamB].deviation	  = DBResul.FetchFloat(2);
 			g_TeamInfo[TeamB].gamesplayed = DBResul.FetchInt(3);
 			g_TeamInfo[TeamB].lastgame	  = DBResul.FetchInt(4);
-			g_TeamInfo[TeamB].gameswon	  = DBResul.FetchInt(5);
+			g_TeamInfo[TeamB].wins	  = DBResul.FetchInt(5);
 		}
 	}
 }

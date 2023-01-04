@@ -90,14 +90,14 @@ public Action Timer_CheckListPlayers(Handle timer)
 			continue;
 
 		char sSteamid[32];
-		GetClientAuthId(index, AuthId_Steam2, sSteamid, sizeof(sSteamid));
+		GetClientAuthId(index, AuthId_SteamID64, sSteamid, sizeof(sSteamid));
 
-		for (int iID = 0; iID <= 4; iID++)
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 		{
 			if (StrEqual(sSteamid, g_Players[TeamA][iID].steamid, false))
-				g_RageQuitTA[iID].ispresent = true;
+				g_RageQuit[TeamA][iID].ispresent = true;
 			else if (StrEqual(sSteamid, g_Players[TeamB][iID].steamid, false))
-				g_RageQuitTB[iID].ispresent = true;
+				g_RageQuit[TeamB][iID].ispresent = true;
 		}
 	}
 	return Plugin_Continue;
@@ -125,15 +125,15 @@ public void MissingPlayers()
 	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t:\n{olive}", "Tag", "WaitingInfected");
 	StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 
-	for (int iID = 0; iID <= 4; iID++)
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		if (!g_RageQuitTA[iID].ispresent)
+		if (!g_RageQuit[TeamA][iID].ispresent)
 		{
 			Format(tmpBufferTA, sizeof(tmpBufferTA), "%s ", g_Players[TeamA][iID].name);
 			StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 		}
 
-		if (!g_RageQuitTB[iID].ispresent)
+		if (!g_RageQuit[TeamB][iID].ispresent)
 		{
 			Format(tmpBufferTB, sizeof(tmpBufferTB), "%s ", g_Players[TeamB][iID].name);
 			StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
@@ -157,17 +157,17 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 {
 	if (Team == TeamA)
 	{
-		for (int iID = 0; iID <= 3; iID++)
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 		{
-			if (!g_RageQuitTA[iID].ispresent)
+			if (!g_RageQuit[TeamA][iID].ispresent)
 				return false;
 		}
 	}
 	else if (Team == TeamB)
 	{
-		for (int iID = 0; iID <= 3; iID++)
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 		{
-			if (!g_RageQuitTB[iID].ispresent)
+			if (!g_RageQuit[TeamB][iID].ispresent)
 				return false;
 		}
 	}
@@ -186,15 +186,15 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
  */
 public void BanDesertionPlayers()
 {
-	for (int iID = 0; iID <= 4; iID++)
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		if (!g_RageQuitTA[iID].ispresent)
+		if (!g_RageQuit[TeamA][iID].ispresent)
 		{
 			char sBuffer[128];
 			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
 			CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, sBuffer);
 		}
-		if (!g_RageQuitTB[iID].ispresent)
+		if (!g_RageQuit[TeamB][iID].ispresent)
 		{
 			char sBuffer[128];
 			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");

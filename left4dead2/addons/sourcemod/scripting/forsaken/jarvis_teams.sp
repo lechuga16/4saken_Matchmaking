@@ -191,11 +191,11 @@ stock L4DTeam GetClientTeamEx(int client)
 stock ForsakenTeam IsForsakenTeam(int iClient)
 {
 	char sSteamID[32];
-	GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID));
+	GetClientAuthId(iClient, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
 
 	bool bAreTeamsFlipped = L4D2_AreTeamsFlipped();
 
-	for (int iID = 0; iID <= 4; iID++)
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
 		if (StrEqual(sSteamID, g_Players[TeamA][iID].steamid, false))
 			return bAreTeamsFlipped ? TeamB : TeamA;

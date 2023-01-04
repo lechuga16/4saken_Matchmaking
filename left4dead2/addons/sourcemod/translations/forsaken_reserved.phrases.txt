@@ -2,7 +2,7 @@
 {
 	"Tag"
 	{
-		"en"		"[{olive}Reserved{default}]"
+		"en"		"[{olive}4Saken{default}]"
 	}
 	"CmdReserved"
 	{

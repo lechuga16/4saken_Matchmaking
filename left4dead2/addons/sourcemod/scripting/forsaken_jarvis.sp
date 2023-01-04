@@ -15,11 +15,10 @@
 			G L O B A L   V A R S
 *****************************************************************/
 
-#define PLUGIN_VERSION	"0.1"
-#define MAX_PLAYER_TEAM 5	 // nota: recordatorio de poner este valor en  4 cuando este en produccion
-#define JVPrefix		"[J.A.R.V.I.S]"
+#define PLUGIN_VERSION "0.1"
+#define JVPrefix	   "[J.A.R.V.I.S]"
 
-int 
+int
 	iServerID = 0;
 char
 	DatabasePrefix[10] = "sb",
@@ -34,31 +33,22 @@ enum State
 	ConfigStateTime
 }
 
-/** 
+/**
  * 	Contains values to tell if a player is in the game or has raged.
  */
 enum struct PlayerRageQuit
 {
-	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
-	bool ispresent;						// Is the player in the game?
-	Handle timer;						// Timer to check if the player has ragequitting.
+	char   steamid[MAX_AUTHID_LENGTH];	  // Player SteamID
+	bool   ispresent;					  // Is the player in the game?
+	Handle timer;						  // Timer to check if the player has ragequitting.
 }
 
-State
-	ConfigState;
+State		   ConfigState;
+SMCParser	   ConfigParser;
+TypeMatch	   g_TypeMatch;
+PlayerBasic	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
+PlayerRageQuit g_RageQuit[ForsakenTeam][MAX_PLAYER_TEAM];
 
-SMCParser
-	ConfigParser;
-
-TypeMatch
-	g_TypeMatch;
-
-PlayerBasic g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
-
-PlayerRageQuit
-	g_RageQuitTA[MAX_PLAYER_TEAM],
-	g_RageQuitTB[MAX_PLAYER_TEAM];
-	
 ConVar
 	g_cvarDebug,
 	g_cvarEnable,
@@ -73,20 +63,15 @@ ConVar
 	survivor_limit,
 	z_max_player_zombies;
 
-char
-	g_sMapName[32];
-
-bool
-	g_bPreMatch	 = true;
+char	 g_sMapName[32];
+bool	 g_bPreMatch = true;
+Database g_DBSourceBans;
 
 Handle
 	g_hTimerOT,
 	g_hTimerWait,
 	g_hTimerWaitAnnouncer,
 	g_hTimerCheckList;
-
-Database
-	g_DBSourceBans;
 
 int
 	g_iPointsTeamA = 0,
@@ -150,10 +135,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_jarvis_info", Cmd_MatchInfo, "Displays the cfg and map that will be used..");
 
 	RegAdminCmd("sm_jarvis_deleteOT", Cmd_DeleteOT, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
-	RegAdminCmd("sm_jarvis_adduser", Cmd_AddUser, ADMFLAG_ROOT, "Add user to forsaken player list");
-	RegAdminCmd("sm_jarvis_pointsteam", Cmd_PointsTeam, ADMFLAG_ROOT, "Print the points of each team");
 	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
-	RegAdminCmd("sm_jarvis_offlineban", Cmd_OffLineBan, ADMFLAG_ROOT, "Ban offline players");
 
 	survivor_limit		 = FindConVar("survivor_limit");
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
@@ -213,32 +195,6 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	}
 }
 
-public Action Cmd_PointsTeam(int iClient, int iArgs)
-{
-	if (iArgs != 0)
-	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_pointsteam");
-		return Plugin_Handled;
-	}
-
-	if (iClient == 0)
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "NoConsoleCMD");
-		return Plugin_Handled;
-	}
-
-	int SurvivorTeamIndex = L4D2_AreTeamsFlipped();
-	int InfectedTeamIndex = !L4D2_AreTeamsFlipped();
-
-	g_iPointsTeamA		  = L4D2Direct_GetVSCampaignScore(SurvivorTeamIndex);
-	g_iPointsTeamB		  = L4D2Direct_GetVSCampaignScore(InfectedTeamIndex);
-
-	CReplyToCommand(iClient, "%t L4D2_AreTeamsFlipped: %s", "Tag", L4D2_AreTeamsFlipped() ? "True" : "False");
-	CReplyToCommand(iClient, "%t Points TeamA: %d | TeamB: %d", "Tag", g_iPointsTeamA, g_iPointsTeamB);
-
-	return Plugin_Continue;
-}
-
 public Action Cmd_DeleteOT(int iClient, int iArgs)
 {
 	if (iArgs != 0)
@@ -252,96 +208,57 @@ public Action Cmd_DeleteOT(int iClient, int iArgs)
 	return Plugin_Continue;
 }
 
-public Action Cmd_AddUser(int iClient, int iArgs)
-{
-	if (iClient == 0)
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "NoConsoleCMD");
-		return Plugin_Handled;
-	}
-
-	if (iArgs == 0 || iArgs >= 2)
-	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_adduser <#1:survi|#2:infect>");
-		return Plugin_Handled;
-	}
-
-	ForsakenTeam team = view_as<ForsakenTeam>(GetCmdArgInt(1));
-
-	char
-		sSteamID[32],
-		sName[128];
-
-	if (!GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID)))
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "NoSteamID");
-		return Plugin_Handled;
-	}
-
-	if (!GetClientName(iClient, sName, sizeof(sName)))
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "NoName");
-		return Plugin_Handled;
-	}
-
-	switch (team)
-	{
-		case TeamA:
-		{
-			CReplyToCommand(iClient, "%t %t", "Tag", "AddSurv");
-			g_Players[TeamA][4].steamid = sSteamID;
-			g_Players[TeamA][4].name	= sName;
-		}
-		case TeamB:
-		{
-			CReplyToCommand(iClient, "%t %t", "Tag", "AddInfect");
-			g_Players[TeamB][4].steamid = sSteamID;
-			g_Players[TeamB][4].name	= sName;
-		}
-		default:
-		{
-			CReplyToCommand(iClient, "Usage: sm_jarvis_adduser <#1:survi|#2:infect>");
-			return Plugin_Handled;
-		}
-	}
-
-	return Plugin_Continue;
-}
-
 public Action Cmd_ListPlayers(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_listplayers");
+		CReplyToCommand(iClient, "Usage: sm_jarvis_missingplayers");
 		return Plugin_Handled;
 	}
 
 	CReplyToCommand(iClient, "%t %t", "Tag", "TypeLobby", sTypeMatch[g_TypeMatch]);
 
 	char
-		tmpBuffer[32],
-		printBuffer[512];
+		sTmpBufferTA[128],
+		sTmpBufferTB[128],
+		sPrintBufferTA[1024],
+		sPrintBufferTB[1024];
 
-	Format(tmpBuffer, sizeof(tmpBuffer), "%t TeamA: ", "Tag");
-	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
-	for (int i = 0; i <= 4; i++)
+	Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%t {blue}Supervivientes{default}:\n", "Tag");
+	StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
+
+	Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%t {red}Infectados{default}:\n", "Tag");
+	StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
+
+	for (int iID = 0; iID <= 3; iID++)
 	{
-		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_Players[TeamA][i].steamid);
-		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "({olive}%s{default}:", g_Players[TeamA][iID].steamid);
+		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
+
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%s) ", g_Players[TeamA][iID].name);
+		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
+
+		if (iID == 1)
+		{
+			Format(sTmpBufferTA, sizeof(sTmpBufferTA), "\n");
+			StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
+		}
+
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "({olive}%s{default}:", g_Players[TeamB][iID].steamid);
+		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
+
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%s) ", g_Players[TeamB][iID].name);
+		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
+
+		if (iID == 1)
+		{
+			Format(sTmpBufferTB, sizeof(sTmpBufferTB), "\n");
+			StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
+		}
 	}
 
-	CReplyToCommand(iClient, "%s", printBuffer);
-	printBuffer[0] = '\0';
-
-	Format(tmpBuffer, sizeof(tmpBuffer), "%t TeamB: ", "Tag");
-	StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
-	for (int i = 0; i <= 4; i++)
-	{
-		Format(tmpBuffer, sizeof(tmpBuffer), "%s ", g_Players[TeamB][i].steamid);
-		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
-	}
-	CReplyToCommand(iClient, "%s", printBuffer);
-	printBuffer[0] = '\0';
+	CReplyToCommand(iClient, sPrintBufferTA);
+	CReplyToCommand(iClient, sPrintBufferTB);
 
 	return Plugin_Handled;
 }
@@ -358,48 +275,6 @@ public Action Cmd_MissingPlayers(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public Action Cmd_OffLineBan(int iClient, int iArgs)
-{
-	if (iArgs != 2)
-	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_offlineban <#teamID> <#playerID>");
-		return Plugin_Handled;
-	}
-
-	if (GetCmdArgInt(1) != 1 && GetCmdArgInt(1) != 2)
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "InvalidTeam");
-		return Plugin_Handled;
-	}
-
-	if (GetCmdArgInt(2) < 0 || GetCmdArgInt(2) > 4)
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "PlayerInvalid");
-		return Plugin_Handled;
-	}
-
-	ForsakenTeam Team	 = view_as<ForsakenTeam>(GetCmdArgInt(1));
-	int			 iPlayer = GetCmdArgInt(2);
-
-	char		 sBuffer[128];
-	Format(sBuffer, sizeof(sBuffer), "%t %t", "Tag", "DesertionTest");
-
-	if (Team == TeamA)
-	{
-		CreateOffLineBan(iPlayer, TeamA, 1, sBuffer);
-	}
-	else if (Team == TeamB)
-	{
-		CreateOffLineBan(iPlayer, TeamB, 1, sBuffer);
-	}
-	else
-	{
-		CReplyToCommand(iClient, "%t %t", "Tag", "InvalidTeam");
-	}
-
-	return Plugin_Handled;
-}
-
 public Action Cmd_MatchInfo(int iClient, int iArgs)
 {
 	if (iArgs != 0)
@@ -411,7 +286,7 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
 	char sCfgConvar[128];
 	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	CReplyToCommand(iClient, "%t %t", "Tag", "MatchInfo", sCfgConvar, g_sMapName);
-	
+
 	return Plugin_Handled;
 }
 
@@ -419,9 +294,9 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
 
-/** 
+/**
  * @brief Check if the game mode is loaded.
- * 
+ *
  */
 public void CheckCFG()
 {
@@ -429,24 +304,24 @@ public void CheckCFG()
 		CreateTimer(40.0, Timer_ReadCFG);
 }
 
-/** 
+/**
  * @brief Read the cfg name and download the game mode.
- * 
+ *
  * @param hTimer	Timer handle
  * @return 			Stop the timer.
  */
 public Action Timer_ReadCFG(Handle hTimer)
 {
-	char 
+	char
 		sCfgConvar[128],
 		sCfgName[128];
-	ConVar 
+	ConVar
 		l4d_ready_cfg_name;
 
 	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	l4d_ready_cfg_name = FindConVar("l4d_ready_cfg_name");
 
-	if(l4d_ready_cfg_name == null)
+	if (l4d_ready_cfg_name == null)
 	{
 		fkn_log("ConVar l4d_ready_cfg_name not found");
 		return Plugin_Stop;
@@ -456,7 +331,7 @@ public Action Timer_ReadCFG(Handle hTimer)
 
 	if (FindString(sCfgName, sCfgConvar, false))
 	{
-		if(g_cvarDebug.BoolValue)
+		if (g_cvarDebug.BoolValue)
 		{
 			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCfgConvar);
 			fkn_log("The current cfg (%s) corresponds to %s", sCfgName, sCfgConvar);
@@ -472,9 +347,9 @@ public Action Timer_ReadCFG(Handle hTimer)
 	return Plugin_Stop;
 }
 
-/** 
+/**
  * @brief Force the match to restart
- * 
+ *
  * @param hTimer  Timer handle
  * @return        Stop the timer.
  */

@@ -1,11 +1,13 @@
 #pragma semicolon 1
 #pragma newdecls required
 
+#define forsaken_left4dhooks_included 1
 #include <forsaken>
 #include <forsaken_endgame>
 #include <colors>
 #include <json>
 #include <sourcemod>
+#include <left4dhooks>
 
 /*****************************************************************
 			G L O B A L   V A R S
@@ -14,6 +16,33 @@
 #define PLUGIN_VERSION	"0.2"
 #define MAX_PLAYER_TEAM 4
 #define PREFIX			"[{olive}Native{default}]"
+
+native int	 SURVMVP_GetMVP();
+native int	 SURVMVP_GetMVPCI();
+native float SURVMVP_GetMVPDmgPercent(int client);
+native float SURVMVP_GetMVPCIPercent(int client);
+
+public SharedPlugin __pl_survivor_mvp = {
+	required = 0,
+};
+
+public void __pl_survivor_mvp_SetNTVOptional()
+{
+	MarkNativeAsOptional("SURVMVP_GetMVP");
+	MarkNativeAsOptional("SURVMVP_GetMVPCI");
+	MarkNativeAsOptional("SURVMVP_GetMVPDmgPercent");
+	MarkNativeAsOptional("SURVMVP_GetMVPCIPercent");
+}
+
+/**
+ * Basic structure of a player.
+ */
+enum struct Player
+{
+	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
+	char name[MAX_NAME_LENGTH];			// Player name
+	int	 client;						// Client id
+}
 
 Database
 	g_dbForsaken;
@@ -43,6 +72,8 @@ public void
 	RegConsoleCmd("sm_native_forsaken", Cmd_Forsaken);
 	RegConsoleCmd("sm_native_endgame", Cmd_Endgame);
 	RegConsoleCmd("sm_native_mmr", Cmd_MMR);
+	RegConsoleCmd("sm_native_mvp", Cmd_MVP);
+	RegConsoleCmd("sm_native_steamid", Cmd_Steamid);
 
 	SQLConnect();
 }
@@ -63,7 +94,7 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[fkn_TypeMatch()]);
 
 	PlayerBasic Players[ForsakenTeam][MAX_PLAYER_TEAM];
-	char sMapName[32];
+	char		sMapName[32];
 
 	CReplyToCommand(iClient, "%s QueueID: ({green}%d{default})", PREFIX, fkn_QueueID());
 	fkn_MapName(sMapName, sizeof(sMapName));
@@ -73,7 +104,7 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 	{
 		fkn_SteamIDTA(i, Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
 		fkn_SteamIDTB(i, Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
-		
+
 		fkn_NameTA(i, Players[TeamA][i].name, MAX_NAME_LENGTH);
 		fkn_NameTB(i, Players[TeamB][i].name, MAX_NAME_LENGTH);
 	}
@@ -165,7 +196,7 @@ public Action Cmd_MMR(int iClient, int iArgs)
 		fRating,
 		fDeviation,
 		fVolatility;
-	
+
 	while (rsForsaken.FetchRow())
 	{
 		fRating		= rsForsaken.FetchFloat(0);
@@ -178,11 +209,51 @@ public Action Cmd_MMR(int iClient, int iArgs)
 	return Plugin_Continue;
 }
 
+public Action Cmd_MVP(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_native_mvp");
+		return Plugin_Continue;
+	}
+
+	CheckMVP(iClient);
+	CheckMVP(iClient, false);
+
+	CheckMVPList(iClient);
+	CheckMVPList(iClient, false);
+	return Plugin_Continue;
+}
+
+public Action Cmd_Steamid(int iClient, int iArgs)
+{
+	if (iArgs != 1)
+	{
+		CReplyToCommand(iClient, "%s Usage: {blue}steamid{default} <SteamID64>", PREFIX);
+		return Plugin_Handled;
+	}
+
+	char
+		sSteamID64[32],
+		sSteamID2[32];
+
+	GetCmdArgString(sSteamID64, sizeof(sSteamID64));
+	int iSteamID64[2];
+	CReplyToCommand(iClient, "%s STRING SteamID64: {blue}%s", PREFIX, sSteamID64);
+
+	if ((StringToInt64(sSteamID64, iSteamID64)) == 0)
+		CReplyToCommand(iClient, "%s StringToInt failed", PREFIX);
+
+	CReplyToCommand(iClient, "%s AccountID: {blue}%d", PREFIX, iSteamID64[0]);
+	GetSteam2FromAccountId(sSteamID2, sizeof(sSteamID2), iSteamID64[0]);
+	CReplyToCommand(iClient, "%s SteamID2: {blue}%s", PREFIX, sSteamID2);
+
+	return Plugin_Handled;
+}
 
 /*****************************************************************
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
-
 public void SQLConnect()
 {
 	if (!SQL_CheckConfig("4saken"))
@@ -197,4 +268,94 @@ public void SQL4saken(Database db, const char[] error, any data)
 		ThrowError("Error while connecting to database: %s", error);
 	else
 		g_dbForsaken = db;
+}
+
+int CheckMVP(int iClient, bool bIsMVP = true)
+{
+	char
+		sStemaID[32],
+		sName[MAX_NAME_LENGTH];
+
+	float fDmgPercent;
+
+	if (ClientMVP(bIsMVP) == CONSOLE)
+	{
+		CReplyToCommand(iClient, "%s %s: {blue}Console{default}", PREFIX, bIsMVP ? "MVP" : "MVPCI");
+		return ClientMVP(bIsMVP);
+	}
+	else if (!GetClientAuthId(ClientMVP(bIsMVP), AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
+	{
+		fDmgPercent = ClientDMGPercent(bIsMVP);
+		GetClientName(ClientMVP(bIsMVP), sName, sizeof(sName));
+
+		CReplyToCommand(iClient, "%s %s: {blue}(%s){default} {green}(%.1f%%){default}", PREFIX, bIsMVP ? "MVP" : "MVPCI", sName, fDmgPercent);
+		return ClientMVP(bIsMVP);
+	}
+	else
+	{
+		GetClientName(ClientMVP(bIsMVP), sName, sizeof(sName));
+		fDmgPercent = ClientDMGPercent(bIsMVP);
+
+		CReplyToCommand(iClient, "%s %s: {blue}(%s:%s){default} {green}(%.1f%%){default}", PREFIX, bIsMVP ? "MVP" : "MVPCI", sName, sStemaID, fDmgPercent);
+		return ClientMVP(bIsMVP);
+	}
+}
+
+void CheckMVPList(int iClient, bool bIsMVP = true)
+{
+	if (ClientMVP(bIsMVP) == CONSOLE)
+		return;
+
+	if (L4D2_AreTeamsFlipped() == false)
+		MVPListed(iClient, TeamA, bIsMVP);
+	else
+		MVPListed(iClient, TeamB, bIsMVP);
+}
+
+public void MVPListed(int iClient, ForsakenTeam team, bool bIsMVP)
+{
+	Player Players[ForsakenTeam][MAX_PLAYER_TEAM];
+
+	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
+	{
+		switch (team)
+		{
+			case TeamA:
+			{
+				fkn_SteamIDTA(i, Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+				fkn_NameTA(i, Players[TeamA][i].name, MAX_NAME_LENGTH);
+			}
+			case TeamB:
+			{
+				fkn_SteamIDTB(i, Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+				fkn_NameTB(i, Players[TeamB][i].name, MAX_NAME_LENGTH);
+			}
+		}
+	}
+
+	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
+	{
+		char sStemaID[32];
+		GetClientAuthId(ClientMVP(bIsMVP), AuthId_SteamID64, sStemaID, sizeof(sStemaID));
+		if (StrEqual(Players[team][i].steamid, sStemaID))
+		{
+			CReplyToCommand(iClient, "%s %s: {blue}(%s:%s){default} is on the forsaken list", PREFIX, bIsMVP ? "MVP" : "MVPCI", Players[team][i].name, Players[team][i].steamid);
+		}
+	}
+}
+
+public float ClientDMGPercent(bool bIsMVP)
+{
+	if (bIsMVP)
+		return SURVMVP_GetMVPDmgPercent(ClientMVP(bIsMVP));
+	else
+		return SURVMVP_GetMVPCIPercent(ClientMVP(bIsMVP));
+}
+
+public int ClientMVP(bool bIsMVP)
+{
+	if (bIsMVP)
+		return SURVMVP_GetMVP();
+	else
+		return SURVMVP_GetMVPCI();
 }

@@ -28,19 +28,19 @@ public void PreMatch()
 public Action Timer_GetMatchData(Handle timer)
 {
 	g_TypeMatch = fkn_TypeMatch();
-	for (int i = 0; i <= 3; i++)
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{	
 		// Get the steamids from the player index
-		fkn_SteamIDTA(i, g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(i, g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTA(iID, g_Players[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(iID, g_Players[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
 
 		// Get the player names from the steamid
-		fkn_NameTA(i, g_Players[TeamA][i].name, MAX_NAME_LENGTH);
-		fkn_NameTB(i, g_Players[TeamB][i].name, MAX_NAME_LENGTH);
+		fkn_NameTA(iID, g_Players[TeamA][iID].name, MAX_NAME_LENGTH);
+		fkn_NameTB(iID, g_Players[TeamB][iID].name, MAX_NAME_LENGTH);
 
 		// Get the steamids from the player index
-		fkn_SteamIDTA(i, g_RageQuitTA[i].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(i, g_RageQuitTB[i].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTA(iID, g_RageQuit[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+		fkn_SteamIDTB(iID, g_RageQuit[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
 	}
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 

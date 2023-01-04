@@ -15,10 +15,8 @@ sTFormat
 #endif
 #define _Skill_TablesFormat_included
 
-
-
 /****************************************************************
-            C A L L B A C K   F U N C T I O N S
+			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
 
 void SQLTablesFormat()
@@ -32,15 +30,14 @@ void SQLTablesFormat()
 }
 
 /*****************************************************************
-            P L U G I N   F U N C T I O N S
+			P L U G I N   F U N C T I O N S
 *****************************************************************/
-
 public void OnSkeet(int survivor, int hunter)
 {
-	if (!g_cvarSkeet.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarSkeet.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+	if (IsFakeClient(survivor) && IsFakeClient(hunter))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -51,15 +48,14 @@ public void OnSkeet(int survivor, int hunter)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(hunter))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(hunter))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(skeet, sMapName, sSteamID, sSteamID2);
@@ -67,11 +63,10 @@ public void OnSkeet(int survivor, int hunter)
 
 public void OnSkeetMelee(int survivor, int hunter)
 {
-	if (!g_cvarSkeetMelee.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarSkeetMelee.BoolValue)
 		return;
 
-
-	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+	if (IsFakeClient(survivor) && IsFakeClient(hunter))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -82,15 +77,14 @@ public void OnSkeetMelee(int survivor, int hunter)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(hunter))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(hunter))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(skeetmelee, sMapName, sSteamID, sSteamID2);
@@ -98,10 +92,10 @@ public void OnSkeetMelee(int survivor, int hunter)
 
 public void OnSkeetGL(int survivor, int hunter)
 {
-	if (!g_cvarSkeetGL.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarSkeetGL.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+	if (IsFakeClient(survivor) && IsFakeClient(hunter))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -112,15 +106,14 @@ public void OnSkeetGL(int survivor, int hunter)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(hunter))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(hunter))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(skeetgl, sMapName, sSteamID, sSteamID2);
@@ -128,10 +121,10 @@ public void OnSkeetGL(int survivor, int hunter)
 
 public void OnSkeetSniper(int survivor, int hunter)
 {
-	if (!g_cvarSkeetSniper.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarSkeetSniper.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+	if (IsFakeClient(survivor) && IsFakeClient(hunter))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -142,15 +135,14 @@ public void OnSkeetSniper(int survivor, int hunter)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(hunter))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(hunter))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(skeetsniper, sMapName, sSteamID, sSteamID2);
@@ -158,10 +150,10 @@ public void OnSkeetSniper(int survivor, int hunter)
 
 public void OnChargerLevel(int survivor, int charger)
 {
-	if (!g_cvarChargerLevel.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarChargerLevel.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(charger))
+	if (IsFakeClient(survivor) && IsFakeClient(charger))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -172,15 +164,14 @@ public void OnChargerLevel(int survivor, int charger)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(charger))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(charger))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(charger, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(charger, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(chargerlevel, sMapName, sSteamID, sSteamID2);
@@ -188,10 +179,10 @@ public void OnChargerLevel(int survivor, int charger)
 
 public void OnHunterDeadstop(int survivor, int hunter)
 {
-	if (!g_cvarHunterDeadstop.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarHunterDeadstop.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(hunter))
+	if (IsFakeClient(survivor) && IsFakeClient(hunter))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -202,15 +193,14 @@ public void OnHunterDeadstop(int survivor, int hunter)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(hunter))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(hunter))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(hunter, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(hunterdeadstop, sMapName, sSteamID, sSteamID2);
@@ -218,10 +208,10 @@ public void OnHunterDeadstop(int survivor, int hunter)
 
 public void OnTongueCut(int survivor, int smoker)
 {
-	if (!g_cvarTongueCut.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarTongueCut.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(smoker))
+	if (IsFakeClient(survivor) && IsFakeClient(smoker))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -232,15 +222,14 @@ public void OnTongueCut(int survivor, int smoker)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(smoker))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(smoker))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(smoker, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(smoker, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(tonguecut, sMapName, sSteamID, sSteamID2);
@@ -248,10 +237,10 @@ public void OnTongueCut(int survivor, int smoker)
 
 public void OnTankRockSkeeted(int survivor, int tank)
 {
-	if (!g_cvarTankRockSkeeted.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarTankRockSkeeted.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(tank))
+	if (IsFakeClient(survivor) && IsFakeClient(tank))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -262,15 +251,14 @@ public void OnTankRockSkeeted(int survivor, int tank)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(tank))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(tank))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
-	else
-		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+	else GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(tankrockskeeted, sMapName, sSteamID, sSteamID2);
@@ -278,10 +266,10 @@ public void OnTankRockSkeeted(int survivor, int tank)
 
 public void OnTankRockEaten(int tank, int survivor)
 {
-	if (!g_cvarTankRockEaten.BoolValue)
+	if (!g_cvarEnable.BoolValue || !g_cvarTankRockEaten.BoolValue)
 		return;
 
-	if(IsFakeClient(survivor) && IsFakeClient(tank))
+	if (IsFakeClient(survivor) && IsFakeClient(tank))
 		return;
 
 	if (g_cvarDebug.BoolValue)
@@ -292,15 +280,15 @@ public void OnTankRockEaten(int tank, int survivor)
 		sSteamID2[64],
 		sMapName[32];
 
-	if(IsFakeClient(survivor))
+	if (IsFakeClient(survivor))
 		StrCat(sSteamID, sizeof(sSteamID), "survivor");
 	else
-		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID))
-		
-	if(IsFakeClient(tank))
+		GetClientAuthId(survivor, AuthId_SteamID64, sSteamID, sizeof(sSteamID));
+
+	if (IsFakeClient(tank))
 		StrCat(sSteamID2, sizeof(sSteamID2), "infected");
 	else
-		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2))
+		GetClientAuthId(tank, AuthId_SteamID64, sSteamID2, sizeof(sSteamID2));
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 	QueryFormat(tankrockeaten, sMapName, sSteamID, sSteamID2);
@@ -310,5 +298,11 @@ void QueryFormat(TFormat iTable, const char[] sMapName, const char[] sSteamID, c
 {
 	char sQuery[256];
 	g_Database.Format(sQuery, sizeof(sQuery), "INSERT INTO `%s` (map, survivor, infected) VALUES ('%s', '%s', '%s');", sTFormat[iTable], sMapName, sSteamID, sSteamID2);
-	g_Database.Query(OnUpdateTable, sQuery, iTable);
+	g_Database.Query(UpdateTFormat, sQuery, iTable);
+}
+
+public void UpdateTFormat(Database db, DBResultSet results, const char[] error, any iTable)
+{
+	if (results == null)
+		ThrowError("Error UpdateTFormat %s: %s", sTFormat[iTable], error);
 }

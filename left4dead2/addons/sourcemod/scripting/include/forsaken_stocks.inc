@@ -299,6 +299,20 @@ stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSt
 	}
 }
 
+/** 
+ * Convert AccountID to SteamID
+ *
+ * @param sSteamID			SteamID
+ * @param iSize				Max size of sSteamID
+ * @param sCommunityID		SteamID64
+ * @return					AccountID
+ */
+stock int GetSteam2FromAccountId(char[] buffer, int maxlen, int accountid)
+{
+	return Format(buffer, maxlen, "STEAM_1:%d:%d", view_as<bool>(accountid % 2), accountid / 2);
+
+}
+
 /**
  * Tests whether a string is found inside another string.
  *
@@ -343,3 +357,33 @@ stock int FromUnixTime(int iUnixTime, UnixTime type)
 			return 0;
 	}
 }
+
+/**
+ * Given a target string, like "Hydrogen", "#32", "@me", "@all", this function will populate an array of client indices
+ * that match the target string.
+ * 
+ * @param Admin                 Client index of the admin who triggered the command.
+ * @param TargettedString        The string containing the target(s), such as "Hydrogen", "#32", "@me", "@all". https://wiki.alliedmods.net/Admin_Commands_(SourceMod)
+ * @param FilterFlag            Filter flag rules such as COMMAND_FILTER_NO_IMMUNITY. Find them here: https://sm.alliedmods.net/api/index.php?fastload=file&id=45&
+ * @param ApplicableClients        Integer array initialized to all 0s. When this function finds matches, client indices will be stored in this array.
+ * @param maxlen                Maximum length of the integer array.
+ * 
+ * @return                         The number of matching clients found (or 0 if no matching clients have been found).
+ *                                 You should use this number to iterate across the ApplicableClients array in the parent function.
+ */
+stock int GetApplicableClients(int Admin, const char[] TargettedString, int FilterFlag, int[] ApplicableClients, int maxlen)
+{
+    // Initialization:
+    char TargetName[MAX_TARGET_LENGTH];
+    bool tn_is_ml;
+
+    // Process it:
+    int TargetCount = ProcessTargetString(TargettedString, Admin, ApplicableClients, maxlen, FilterFlag, TargetName, sizeof(TargetName), tn_is_ml);
+
+    // No targets? Bail out.
+    if (TargetCount <= 0)
+        return 0;
+        
+    // Otherwise, success!
+    return TargetCount;
+} 

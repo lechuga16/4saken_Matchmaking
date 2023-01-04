@@ -2,78 +2,22 @@
 {
 	"Tag"
 	{
-		"en"		"{blue}[{default}4saken{blue}]{default}"
+		"en"		"[{olive}4Saken{default}]"
 	}
-	"LeaveToStart"
+	"MMR"
 	{
-		"en"		"You are currently part of a team, please leave it to start your own team."
+		"en"		"{olive}Rating{default}:{green}%.2f{default} {olive}RD{default}:{green}%.2f{default}"
 	}
-	"NoSteam"
+	"Stats"
 	{
-		"en"		"You are currently not connected to steam, you can't make a team."
+		"en"		"({blue}%s{default}:{blue}%s{default})\nRating:{green}%.2f{default} RD:{green}%.2f{default} Bonus:{green}%.2f{default} Win:{green}%d{default}"
 	}
-	"Error_CreatingTeam"
+	"BonusMVP"
 	{
-		"en"		"Unknown error while creating team, please contact an adminstrator. [Error Code: 1]"
+		"en"		"Bonus {blue}MVP{default}: {green}%.2f{default}"
 	}
-	"CurrentlyTaken"
+	"BonusMVPCI"
 	{
-		"en"		"Team name %s is currently taken, please try a different name."
-	}
-	"Error_CreatingTeam2"
-	{
-		"en"		"Unknown error while creating team, please contact an adminstrator. [Error Code: 2]"
-	}
-	"StartedTeam"
-	{
-		"en"		"You have successfully started a team called: %s"
-	}
-	"NoPartTeam"
-	{
-		"en"		"You aren't a part of a team to invite players to."
-	}
-	"NoCaptain"
-	{
-		"en"		"You aren't the team captain, you can't invite players."
-	}
-	"TargetNotFound"
-	{
-		"en"		"Target %s not found, please try again."
-	}
-	"TargetReady"
-	{
-		"en"		"Target %N is already a part of a team."
-	}
-	"MenuTitle_Invite"
-	{
-		"en"		"%N has sent you a team invite to:\n%s"
-	}
-	"Menu_Yes"
-	{
-		"en"		"yes"
-	}
-	"Menu_No"
-	{
-		"en"		"no"
-	}
-	"JoinedTeam"
-	{
-		"en"		"%N has joined your team."
-	}
-	"DeclinedTeam"
-	{
-		"en"		"%N has declined to join your team."
-	}
-	"YouDeclinedTeam"
-	{
-		"en"		"%N has declined to join your team."
-	}
-	"YouJoinedTeam"
-	{
-		"en"		"You have joined team: %s"
-	}
-	"YouNoJoinedTeam"
-	{
-		"en"		"You are no longer a part of a team."
+		"en"		"Bonus {blue}MVP CI{default}: {green}%.2f{default}"
 	}
 }

@@ -357,6 +357,7 @@ public void ChapterPoints()
 		sQuery[256];
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
+
 	iSurvivorTeamIndex = L4D2_AreTeamsFlipped();
 	iInfectedTeamIndex = !L4D2_AreTeamsFlipped();
 
@@ -365,9 +366,15 @@ public void ChapterPoints()
 
 	iQueueID = fkn_QueueID();
 
-	Format(sQuery, sizeof(sQuery), "INSERT INTO `l4d2_queue_result` \
-	(QueueID, MapCode, TeamsFlipped, PointsTeamA, PointsTeamB, GameCanceled) VALUES \
-	('%d', '%s', '%d', '%d', '%d', '%s');",
+	Format(sQuery, sizeof(sQuery), 
+	"INSERT INTO `queue_result` \
+	(	QueueID, \
+		MapCode, \
+		TeamsFlipped, \
+		PointsTeamA, \
+		PointsTeamB,\
+		GameCanceled) \
+	VALUES('%d', '%s', '%d', '%d', '%d', '%s');",
 		   iQueueID, sMapName, iInfectedTeamIndex, iPointsTeamA, iPointsTeamB, sCancelMatch[g_CancelMatch]);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))

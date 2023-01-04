@@ -2,7 +2,7 @@
 {
 	"Tag"
 	{
-		"en"		"[{olive}EndGame{default}]"
+		"en"		"[{olive}4Saken{default}]"
 	}
 	"Lastmap"
 	{

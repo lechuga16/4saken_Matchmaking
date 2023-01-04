@@ -217,8 +217,6 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 		ThrowError("Error while connecting to database: %s", error);
 
 	g_Database = db;
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Connected to database successfully.");
 
 	SQLTablesFormat();
 	SQLTablesFormat2();
@@ -229,11 +227,4 @@ public void OnCreateTable(Database db, DBResultSet results, const char[] error, 
 {
 	if (results == null)
 		ThrowError("Error while creating table: %s", error);
-}
-
-public void OnUpdateTable(Database db, DBResultSet results, const char[] error, any iTable)
-{
-	if (results == null)
-		ThrowError("Error OnUpdateTable %s: %s", sTFormat[iTable], error);
-
 }

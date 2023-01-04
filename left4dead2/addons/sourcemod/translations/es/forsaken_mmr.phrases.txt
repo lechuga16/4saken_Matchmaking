@@ -1,0 +1,19 @@
+"Phrases"
+{
+	"MMR"
+	{
+		"es"		"{olive}Clasificación{default}:{green}%.2f{default} {olive}Desviación{default}:{green}%.2f{default}"
+	}
+	"Stats"
+	{
+		"es"		"({blue}%s{default}:{blue}%s{default})\nClasificación:{green}%.2f{default} Desviación:{green}%.2f{default} Bonificación:{green}%.2f{default} Victorias:{green}%d{default}"
+	}
+	"BonusMVP"
+	{
+		"es"		"Bonificación {blue}MVP{default}: {green}%.2f{default}"
+	}
+	"BonusMVPCI"
+	{
+		"es"		"Bonificación {blue}MVP CI{default}: {green}%.2f{default}"
+	}
+}

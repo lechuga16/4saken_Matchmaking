@@ -37,19 +37,30 @@
  * #define CUSTOM_PLAYERINFO
  */
 
-/* Activate this variable if you want to create modified constants.
- *
- * #define CUSTOM_CONSTANTS
- */
+#if !defined INITIAL_DEVIATION
+	#define DEFAULT_RATING 1500.0	 // DEFAULT 1500.0
+#endif
 
-#if !defined CUSTOM_CONSTANTS
-	#define DEFAULT_RATING	  1500.0	// DEFAULT 1500.0
-	#define DEFAULT_DEVIATION 350.0		// DEFAULT 350.0
+#if !defined DEFAULT_DEVIATION
+	#define DEFAULT_DEVIATION 350.0	   // DEFAULT 350.0
+#endif
 
-	#define E_NUMBER		  2.71828182845904523536028747135266249775724709369995	  // Euler's number
-	#define INITIAL_DEVIATION 350.0													  // DEFAULT 350.0
-	#define MEAN_DEVIATION	  50.0													  // DEFAULT 50.0
-	#define POINT_PERIODS	  100.0													  // DEFAULT 100.0
+#define E_NUMBER 2.71828182845904523536028747135266249775724709369995	 // Euler's number
+
+#if !defined INITIAL_DEVIATION
+	#define INITIAL_DEVIATION 350.0	   // DEFAULT 350.0
+#endif
+
+#if !defined MEAN_DEVIATION
+	#define MEAN_DEVIATION 50.0	   // DEFAULT 50.0
+#endif
+
+#if !defined POINT_PERIODS
+	#define POINT_PERIODS 100.0	   // DEFAULT 100.0
+#endif
+
+#if !defined EVALUATION_PERIOD
+	#define EVALUATION_PERIOD 5	   // DEFAULT [5, 10]
 #endif
 
 /**
@@ -75,8 +86,9 @@ stock float	 g_fResult[Size_Result] = { 0.0, 0.5, 1.0 };
  */
 enum struct PlayerInfo
 {
-	float rating;		// Glicko Score
-	float deviation;	// Glicko deviation
+	float rating;		  // Glicko Score
+	float deviation;	  // Glicko deviation
+	int	  gamesplayed;	  // Number of games played
 }
 #endif
 
@@ -100,7 +112,11 @@ stock float Glicko_c()
  */
 stock float Glicko_RD(PlayerInfo Player)
 {
-	return SquareRoot(Square(Player.deviation) + Square(Glicko_c()));
+	if (Player.gamesplayed > EVALUATION_PERIOD)
+	{
+		return SquareRoot(Square(Player.deviation) + Square(Glicko_c()));
+	}
+	return 350.0;
 }
 
 /**
