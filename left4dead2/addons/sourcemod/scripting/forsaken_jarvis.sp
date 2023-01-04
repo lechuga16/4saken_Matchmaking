@@ -73,10 +73,6 @@ Handle
 	g_hTimerWaitAnnouncer,
 	g_hTimerCheckList;
 
-int
-	g_iPointsTeamA = 0,
-	g_iPointsTeamB = 0;
-
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
 *****************************************************************/
