@@ -145,15 +145,21 @@ public void OnMapStart()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
-
-	PreMatch();
-	WaitingPlayers();
-	OrganizeTeams();
-	ReadConfigSourcebans();
-	CheckCFG();
-
-	if (LGO_IsMatchModeLoaded())
-		g_bPreMatch = false;
+		
+	if (g_bPreMatch)
+	{
+		PreMatch();
+		ReadConfigSourcebans();
+	}
+	else
+	{
+		WaitingPlayers();
+		OrganizeTeams();
+		CheckCFG();
+	}
+	
+	if (LGO_IsMatchModeLoaded() && g_bPreMatch)
+		g_bPreMatch = !g_bPreMatch;
 }
 
 public void OnMapEnd()
@@ -296,7 +302,7 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
  */
 public void CheckCFG()
 {
-	if (LGO_IsMatchModeLoaded() && !g_bPreMatch)
+	if (LGO_IsMatchModeLoaded())
 		CreateTimer(40.0, Timer_ReadCFG);
 }
 

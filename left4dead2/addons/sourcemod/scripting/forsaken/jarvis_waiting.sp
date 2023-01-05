@@ -20,9 +20,6 @@ public void WaitingPlayers()
 	if (!LGO_IsMatchModeLoaded())
 		return;
 
-	if (g_bPreMatch)
-		return;
-
 	KillTimerWaitPlayers();
 	KillTimerWaitPlayersAnnouncer();
 	KillTimerCheckPlayers();

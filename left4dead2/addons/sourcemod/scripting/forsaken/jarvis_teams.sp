@@ -18,9 +18,6 @@ public void OrganizeTeams()
 	if (!LGO_IsMatchModeLoaded())
 		return;
 
-	if (g_bPreMatch)
-		return;
-
 	CreateTimer(12.0, Timer_PreventKillBot, _, TIMER_REPEAT);
 }
 
