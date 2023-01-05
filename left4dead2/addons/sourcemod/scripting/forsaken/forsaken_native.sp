@@ -16,9 +16,6 @@
  */
 any Native_Log(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	char
 		sFilename[64],
 		sBuffer[PLATFORM_MAX_PATH],
@@ -38,8 +35,6 @@ any Native_Log(Handle plugin, int numParams)
  */
 any Native_TypeMatch(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
 	return g_TypeMatch;
 }
 
@@ -50,8 +45,6 @@ any Native_TypeMatch(Handle plugin, int numParams)
  */
 any Native_QueueID(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
 	return g_iQueueID;
 }
 
@@ -65,9 +58,6 @@ any Native_QueueID(Handle plugin, int numParams)
  */
 any Native_SteamIDTA(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -86,9 +76,6 @@ any Native_SteamIDTA(Handle plugin, int numParams)
  */
 any Native_SteamIDTB(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -107,9 +94,6 @@ any Native_SteamIDTB(Handle plugin, int numParams)
  */
 any Native_NameTA(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -128,9 +112,6 @@ any Native_NameTA(Handle plugin, int numParams)
  */
 any Native_NameTB(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	int
 		index  = GetNativeCell(1),
 		maxlen = GetNativeCell(3);
@@ -148,9 +129,6 @@ any Native_NameTB(Handle plugin, int numParams)
  */
 any Native_GetIPv4(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	int maxlen = GetNativeCell(2);
 
 	SetNativeString(1, g_sIPv4, maxlen);
@@ -166,9 +144,6 @@ any Native_GetIPv4(Handle plugin, int numParams)
  */
 any Native_MapName(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Plugin is disabled");
-
 	int maxlen = GetNativeCell(2);
 
 	SetNativeString(1, g_sMapName, maxlen);

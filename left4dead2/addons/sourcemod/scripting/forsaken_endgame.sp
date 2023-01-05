@@ -289,7 +289,18 @@ bool StartEndGame(bool iscallback = false)
 		fkn_log("ForceEndGame: error in forward Call_Finish");
 
 	char sQuery[256];
-	Format(sQuery, sizeof(sQuery), "UPDATE `l4d2_queue_game` SET `status`= 0 WHERE `ip` = '%s:%d' ORDER BY `queueid` DESC LIMIT 1;", fkn_GetIP(), FindConVar("hostport").IntValue);
+	Format(sQuery, sizeof(sQuery), 
+		"UPDATE \
+			`queue_game` \
+		SET \
+			`status` = 0 \
+		WHERE \
+			`ip` = '%s:%d' \
+		ORDER BY \
+			`queueid` \
+		DESC \
+		LIMIT 1;", 
+		fkn_GetIP(), FindConVar("hostport").IntValue);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{
