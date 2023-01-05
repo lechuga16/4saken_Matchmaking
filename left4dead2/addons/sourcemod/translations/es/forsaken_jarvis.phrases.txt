@@ -7,7 +7,7 @@
 	}
     "DeleteOT"
     {
-        "es"        "{green}Cronómetro{default} para organizar equipos {red}eliminados{default}."
+        "es"        "{green}Cronómetro{default} para organizar equipos {red}eliminado{default}."
     }
     "NoSteamID"
     {
@@ -16,14 +16,6 @@
     "NoName"
     {
         "es"        "No se logró identificar el nombre."
-    }
-    "AddSurv"
-    {
-        "es"        "Se agregó como {blue}superviviente{default}."
-    }
-    "AddInfect"
-    {
-        "es"        "Se agregó como {red}infectado{default}."
     }
     "TypeLobby"
     {
@@ -52,6 +44,14 @@
     "MatchInfo"
     {
         "es"        "Información de la partida:\n Cfg ({olive}%s{default}) | Mapa ({olive}%s{default})."
+    }
+	"TryAgain"
+	{
+		"es"        "No se puede solicitar una votación en este momento, ¡inténtalo de nuevo en {olive}%i{default}s!"
+	}
+    "NoVote"
+    {
+        "es"        "No se puede solicitar una votación en este tipo de partido ({olive}%s{default})."
     }
     // jarvis_prematch.sp
     "NotEnoughPlayers"

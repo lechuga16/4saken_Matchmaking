@@ -7,9 +7,11 @@
 #include <left4dhooks>
 #include <sourcemod>
 #include <system2>
+#include <builtinvotes>
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #include <readyup>
+#define REQUIRE_PLUGIN
 
 /*****************************************************************
 			G L O B A L   V A R S
@@ -133,6 +135,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_jarvis_deleteOT", Cmd_DeleteOT, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
 	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
 
+	AddCommandListener(VoteStart, "callvote");
 	survivor_limit		 = FindConVar("survivor_limit");
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
 
@@ -145,7 +148,7 @@ public void OnMapStart()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
-		
+
 	if (g_bPreMatch)
 	{
 		PreMatch();
@@ -157,7 +160,7 @@ public void OnMapStart()
 		OrganizeTeams();
 		CheckCFG();
 	}
-	
+
 	if (LGO_IsMatchModeLoaded() && g_bPreMatch)
 		g_bPreMatch = !g_bPreMatch;
 }
@@ -182,7 +185,7 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (g_TypeMatch == unranked || g_TypeMatch == invalid)
+	if (!IsGameCompetitive(g_TypeMatch))
 		return;
 
 	if (IsFakeClient(iClient))
@@ -288,6 +291,50 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
 	char sCfgConvar[128];
 	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	CReplyToCommand(iClient, "%t %t", "Tag", "MatchInfo", sCfgConvar, g_sMapName);
+
+	return Plugin_Handled;
+}
+
+public Action VoteStart(int client, const char[] command, int argc)
+{
+	if (!IsNewBuiltinVoteAllowed)
+	{
+		CPrintToChat(client, "%t %t", "Tag", "TryAgain", CheckBuiltinVoteDelay());
+		return Plugin_Handled;
+	}
+
+	char sVoteType[32];
+	char sVoteArgument[32];
+
+	GetCmdArg(1, sVoteType, sizeof(sVoteType));
+	GetCmdArg(2, sVoteArgument, sizeof(sVoteArgument));
+
+	if (strcmp(sVoteType, "Kick", false) == 0)
+	{
+		if (IsGameCompetitive(g_TypeMatch))
+		{
+			CPrintToChat(client, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+			return Plugin_Handled;
+		}
+	}
+
+	if (strcmp(sVoteType, "ReturnToLobby", false) == 0)
+	{
+		if (IsGameCompetitive(g_TypeMatch))
+		{
+			CPrintToChat(client, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+			return Plugin_Handled;
+		}
+	}
+
+	if (strcmp(sVoteType, "ChangeMission", false) == 0)
+	{
+		if (IsGameCompetitive(g_TypeMatch))
+		{
+			CPrintToChat(client, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+			return Plugin_Handled;
+		}
+	}
 
 	return Plugin_Handled;
 }

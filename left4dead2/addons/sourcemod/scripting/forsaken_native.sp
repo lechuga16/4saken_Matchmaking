@@ -181,7 +181,7 @@ public Action Cmd_MMR(int iClient, int iArgs)
 		sQuery[256],
 		error[255];
 
-	Format(sQuery, sizeof(sQuery), "SELECT `Rating`, `Deviation`, `Volatility` FROM `Glicko` WHERE `SteamID64` = '%s'", sCommunityID);
+	Format(sQuery, sizeof(sQuery), "SELECT `Rating`, `Deviation`, `Wins` FROM `users_mmr` WHERE `SteamID64` = '%s'", sCommunityID);
 	fkn_log("Query: %s", sQuery);
 
 	if ((rsForsaken = SQL_Query(g_dbForsaken, sQuery)) == null)
@@ -194,18 +194,18 @@ public Action Cmd_MMR(int iClient, int iArgs)
 
 	float
 		fRating,
-		fDeviation,
-		fVolatility;
+		fDeviation;
+	int fWins;
 
 	while (rsForsaken.FetchRow())
 	{
-		fRating		= rsForsaken.FetchFloat(0);
-		fDeviation	= rsForsaken.FetchFloat(1);
-		fVolatility = rsForsaken.FetchFloat(2);
+		fRating	   = rsForsaken.FetchFloat(0);
+		fDeviation = rsForsaken.FetchFloat(1);
+		fWins	   = rsForsaken.FetchInt(2);
 	}
 
-	fkn_log("%s has an Rating:%.1f, Deviation:%.1f ,Volatility:%.1f", sSteamID, fRating, fDeviation, fVolatility);
-	CPrintToChatAll("%s %s has an Rating:{olive}%.1f{default}, Deviation:{olive}%.1f{default} ,Volatility:{olive}%.1f{default}", PREFIX, sSteamID, fRating, fDeviation, fVolatility);
+	fkn_log("%s has an Rating:%.1f, Deviation:%.1f ,Wins:%d", sSteamID, fRating, fDeviation, fWins);
+	CPrintToChatAll("%s %s has an Rating:{olive}%.1f{default}, Deviation:{olive}%.1f{default} ,Wins:{olive}%s{default}", PREFIX, sSteamID, fRating, fDeviation, fWins);
 	return Plugin_Continue;
 }
 

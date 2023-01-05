@@ -21,14 +21,6 @@
     {
         "en"        "Failed to identify name."
     }
-    "AddSurv"
-    {
-        "en"        "Added as a {blue}survivor{default}."
-    }
-    "AddInfect"
-    {
-        "en"        "Added as an {red}infected{default}."
-    }
     "TypeLobby"
     {
         "en"        "Type Lobby: {olive}%s{default}."
@@ -56,6 +48,14 @@
     "MatchInfo"
     {
         "en"        "Match info:\n Cfg ({olive}%s{default}) | Map ({olive}%s{default})."
+    }
+	"TryAgain"
+	{
+		"en"		"A vote can't be called right now, try again in {olive}%i{default}s!"
+	}
+    "NoVote"
+    {
+        "en"        "You can't request a vote in this type of match ({olive}%s{default})."
     }
     // jarvis_prematch.sp
     "NotEnoughPlayers"

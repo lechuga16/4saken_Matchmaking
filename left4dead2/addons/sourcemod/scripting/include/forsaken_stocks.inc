@@ -386,4 +386,14 @@ stock int GetApplicableClients(int Admin, const char[] TargettedString, int Filt
         
     // Otherwise, success!
     return TargetCount;
-} 
+}
+
+/**
+ * Returns if the current game is competitive
+ * 
+ * @return				True if the game is competitive, false otherwise.
+ */
+stock bool IsGameCompetitive(TypeMatch Match)
+{
+	return (Match == scrims || Match == veteran || Match == adept || Match == scout);
+}

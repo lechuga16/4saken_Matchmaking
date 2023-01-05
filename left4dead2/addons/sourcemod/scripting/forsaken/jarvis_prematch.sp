@@ -15,7 +15,6 @@
 public void PreMatch()
 {
 	CreateTimer(3.0, Timer_GetMatchData);
-	VoteManager();
 }
 
 /**
@@ -102,35 +101,4 @@ stock int GetHumanCount()
 	}
 	
 	return humans;
-}
-
-public void VoteManager()
-{
-	ConVar 
-		Nokick		= FindConVar("l4d2_votemanager_Nokick"),
-		NoMission 	= FindConVar("l4d2_votemanager_NoMission");
-
-	if(!Nokick.BoolValue)
-	{
-		ServerCommand("l4d2_votemanager_Nokick 1", "KickAll");
-		if(g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t Vote Kick Is Disable", "Tag");
-	}
-	else if(Nokick == null)
-	{
-		if(g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t l4d2_votemanager_Nokick not found", "Tag");
-	}
-
-	if(!NoMission.BoolValue)
-	{
-		ServerCommand("l4d2_votemanager_NoMission 1", "MissionAll");
-		if(g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t Vote Mission Is Disable", "Tag");
-	}
-	else if(NoMission == null)
-	{
-		if(g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t l4d2_votemanager_NoMission not found", "Tag");
-	}
 }
