@@ -8,6 +8,7 @@
 #include <sourcemod>
 #include <system2>
 #include <builtinvotes>
+#include <sourcebanspp>
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #include <readyup>
@@ -45,22 +46,43 @@ enum struct PlayerRageQuit
 	Handle timer;						  // Timer to check if the player has ragequitting.
 }
 
+/**
+ * Basic structure of a player.
+ */
+enum struct PlayerInfo
+{
+	int	 client;						// Client id
+	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
+	char name[MAX_NAME_LENGTH];			// Player name
+}
+
 State		   ConfigState;
 SMCParser	   ConfigParser;
 TypeMatch	   g_TypeMatch;
-PlayerBasic	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
+PlayerInfo	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
 PlayerRageQuit g_RageQuit[ForsakenTeam][MAX_PLAYER_TEAM];
 
 ConVar
 	g_cvarDebug,
 	g_cvarEnable,
-	g_cvarTimeWait,
-	g_cvarTimeWaitAnnouncer,
-	g_cvarTimerRageQuit,
-	g_cvarBanRageQuit,
-	g_cvarBanDesertion,
 	g_cvarConfigCfg,
 	g_cvarPlayersToStart,
+
+	g_cvarTimerRageQuit,
+	g_cvarBanRageQuit,
+	g_cvarBanRageQuitx2,
+	g_cvarBanRageQuitx3,
+
+	g_cvarTimeWait,
+	g_cvarTimeWaitAnnouncer,
+	g_cvarBanDesertion,
+	g_cvarBanDesertionx2,
+	g_cvarBanDesertionx3,
+
+	g_cvarReadyupWait,
+	g_cvarBanReadyup,
+	g_cvarBanReadyupx2,
+	g_cvarBanReadyupx3,
 
 	survivor_limit,
 	z_max_player_zombies;
@@ -70,10 +92,11 @@ bool	 g_bPreMatch = true;
 Database g_DBSourceBans;
 
 Handle
-	g_hTimerOT,
+	g_hTimerManager,
 	g_hTimerWait,
 	g_hTimerWaitAnnouncer,
-	g_hTimerCheckList;
+	g_hTimerCheckList,
+	g_hTimerWaitReadyup;
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
@@ -84,6 +107,19 @@ Handle
 #include "forsaken/jarvis_waiting.sp"
 #include "forsaken/jarvis_ban.sp"
 #include "forsaken/jarvis_ragequit.sp"
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	if (!L4D_IsEngineLeft4Dead2())
+	{
+		strcopy(error, err_max, "Plugin only support L4D2 engine");
+		return APLRes_Failure;
+	}
+
+	CreateNative("ForsakenBan", Native_ForsakenBan);
+	RegPluginLibrary("forsaken_jarvis");
+	return APLRes_Success;
+}
 
 /*****************************************************************
 			P L U G I N   I N F O
@@ -99,40 +135,41 @@ public Plugin myinfo =
 
 }
 
-public APLRes
-	AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
-{
-	if (!L4D_IsEngineLeft4Dead2())
-	{
-		strcopy(error, err_max, "Plugin only support L4D2 engine");
-		return APLRes_Failure;
-	}
-
-	return APLRes_Success;
-}
-
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-public void OnPluginStart()
+public void
+	OnPluginStart()
 {
 	LoadTranslation("forsaken_jarvis.phrases");
 
 	CreateConVar("sm_jarvis_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug				= CreateConVar("sm_jarvis_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarEnable			= CreateConVar("sm_jarvis_enable", "1", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarTimeWait			= CreateConVar("sm_jarvis_timewait", "180.0", "The time to wait for the players to join the server", FCVAR_NONE, true, 0.0);
-	g_cvarTimeWaitAnnouncer = CreateConVar("sm_jarvis_timewaitannouncer", "30.0", "The time to announcer the players to join the server", FCVAR_NONE, true, 0.0);
-	g_cvarTimerRageQuit		= CreateConVar("sm_jarvis_timeragequit", "180.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
-	g_cvarBanRageQuit		= CreateConVar("sm_jarvis_banragequit", "7200", "The time to ban the player for (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0);
-	g_cvarBanDesertion		= CreateConVar("sm_jarvis_bandesertion", "4320", "The time to ban the player for (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0);
 	g_cvarConfigCfg			= CreateConVar("sm_jarvis_configcfg", "zonemod", "The config file to load", FCVAR_NONE);
 	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "2", "The minimum players to start the match", FCVAR_NONE, true, 2.0);
 
+	g_cvarTimerRageQuit		= CreateConVar("sm_jarvis_timeragequit", "300.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
+	g_cvarBanRageQuit		= CreateConVar("sm_jarvis_banragequit", "2880", "The time to ban the player (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0);
+	g_cvarBanRageQuitx2		= CreateConVar("sm_jarvis_banragequitx2", "5760", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the second time", FCVAR_NONE, true, 0.0);
+	g_cvarBanRageQuitx3		= CreateConVar("sm_jarvis_banragequitx3", "10080", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the third time", FCVAR_NONE, true, 0.0);
+
+	g_cvarTimeWait			= CreateConVar("sm_jarvis_timewait", "300.0", "The time to wait for the players to join the server", FCVAR_NONE, true, 0.0);
+	g_cvarTimeWaitAnnouncer = CreateConVar("sm_jarvis_timewaitannouncer", "30.0", "The time to announcer the players to join the server", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertion		= CreateConVar("sm_jarvis_bandesertion", "720", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertionx2	= CreateConVar("sm_jarvis_bandesertionx2", "2880", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the second time", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertionx3	= CreateConVar("sm_jarvis_bandesertionx3", "5760", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the third time", FCVAR_NONE, true, 0.0);
+
+	g_cvarReadyupWait		= CreateConVar("sm_jarvis_readyupwait", "360.0", "The time to wait for the players to ready up", FCVAR_NONE, true, 0.0);
+	g_cvarBanReadyup		= CreateConVar("sm_jarvis_banreadyup", "120", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time", FCVAR_NONE, true, 0.0);
+	g_cvarBanReadyupx2		= CreateConVar("sm_jarvis_banreadyupx2", "240", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time for the second time", FCVAR_NONE, true, 0.0);
+	g_cvarBanReadyupx3		= CreateConVar("sm_jarvis_banreadyupx3", "480", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time for the third time", FCVAR_NONE, true, 0.0);
+
 	RegConsoleCmd("sm_jarvis_listplayers", Cmd_ListPlayers, "Print the forsaken player list");
 	RegConsoleCmd("sm_jarvis_info", Cmd_MatchInfo, "Displays the cfg and map that will be used..");
+	RegConsoleCmd("sm_jarvis_clientid", Cmd_ClientID);
 
-	RegAdminCmd("sm_jarvis_deleteOT", Cmd_DeleteOT, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
+	RegAdminCmd("sm_jarvis_killtimer", Cmd_KillTimer, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
 	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
 
 	AddCommandListener(VoteStart, "callvote");
@@ -154,12 +191,6 @@ public void OnMapStart()
 		PreMatch();
 		ReadConfigSourcebans();
 	}
-	else
-	{
-		WaitingPlayers();
-		OrganizeTeams();
-		CheckCFG();
-	}
 
 	if (LGO_IsMatchModeLoaded() && g_bPreMatch)
 		g_bPreMatch = !g_bPreMatch;
@@ -170,17 +201,10 @@ public void OnMapEnd()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	KillTimerOT();
+	KillTimerManager();
 }
 
 public void OnRoundIsLive()
-{
-	KillTimerWaitPlayers();
-	KillTimerWaitPlayersAnnouncer();
-	KillTimerCheckPlayers();
-}
-
-public void OnClientAuthorized(int iClient, const char[] sAuth)
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
@@ -188,10 +212,19 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	if (!IsGameCompetitive(g_TypeMatch))
 		return;
 
-	if (IsFakeClient(iClient))
+	KillTimerWaitPlayers();
+	KillTimerWaitPlayersAnnouncer();
+	KillTimerCheckPlayers();
+	KillTimerWaitReadyup();
+}
+
+public void OnClientAuthorized(int iClient, const char[] sAuth)
+{
+	if (!g_cvarEnable.BoolValue || !IsGameCompetitive(g_TypeMatch) || IsFakeClient(iClient))
 		return;
 
 	StartMatch();
+	VerifyPlayers(iClient, sAuth);
 
 	if (IsRageQuiters(iClient, sAuth))
 	{
@@ -200,16 +233,109 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	}
 }
 
-public Action Cmd_DeleteOT(int iClient, int iArgs)
+public void VerifyPlayers(int iClient, const char[] sAuth)
 {
-	if (iArgs != 0)
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_deleteOT");
+		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
+			g_Players[TeamA][iID].client = iClient;
+		else if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
+			g_Players[TeamB][iID].client = iClient;
+	}
+}
+
+public void OnReadyUpInitiate()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	WaitingPlayers();
+	OrganizeTeams();
+	CheckCFG();
+
+	KillTimerWaitReadyup();
+	g_hTimerWaitReadyup = CreateTimer(g_cvarReadyupWait.FloatValue, Timer_ReadyUpWait);
+}
+
+public Action Timer_ReadyUpWait(Handle timer)
+{
+	bool IsBanned = false;
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{
+		int
+			iClientTA = g_Players[TeamA][iID].client,
+			iClientTB = g_Players[TeamB][iID].client;
+
+		char sReason[128];
+		Format(sReason, sizeof(sReason), "%s %t", JVPrefix, "BanReadyUp");
+
+		if (iClientTA != CONSOLE && !IsReady(iClientTA))
+		{
+			switch(BansAccount(iID, TeamA, "%BanCode:03%"))
+			{
+				case 0: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyup.IntValue, sReason);
+				case 1: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx2.IntValue, sReason);
+				default: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx3.IntValue, sReason);
+			}
+			
+			if (g_cvarDebug.BoolValue)
+				fkn_log("Player not Ready: Client: %N | TeamA | Ban: %d", iClientTA, g_cvarBanReadyup.IntValue);
+			if (!IsBanned)
+				IsBanned = !IsBanned;
+		}
+		else if (iClientTB != CONSOLE && !IsReady(iClientTB))
+		{
+			switch(BansAccount(iID, TeamB, "%BanCode:03%"))
+			{
+				case 0: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyup.IntValue, sReason);
+				case 1: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyupx2.IntValue, sReason);
+				default: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyupx3.IntValue, sReason);
+			}
+
+			if (g_cvarDebug.BoolValue)
+				fkn_log("Player not Ready: Client: %N | TeamB | Ban: %d", iClientTB, g_cvarBanReadyup.IntValue);
+			if (!IsBanned)
+				IsBanned = !IsBanned;
+		}
+	}
+
+	if (IsBanned)
+		ForceEndGame(ragequit);
+
+	return Plugin_Stop;
+}
+
+public Action Cmd_KillTimer(int iClient, int iArgs)
+{
+	if (iArgs != 1)
+	{
+		CReplyToCommand(iClient, "Usage: sm_jarvis_killtimer <manager|waitplayers|waitreadyup>");
 		return Plugin_Handled;
 	}
 
-	KillTimerOT();
-	CReplyToCommand(iClient, "%t %t", "Tag", "DeleteOT");
+	char sArg[16];
+	GetCmdArg(1, sArg, sizeof(sArg));
+
+	if (StrEqual(sArg, "manager", false))
+	{
+		KillTimerManager();
+		if (!g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Organizing Teams{default}", "Tag");
+	}
+	else if (StrEqual(sArg, "waitplayers", false))
+	{
+		KillTimerWaitPlayers();
+		KillTimerWaitPlayersAnnouncer();
+		if (!g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait{default}/{green}Announcer{default}", "Tag");
+	}
+	else if (StrEqual(sArg, "waitreadyup", false))
+	{
+		KillTimerWaitReadyup();
+		if (!g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup Wait{default}", "Tag");
+	}
+
 	return Plugin_Continue;
 }
 
@@ -339,6 +465,38 @@ public Action VoteStart(int client, const char[] command, int argc)
 	return Plugin_Handled;
 }
 
+public Action Cmd_ClientID(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_jarvis_clientid");
+		return Plugin_Handled;
+	}
+
+	CReplyToCommand(iClient, "%t \nTeamA: [%d][%d][%d][%d]\nTeamB: [%d][%d][%d][%d]", "Tag",
+					g_Players[TeamA][0].client, g_Players[TeamA][1].client, g_Players[TeamA][2].client, g_Players[TeamA][3].client,
+					g_Players[TeamB][0].client, g_Players[TeamB][1].client, g_Players[TeamB][2].client, g_Players[TeamB][3].client);
+	return Plugin_Handled;
+}
+
+/*****************************************************************
+			N A T I V E S
+*****************************************************************/
+
+// OffLineBan(int iTarget, int Team, int iTime, const char[] sReason, any ...)
+any Native_ForsakenBan(Handle plugin, int numParams)
+{
+	int
+		iTarget = GetNativeCell(1),
+		Team	= GetNativeCell(2),
+		iTime	= GetNativeCell(3);
+
+	char sReason[PLATFORM_MAX_PATH];
+	FormatNativeString(0, 4, 5, sizeof(sReason), _, sReason);
+	CreateOffLineBan(iTarget, view_as<ForsakenTeam>(Team), iTime, sReason);
+	return 0;
+}
+
 /*****************************************************************
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
@@ -349,8 +507,10 @@ public Action VoteStart(int client, const char[] command, int argc)
  */
 public void CheckCFG()
 {
-	if (LGO_IsMatchModeLoaded())
-		CreateTimer(40.0, Timer_ReadCFG);
+	if (!IsGameCompetitive(g_TypeMatch))
+		return;
+
+	CreateTimer(40.0, Timer_ReadCFG);
 }
 
 /**
@@ -406,4 +566,15 @@ public Action Timer_ForceMatch(Handle hTimer)
 {
 	ServerCommand("sm_resetmatch");
 	return Plugin_Stop;
+}
+
+public void KillTimerWaitReadyup()
+{
+	if (g_hTimerWaitReadyup != null)
+	{
+		KillTimer(g_hTimerWaitReadyup);
+		g_hTimerWaitReadyup = null;
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup Wait{default}", "Tag");
+	}
 }

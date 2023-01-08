@@ -6,6 +6,7 @@
 #include <sourcemod>
 #undef REQUIRE_PLUGIN
 #include <l4d2_skill_detect>
+#define REQUIRE_PLUGIN
 
 /*****************************************************************
             G L O B A L   V A R S
@@ -41,8 +42,9 @@ ConVar
 	g_cvarBoomerPop,
 	g_cvarSpecialClear,
 	g_cvarHunterHighPounce;
+	
 Database
-	g_Database;
+	g_ForsakenDB;
 
 enum TFormat
 {
@@ -121,14 +123,6 @@ char sTFormatAll[TFormatAll_Size][] = {
 	"hunterhighpounce"
 };
 
-char sCarAlarmTriggerReason[5][] = {
-	"unknown",
-	"hit",
-	"touched",
-	"explosion",
-	"boomer"
-};
-
 /*****************************************************************
             L I B R A R Y   I N C L U D E S
 *****************************************************************/
@@ -201,7 +195,50 @@ public void OnPluginStart()
 	g_cvarBoomerPop         = CreateConVar("sm_skills_boomerpop", "1", "Enable Boomer Pop.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarSpecialClear      = CreateConVar("sm_skills_specialclear", "1", "Enable Special Clear.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarHunterHighPounce  = CreateConVar("sm_skills_hunterhighpounce", "1", "Enable Hunter HighPounce.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+
+	RegAdminCmd("sm_skill_install", Cmd_Install, ADMFLAG_ROOT, "Create the sql tables.");
+	RegConsoleCmd("sm_skill", Command_Skill, "Skill command.");
 	AutoExecConfig(true, "forsaken_skills");
+}
+
+public Action Command_Skill(int iClient, int iArg)
+{
+	return Plugin_Handled;
+}
+
+public Action Cmd_Install(int iClient, int iArg)
+{
+	/*
+		CREATE VIEW IF NOT EXISTS `view_Skeets` AS
+		SELECT
+			`sk`.`survivor` AS `skeet`,
+			`sk_h`.`survivor` AS `skeethurt`,
+			`skm`.`survivor` AS `melee`,
+			`skm_h`.`survivor` AS `meleehurt`,
+			`skp`.`survivor` AS `sniper`,
+			`skp_h`.`survivor` AS `sniperhurt`
+		FROM `skeet` AS `sk`
+		LEFT OUTER JOIN `skeethurt` AS `sk_h` ON `sk`.`id` LIKE `sk_h`.`id`
+		LEFT OUTER JOIN `skeetmelee` AS `skm` ON `sk`.`id` LIKE `skm`.`id`
+		LEFT OUTER JOIN `skeetmeleehurt` AS `skm_h` ON `sk`.`id` LIKE `skm_h`.`id`
+		LEFT OUTER JOIN `skeetsniper` AS `skp` ON `sk`.`id` LIKE `skp`.`id`
+		LEFT OUTER JOIN `skeetsniperhurt` AS `skp_h` ON `sk`.`id` LIKE `skp_h`.`id`
+		UNION ALL
+		SELECT
+			`sk`.`survivor` AS `skeet`,
+			`sk_h`.`survivor` AS `skeethurt`,
+			`skm`.`survivor` AS `melee`,
+			`skm_h`.`survivor` AS `meleehurt`,
+			`skp`.`survivor` AS `sniper`,
+			`skp_h`.`survivor` AS `sniperhurt`
+		FROM `skeet` AS `sk`
+		RIGHT OUTER JOIN `skeethurt` AS `sk_h` ON `sk`.`id` LIKE `sk_h`.`id`
+		RIGHT OUTER JOIN `skeetmelee` AS `skm` ON `sk`.`id` LIKE `skm`.`id`
+		RIGHT OUTER JOIN `skeetmeleehurt` AS `skm_h` ON `sk`.`id` LIKE `skm_h`.`id`
+		RIGHT OUTER JOIN `skeetsniper` AS `skp` ON `sk`.`id` LIKE `skp`.`id`
+		RIGHT OUTER JOIN `skeetsniperhurt` AS `skp_h` ON `sk`.`id` LIKE `skp_h`.`id`
+	*/
+	return Plugin_Handled;
 }
 
 /****************************************************************
@@ -216,7 +253,7 @@ public void OnSQLConnect(Database db, const char[] error, any data)
 	if (db == null)
 		ThrowError("Error while connecting to database: %s", error);
 
-	g_Database = db;
+	g_ForsakenDB = db;
 
 	SQLTablesFormat();
 	SQLTablesFormat2();

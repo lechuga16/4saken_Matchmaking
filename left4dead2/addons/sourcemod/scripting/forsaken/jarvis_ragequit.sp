@@ -138,9 +138,13 @@ public Action Timer_RageQuit(Handle iTimer, DataPack hPack)
 	int iID = hPack.ReadCell();
 	ForsakenTeam Team = hPack.ReadCell();
 
-	char sBuffer[128];
-	FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanReasonRQ");
-	CreateOffLineBan(iID, Team, g_cvarBanRageQuit.IntValue, sBuffer)
+	switch(BansAccount(iID, Team, "%BanCode:01%"))
+	{
+		case 0: CreateOffLineBan(iID, Team, g_cvarBanRageQuit.IntValue, "%t", "BanReasonRQ");
+		case 1: CreateOffLineBan(iID, Team, g_cvarBanRageQuitx2.IntValue, "%t", "BanReasonRQ");
+		default: CreateOffLineBan(iID, Team, g_cvarBanRageQuitx3.IntValue, "%t", "BanReasonRQ");
+	}
+	
 	ForceEndGame(ragequit);
 	return Plugin_Stop;
 }

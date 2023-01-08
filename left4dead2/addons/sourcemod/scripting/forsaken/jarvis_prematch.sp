@@ -9,7 +9,7 @@
 
 /**
  * @brief Starts a timer that gets match information in the prematch
- * 
+ *
  * @noreturn
  */
 public void PreMatch()
@@ -19,7 +19,7 @@ public void PreMatch()
 
 /**
  * @brief Gets the match data from forsaken.smx.
- * 
+ *
  * @param timer		Timer handle.
  * @return			Stop the timer.
  */
@@ -27,7 +27,7 @@ public Action Timer_GetMatchData(Handle timer)
 {
 	g_TypeMatch = fkn_TypeMatch();
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-	{	
+	{
 		// Get the steamids from the player index
 		fkn_SteamIDTA(iID, g_Players[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
 		fkn_SteamIDTB(iID, g_Players[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
@@ -42,14 +42,13 @@ public Action Timer_GetMatchData(Handle timer)
 	}
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 
-	if(g_cvarDebug.BoolValue)
-		CPrintToChatAll("%t GetMatchData", "Tag");
+	CheckPlayersPresent();
 	return Plugin_Stop;
 }
 
 /**
  * @brief Starts the match.
- * 
+ *
  * @noreturn
  */
 public void StartMatch()
@@ -61,7 +60,7 @@ public void StartMatch()
 	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	int iHumanCount = GetHumanCount();
 
-	if(iHumanCount == g_cvarPlayersToStart.IntValue)
+	if (iHumanCount == g_cvarPlayersToStart.IntValue)
 	{
 		char
 			sMatchMap[32];
@@ -69,29 +68,29 @@ public void StartMatch()
 			match_restart;
 
 		CPrintToChatAll("%t %t", "Tag", "StartMatch", sCfgConvar, g_sMapName);
-		
+
 		match_restart = FindConVar("confogl_match_map");
 		match_restart.GetString(sMatchMap, sizeof(sMatchMap));
-		
-		if(!StrEqual("", sMatchMap, false))
+
+		if (!StrEqual("", sMatchMap, false))
 			return;
 
 		ServerCommand("confogl_match_map %s", g_sMapName);
 		ServerCommand("sm_forcematch %s", sCfgConvar);
 	}
-	else if(iHumanCount < g_cvarPlayersToStart.IntValue)
+	else if (iHumanCount < g_cvarPlayersToStart.IntValue)
 		CPrintToChatAll("%t %t", "Tag", "NotEnoughPlayers", iHumanCount, g_cvarPlayersToStart.IntValue);
 }
 
 /**
  * @brief Returns the number of human players connected to the server.
- * 
+ *
  * @return			Number of human players connected to the server.
  */
 stock int GetHumanCount()
 {
 	int humans = 0;
-	
+
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientConnected(client) && !IsFakeClient(client))
@@ -99,6 +98,25 @@ stock int GetHumanCount()
 			humans++;
 		}
 	}
-	
+
 	return humans;
+}
+
+/**
+ * @brief Checks if the players are present in the match.
+ *
+ * @noreturn
+ */
+public void CheckPlayersPresent()
+{
+	char sAuth[MAX_AUTHID_LENGTH];
+	for (int iClient = 1; iClient <= MaxClients; iClient++)
+	{
+		if (IsClientAuthorized(iClient) && GetClientAuthId(iClient, AuthId_SteamID64, sAuth, MAX_AUTHID_LENGTH))
+		{
+			if (g_cvarDebug.BoolValue)
+				fkn_log("CheckPlayersPresent: [%N|%s]", iClient, sAuth);
+			OnClientAuthorized(iClient, sAuth);
+		}
+	}
 }

@@ -151,7 +151,7 @@ public SMCResult ReadConfig_KeyValue(SMCParser smc, const char[] key, const char
  *
  * @return				True on success, false otherwise
  */
-public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason)
+public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason, any ...)
 {
 	// server information
 	char
@@ -166,6 +166,9 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 		sAuth[64],
 		sName[MAX_NAME_LENGTH];
 
+	char sFormatReason[512];
+	VFormat(sFormatReason, sizeof(sFormatReason), sReason, 5);
+
 	if (Team == TeamA)
 	{
 		sAuth = g_Players[TeamA][iTarget].steamid;
@@ -179,14 +182,14 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	else
 	{
 		fkn_log("CreateOffLineBan: Team is invalid");
-		CPrintToChatAll("%s %T", "Tag", "BanFail", LANG_SERVER, "ForsakenTeam is invalid");
+		CPrintToChatAll("%t %T", "Tag", "BanFail", LANG_SERVER, "ForsakenTeam is invalid");
 		return false;
 	}
 
 	if (StrEqual("", sAuth, false))
 	{
 		fkn_log("CreateOffLineBan: SteamID is invalid");
-		CPrintToChatAll("%s %T", "Tag", "BanFail", LANG_SERVER, "SteamID is invalid");
+		CPrintToChatAll("%t %T", "Tag", "BanFail", LANG_SERVER, "SteamID is invalid");
 		return false;
 	}
 
@@ -208,11 +211,11 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	DataPack dataPack = new DataPack();
 
 	dataPack.WriteCell(iTime);
-	dataPack.WriteString(sReason);
+	dataPack.WriteString(sFormatReason);
 	dataPack.WriteString(sName);
 
 	if (g_DBSourceBans != INVALID_HANDLE)
-		UTIL_InsertBan(iTime, sName, sAuth, sIp, sReason, sAdminAuth, sAdminIp, dataPack);
+		UTIL_InsertBan(iTime, sName, sAuth, sIp, sFormatReason, sAdminAuth, sAdminIp, dataPack);
 	else
 		return false;
 
@@ -284,4 +287,55 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 
 	if (g_cvarDebug.BoolValue)
 		fkn_log("%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);
+}
+
+public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
+{
+	int iSteamID64[2];
+	char
+		sSteamID64[MAX_AUTHID_LENGTH],
+		sSteamID2[MAX_AUTHID_LENGTH];
+
+	sSteamID64 = g_Players[Team][iTarget].steamid;
+	GetCmdArgString(sSteamID64, sizeof(sSteamID64));
+	if ((StringToInt64(sSteamID64, iSteamID64)) == 0)
+		fkn_log("%s StringToInt failed", JVPrefix);
+
+	GetSteam2FromAccountId(sSteamID2, sizeof(sSteamID2), iSteamID64[0]);
+
+	DBResultSet rsSourceBans;
+	char
+		sQuery[256],
+		error[255];
+
+	int 
+		iBans,
+		iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
+
+	Format(sQuery, sizeof(sQuery), 
+		"SELECT COUNT(*) \
+		FROM `sb_bans` \
+		WHERE `authid` LIKE '%s' \
+			AND `reason` LIKE '%s' \
+			AND `created` > '%d' \
+		GROUP BY `authid` \
+		HAVING COUNT(*) > '1'", sSteamID2, sBanCode, iTimeLimit);
+
+	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
+	{
+		SQL_GetError(g_DBSourceBans, error, sizeof(error));
+		fkn_log("FetchUsers() query failed: %s", sQuery);
+		fkn_log("Query error: %s", error);
+		return 0;
+	}
+
+	while (rsSourceBans.FetchRow())
+	{
+		iBans = rsSourceBans.FetchInt(0);
+	}
+
+	if(g_cvarDebug.BoolValue)
+		fkn_log("Query: %s", sQuery);	
+
+	return iBans;
 }

@@ -76,7 +76,7 @@ public void OnPluginStart()
 
 	CreateConVar("sm_endgame_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug	   = CreateConVar("sm_endgame_debug", "0", "Debug messagess", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarEnable   = CreateConVar("sm_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY | FCVAR_DONTRECORD, true, 0.0, true, 1.0);
+	g_cvarEnable   = CreateConVar("sm_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY , true, 0.0, true, 1.0);
 	g_cvarTimeKick = CreateConVar("sm_endgame_timekick", "10.0", "Set counter before kicking players", FCVAR_NOTIFY, true, 0.0, true, 10.0);
 
 	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_GENERIC);
@@ -183,8 +183,6 @@ public Action Cmd_Cancel(int iClient, int iArgs)
  */
 public int Native_IsEndGame(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Endgame is disabled");
 	return g_bIsEndGame;
 }
 
@@ -196,8 +194,6 @@ public int Native_IsEndGame(Handle plugin, int numParams)
  */
 any Native_ForceEndGame(Handle plugin, int numParams)
 {
-	if (!g_cvarEnable.BoolValue)
-		return ThrowNativeError(SP_ERROR_NATIVE, "Endgame is disabled");
 
 	g_CancelMatch = view_as<CancelMatch>(GetNativeCell(1));
 
@@ -291,7 +287,7 @@ bool StartEndGame(bool iscallback = false)
 	char sQuery[256];
 	Format(sQuery, sizeof(sQuery), 
 		"UPDATE \
-			`queue_game` \
+			`l4d2_queue_game` \
 		SET \
 			`status` = 0 \
 		WHERE \

@@ -16,10 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined forsaken_included
+#if defined _forsaken_included
   #endinput
 #endif
-#define forsaken_included
+#define _forsaken_included
 
 
 #include <forsaken_stocks>

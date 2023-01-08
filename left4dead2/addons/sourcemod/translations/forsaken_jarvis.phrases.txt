@@ -57,6 +57,10 @@
     {
         "en"        "You can't request a vote in this type of match ({olive}%s{default})."
     }
+    "BanReadyUp"
+    {
+        "en"        "[BanCode:03] Delay to start the game."
+    }
     // jarvis_prematch.sp
     "NotEnoughPlayers"
     {
@@ -98,7 +102,7 @@
     }
     "BanDesertion"
     {
-        "en"        "Desertion before starting the game"
+        "en"        "[BanCode:02] Desertion before starting the game"
     }
     // jarvis_ragequit.sp
     "RageQuit"
@@ -107,7 +111,7 @@
     }
     "BanReasonRQ" 
     {
-        "en"        "RageQuit"
+        "en"        "[BanCode:01] RageQuit"
     }
     "PlayerReturned"
     {

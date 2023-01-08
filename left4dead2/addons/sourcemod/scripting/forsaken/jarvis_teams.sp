@@ -15,10 +15,12 @@
  */
 public void OrganizeTeams()
 {
-	if (!LGO_IsMatchModeLoaded())
+	if (!IsGameCompetitive(g_TypeMatch))
 		return;
 
-	CreateTimer(12.0, Timer_PreventKillBot, _, TIMER_REPEAT);
+	//CreateTimer(10.0, Timer_PreventKillBot, _, TIMER_REPEAT);
+	KillTimerManager();
+	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
 }
 
 /**
@@ -30,7 +32,7 @@ public void OrganizeTeams()
  */
 public Action Timer_PreventKillBot(Handle hTimer)
 {
-	g_hTimerOT = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
+	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
 	return Plugin_Stop;
 }
 
@@ -170,13 +172,13 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
  *
  * @noreturn
  */
-public void KillTimerOT()
+public void KillTimerManager()
 {
-	if (g_hTimerOT != null)
+	if (g_hTimerManager != null)
 	{
-		KillTimer(g_hTimerOT);
-		g_hTimerOT = null;
+		KillTimer(g_hTimerManager);
+		g_hTimerManager = null;
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t KillTimer(TimerOT)", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Organizing Teams{default}", "Tag");
 	}
 }

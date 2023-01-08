@@ -17,7 +17,7 @@
  */
 public void WaitingPlayers()
 {
-	if (!LGO_IsMatchModeLoaded())
+	if (!IsGameCompetitive(g_TypeMatch))
 		return;
 
 	KillTimerWaitPlayers();
@@ -187,15 +187,22 @@ public void BanDesertionPlayers()
 	{
 		if (!g_RageQuit[TeamA][iID].ispresent)
 		{
-			char sBuffer[128];
-			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
-			CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, sBuffer);
+			switch(BansAccount(iID, TeamA, "%BanCode:02%"))
+			{
+				case 0: CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, "%t", "BanDesertion");
+				case 1: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx2.IntValue, "%t", "BanDesertion");
+				default: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx3.IntValue, "%t", "BanDesertion");
+			}
 		}
+			
 		if (!g_RageQuit[TeamB][iID].ispresent)
 		{
-			char sBuffer[128];
-			FormatEx(sBuffer, sizeof(sBuffer), "%t", "BanDesertion");
-			CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, sBuffer);
+			switch(BansAccount(iID, TeamB, "%BanCode:02%"))
+			{
+				case 0: CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, "%t", "BanDesertion");
+				case 1: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx2.IntValue, "%t", "BanDesertion");
+				default: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx3.IntValue, "%t", "BanDesertion");
+			}
 		}
 	}
 }
@@ -214,7 +221,7 @@ public void KillTimerWaitPlayers()
 		KillTimer(g_hTimerWait);
 		g_hTimerWait = null;
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t KillTimer(Timer Wait)", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait{default}", "Tag");
 	}
 }
 
@@ -232,7 +239,7 @@ public void KillTimerWaitPlayersAnnouncer()
 		KillTimer(g_hTimerWaitAnnouncer);
 		g_hTimerWaitAnnouncer = null;
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t KillTimer(Timer Wait Announcer)", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait Announcer{default}", "Tag");
 	}
 }
 
@@ -250,7 +257,7 @@ public void KillTimerCheckPlayers()
 		KillTimer(g_hTimerCheckList);
 		g_hTimerCheckList = null;
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t KillTimer(Timer Check List)", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Check List{default}", "Tag");
 	}
 }
 

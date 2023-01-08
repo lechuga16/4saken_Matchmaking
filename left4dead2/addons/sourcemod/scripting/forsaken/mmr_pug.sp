@@ -92,8 +92,8 @@ public void ProcessMMR(ForsakenTeam team, MatchResults Result)
 		g_Players[team][iID].deviation += fFinalRD;
 		g_Players[team][iID].rating += fFinalRating;
 
-		if (g_cvarDebug.BoolValue)
-			CPrintToChat(iClient, "%t Final Rating: %.2f | Final RD: %.2f", "Tag", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+
+		CPrintToChat(iClient, "%t Final Rating: %.2f | Final RD: %.2f", "Tag", "FinalScorePersonal", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
 
 		if (Result == Result_Win)
 			g_Players[team][iID].wins++;

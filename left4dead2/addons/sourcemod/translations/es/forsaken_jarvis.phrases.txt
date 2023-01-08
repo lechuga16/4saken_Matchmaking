@@ -53,6 +53,10 @@
     {
         "es"        "No se puede solicitar una votación en este tipo de partido ({olive}%s{default})."
     }
+    "BanReadyUp"
+    {
+        "es"        "[BanCode:03] Retraso para iniciar el juego."
+    }
     // jarvis_prematch.sp
     "NotEnoughPlayers"
     {
@@ -94,7 +98,7 @@
     }
     "BanDesertion"
     {
-        "es"        "Deserción antes del iniciar la partida"
+        "es"        "[BanCode:02] Deserción antes del iniciar la partida"
     }
     // jarvis_ragequit.sp
     "RageQuit"
@@ -103,7 +107,7 @@
     }
     "BanReasonRQ" 
     {
-        "es"        "RageQuit"
+        "es"        "[BanCode:01] Abandono de partida."
     }
     "PlayerReturned"
     {

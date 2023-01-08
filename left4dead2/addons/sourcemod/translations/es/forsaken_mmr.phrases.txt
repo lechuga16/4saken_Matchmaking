@@ -16,4 +16,8 @@
 	{
 		"es"		"Bonificación {blue}MVP CI{default}: {green}%.2f{default}"
 	}
+	"FinalScorePersonal"
+	{
+		"es"		"{olive}Calificación final{default}: {green}%.2f{default} | {olive}Desviación final{default}: {green}%.2f{default}"
+	}
 }

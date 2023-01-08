@@ -16,10 +16,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined forsaken_stocks_included
+#if defined _forsaken_stocks_included
 	#endinput
 #endif
-#define forsaken_stocks_included
+#define _forsaken_stocks_included
 
 #include <sdktools_gamerules>
 #include <json>
@@ -33,9 +33,10 @@
 #define DIR_IP			   "configs/forsaken/IP.json"
 #define DIR_MAP			   "configs/forsaken/Maps.json"
 #define DIR_FORSAKENLOG	   "logs/forsaken.log"
-#define MAX_PLAYER_TEAM    4
+#define MAX_PLAYER_TEAM	   4
 #define MAX_INDEX_PLAYER   3
 #define CONSOLE			   0
+#define UNIXTIME_4WEEKS	   2419200
 
 // ==================================================
 // ENUMS
@@ -92,6 +93,15 @@ enum UnixTime
 	Week		  = 4,
 
 	UnixTime_Size = 5
+};
+
+enum TypeBans
+{
+	Bancode01	 = 0,
+	Bancode02	 = 1,
+	Bancode03	 = 2,
+
+	Bancode_Size = 3
 };
 
 /**
@@ -154,6 +164,12 @@ stock const char sCancelMatch[CancelMatch_Size][] = {
 	"Unknown",
 	"Ragequit",
 	"Desertion"
+};
+
+stock const char sTypeBans[Bancode_Size][] = {
+	"BanCode:01",
+	"BanCode:02",
+	"BanCode:03"
 };
 
 // ==================================================
@@ -299,7 +315,7 @@ stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSt
 	}
 }
 
-/** 
+/**
  * Convert AccountID to SteamID
  *
  * @param sSteamID			SteamID
@@ -310,7 +326,6 @@ stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSt
 stock int GetSteam2FromAccountId(char[] buffer, int maxlen, int accountid)
 {
 	return Format(buffer, maxlen, "STEAM_1:%d:%d", view_as<bool>(accountid % 2), accountid / 2);
-
 }
 
 /**
@@ -361,36 +376,36 @@ stock int FromUnixTime(int iUnixTime, UnixTime type)
 /**
  * Given a target string, like "Hydrogen", "#32", "@me", "@all", this function will populate an array of client indices
  * that match the target string.
- * 
+ *
  * @param Admin                 Client index of the admin who triggered the command.
  * @param TargettedString        The string containing the target(s), such as "Hydrogen", "#32", "@me", "@all". https://wiki.alliedmods.net/Admin_Commands_(SourceMod)
  * @param FilterFlag            Filter flag rules such as COMMAND_FILTER_NO_IMMUNITY. Find them here: https://sm.alliedmods.net/api/index.php?fastload=file&id=45&
  * @param ApplicableClients        Integer array initialized to all 0s. When this function finds matches, client indices will be stored in this array.
  * @param maxlen                Maximum length of the integer array.
- * 
+ *
  * @return                         The number of matching clients found (or 0 if no matching clients have been found).
  *                                 You should use this number to iterate across the ApplicableClients array in the parent function.
  */
 stock int GetApplicableClients(int Admin, const char[] TargettedString, int FilterFlag, int[] ApplicableClients, int maxlen)
 {
-    // Initialization:
-    char TargetName[MAX_TARGET_LENGTH];
-    bool tn_is_ml;
+	// Initialization:
+	char TargetName[MAX_TARGET_LENGTH];
+	bool tn_is_ml;
 
-    // Process it:
-    int TargetCount = ProcessTargetString(TargettedString, Admin, ApplicableClients, maxlen, FilterFlag, TargetName, sizeof(TargetName), tn_is_ml);
+	// Process it:
+	int	 TargetCount = ProcessTargetString(TargettedString, Admin, ApplicableClients, maxlen, FilterFlag, TargetName, sizeof(TargetName), tn_is_ml);
 
-    // No targets? Bail out.
-    if (TargetCount <= 0)
-        return 0;
-        
-    // Otherwise, success!
-    return TargetCount;
+	// No targets? Bail out.
+	if (TargetCount <= 0)
+		return 0;
+
+	// Otherwise, success!
+	return TargetCount;
 }
 
 /**
  * Returns if the current game is competitive
- * 
+ *
  * @return				True if the game is competitive, false otherwise.
  */
 stock bool IsGameCompetitive(TypeMatch Match)

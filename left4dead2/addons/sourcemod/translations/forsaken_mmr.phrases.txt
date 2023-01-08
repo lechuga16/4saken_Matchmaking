@@ -20,4 +20,8 @@
 	{
 		"en"		"Bonus {blue}MVP CI{default}: {green}%.2f{default}"
 	}
+	"FinalScorePersonal"
+	{
+		"en"		"Final {olive}Rating{default}: {green}%.2f{default} | Final {olive}RD{default}: {green}%.2f{default}"
+	}
 }
