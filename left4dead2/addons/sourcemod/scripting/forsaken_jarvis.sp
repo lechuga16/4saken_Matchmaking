@@ -423,6 +423,9 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
 
 public Action VoteStart(int client, const char[] command, int argc)
 {
+	if (!g_cvarEnable.BoolValue)
+		return Plugin_Handled;
+
 	if (!IsNewBuiltinVoteAllowed)
 	{
 		CPrintToChat(client, "%t %t", "Tag", "TryAgain", CheckBuiltinVoteDelay());
