@@ -297,7 +297,6 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 		sSteamID2[MAX_AUTHID_LENGTH];
 
 	sSteamID64 = g_Players[Team][iTarget].steamid;
-	GetCmdArgString(sSteamID64, sizeof(sSteamID64));
 	if ((StringToInt64(sSteamID64, iSteamID64)) == 0)
 		fkn_log("%s StringToInt failed", JVPrefix);
 

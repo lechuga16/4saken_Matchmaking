@@ -41,6 +41,14 @@
     {
         "es"        "La cfg actual ({green}%s{default}) no corresponde a {olive}%s{default}."
     }
+    "MapConfirm"
+    {
+        "es"        "El mapa actual ({green}%s{default}) corresponde a {olive}%s{default}."
+    }
+    "MapChange"
+    {
+        "es"        "El mapa actual ({green}%s{default}) no corresponde a {olive}%s{default}."
+    }
     "MatchInfo"
     {
         "es"        "Información de la partida:\n Cfg ({olive}%s{default}) | Mapa ({olive}%s{default})."

@@ -109,7 +109,7 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 	{
 		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
 		{
-			KillTimer(g_RageQuit[TeamA][iID].timer);
+			delete g_RageQuit[TeamA][iID].timer;
 			g_RageQuit[TeamA][iID].timer = null;
 			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid);
 			fkn_log("ClientConnected: %N no longer ragequiter", iClient);
@@ -117,7 +117,7 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 
 		if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
 		{
-			KillTimer(g_RageQuit[TeamB][iID].timer);
+			delete g_RageQuit[TeamB][iID].timer;
 			g_RageQuit[TeamB][iID].timer = null;
 			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamB][iID].name, g_Players[TeamB][iID].steamid);
 			fkn_log("ClientConnected: %N no longer ragequiter", iClient);

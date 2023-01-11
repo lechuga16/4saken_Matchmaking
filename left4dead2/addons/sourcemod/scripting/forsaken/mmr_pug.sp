@@ -3,7 +3,7 @@
 #endif
 #define _mmr_pug_included
 
-#define CONSTANT_SCORE 16.0	   // 4.0 players * 4.0 chapters = 16.0
+#define CONSTANT_SCORE 4.0	   // 4.0 players
 public void RoundEnd_Pugs()
 {
 	if (g_iTeamScore[L4DTeam_Survivor] > g_iTeamScore[L4DTeam_Infected])
@@ -89,16 +89,19 @@ public void ProcessMMR(ForsakenTeam team, MatchResults Result)
 			g_Players[team][iID].skill = 0.0;
 		}
 
-		g_Players[team][iID].deviation += fFinalRD;
-		g_Players[team][iID].rating += fFinalRating;
-
-
-		CPrintToChat(iClient, "%t Final Rating: %.2f | Final RD: %.2f", "Tag", "FinalScorePersonal", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
-
 		if (Result == Result_Win)
 			g_Players[team][iID].wins++;
 
-		g_Players[team][iID].gamesplayed++;
+		int iGamesPlayed = g_Players[team][iID].gamesplayed++;
+
+		if(EVALUATION_PERIOD < iGamesPlayed)
+			g_Players[team][iID].deviation += fFinalRD;
+		g_Players[team][iID].rating += fFinalRating;
+
+		if(EVALUATION_PERIOD < iGamesPlayed)
+			CPrintToChat(iClient, "%t %t", "Tag", "FinalScorePersonal", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+		else
+			CPrintToChat(iClient, "%t %t", "Tag", "FinalScoreEvaluation", iGamesPlayed);
 
 		char sQuery[512];
 		Format(sQuery, sizeof(sQuery),

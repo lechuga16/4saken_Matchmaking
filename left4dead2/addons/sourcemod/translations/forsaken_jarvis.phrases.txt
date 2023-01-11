@@ -45,6 +45,14 @@
     {
         "en"        "The current cfg ({green}%s{default}) does not correspond to {olive}%s{default}."
     }
+    "MapConfirm"
+    {
+        "en"        "The current map ({green}%s{default}) corresponds to {olive}%s{default}."
+    }
+    "MapChange"
+    {
+        "en"        "The current map ({green}%s{default}) does not correspond to {olive}%s{default}."
+    }
     "MatchInfo"
     {
         "en"        "Match info:\n Cfg ({olive}%s{default}) | Map ({olive}%s{default})."

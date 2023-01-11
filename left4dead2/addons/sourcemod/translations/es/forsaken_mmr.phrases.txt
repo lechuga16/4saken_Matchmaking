@@ -20,4 +20,12 @@
 	{
 		"es"		"{olive}Calificación final{default}: {green}%.2f{default} | {olive}Desviación final{default}: {green}%.2f{default}"
 	}
+	"FinalScoreEvaluation"
+	{
+		"en"		"Estás en el período de evaluación, te faltan %d juegos para obtener tu calificación."
+	}
+	"Round"
+	{
+		"es"		"{olive}Ronda 1{default}: {green}%d{default} | {olive}Ronda 2{default}: {green}%d{default}"
+	}
 }

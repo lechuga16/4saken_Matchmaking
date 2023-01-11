@@ -24,4 +24,12 @@
 	{
 		"en"		"Final {olive}Rating{default}: {green}%.2f{default} | Final {olive}RD{default}: {green}%.2f{default}"
 	}
+	"FinalScoreEvaluation"
+	{
+		"en"		"You are in the evaluation period, you are missing %d games to get your rating."
+	}
+	"Round"
+	{
+		"es"		"{olive}Round 1{default}: {green}%d{default} | {olive}Round 2{default}: {green}%d{default}"
+	}
 }

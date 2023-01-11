@@ -18,9 +18,7 @@ public void OrganizeTeams()
 	if (!IsGameCompetitive(g_TypeMatch))
 		return;
 
-	//CreateTimer(10.0, Timer_PreventKillBot, _, TIMER_REPEAT);
-	KillTimerManager();
-	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
+	CreateTimer(10.0, Timer_PreventKillBot);
 }
 
 /**
@@ -32,7 +30,8 @@ public void OrganizeTeams()
  */
 public Action Timer_PreventKillBot(Handle hTimer)
 {
-	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
+	KillTimerManager();
+	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _ ,TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Stop;
 }
 
@@ -168,7 +167,7 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
 }
 
 /**
- * Kills the timer for organizing teams.
+ * Kills the timer for Manager teams.
  *
  * @noreturn
  */
@@ -176,9 +175,13 @@ public void KillTimerManager()
 {
 	if (g_hTimerManager != null)
 	{
-		KillTimer(g_hTimerManager);
-		g_hTimerManager = null;
+		delete g_hTimerManager;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Organizing Teams{default}", "Tag");
+	}
+	else
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
 	}
 }

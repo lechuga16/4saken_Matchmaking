@@ -116,6 +116,9 @@ public void OnRoundLiveCountdown()
 
 public void OnRoundIsLive()
 {
+	if (!g_cvarEnable.BoolValue)
+		return;
+
 	g_bAnnounce = true;
 }
 
@@ -194,7 +197,6 @@ public int Native_IsEndGame(Handle plugin, int numParams)
  */
 any Native_ForceEndGame(Handle plugin, int numParams)
 {
-
 	g_CancelMatch = view_as<CancelMatch>(GetNativeCell(1));
 
 	if (!g_bNativeAvailable)
@@ -204,6 +206,7 @@ any Native_ForceEndGame(Handle plugin, int numParams)
 		CreateTimer(10.0, Timer_NativeAvailable);
 		return 0;
 	}
+	
 	if(!IsInReady() && InSecondHalfOfRound())
 		ChapterPoints();
 
@@ -231,6 +234,7 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 {
 	if(!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded() || !g_bRound_End)
 		return;
+
 	g_bRound_End = !g_bRound_End;
 
 	if (g_cvarDebug.BoolValue)

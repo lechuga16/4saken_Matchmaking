@@ -7,6 +7,9 @@
 #include <Regex>
 #include <sourcemod>
 #include <system2>
+#undef REQUIRE_PLUGIN
+#include <confogl>
+#define REQUIRE_PLUGIN
 
 /*****************************************************************
 			G L O B A L   V A R S
@@ -32,6 +35,7 @@ int
 	g_iQueueID = 0,
 	g_iPort;
 
+bool g_bGetMatch = true;
 TypeMatch
 	g_TypeMatch = invalid;
 
@@ -93,8 +97,31 @@ public void OnPluginStart()
 	g_iPort = FindConVar("hostport").IntValue;
 	BuildPath(Path_SM, g_sPatchIP, sizeof(g_sPatchIP), DIR_IP);
 	JSON_Check();
-	GetMatch();
 	GetIPv4();
+	GetMatch();
+}
+
+public void OnClientPutInServer(int iClient)
+{
+	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
+		return;
+
+	if(IsFakeClient(iClient))
+		return;
+
+	CreateTimer(5.0, Timer_GetMatch, iClient);
+	if(g_bGetMatch)
+	{
+		g_bGetMatch = !g_bGetMatch;
+		GetMatch();
+	}
+}
+
+public Action Timer_GetMatch(Handle timer, int iClient)
+{
+	if(!g_bGetMatch)
+		g_bGetMatch = !g_bGetMatch;
+	return Plugin_Stop;
 }
 
 public Action Cmd_ShowIP(int iClient, int iArgs)

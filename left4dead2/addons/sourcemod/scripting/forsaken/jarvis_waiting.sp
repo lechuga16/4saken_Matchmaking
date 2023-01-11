@@ -50,7 +50,7 @@ public Action Timer_WaitPlayers(Handle timer)
 	{
 		CPrintToChatAll("%t %t", "Tag", "NotAllConnected");
 		BanDesertionPlayers();
-		CreateTimer(10.0, Timer_StartEndGame);
+		CreateTimer(5.0, Timer_StartEndGame);
 	}
 
 	return Plugin_Stop;
@@ -218,10 +218,14 @@ public void KillTimerWaitPlayers()
 {
 	if (g_hTimerWait != null)
 	{
-		KillTimer(g_hTimerWait);
-		g_hTimerWait = null;
+		delete g_hTimerWait;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait{default}", "Tag");
+	}
+	else
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
 	}
 }
 
@@ -236,10 +240,14 @@ public void KillTimerWaitPlayersAnnouncer()
 {
 	if (g_hTimerWaitAnnouncer != null)
 	{
-		KillTimer(g_hTimerWaitAnnouncer);
-		g_hTimerWaitAnnouncer = null;
+		delete g_hTimerWaitAnnouncer;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait Announcer{default}", "Tag");
+	}
+	else
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
 	}
 }
 
@@ -254,10 +262,14 @@ public void KillTimerCheckPlayers()
 {
 	if (g_hTimerCheckList != null)
 	{
-		KillTimer(g_hTimerCheckList);
-		g_hTimerCheckList = null;
+		delete g_hTimerCheckList;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Check List{default}", "Tag");
+	}
+	else
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
 	}
 }
 

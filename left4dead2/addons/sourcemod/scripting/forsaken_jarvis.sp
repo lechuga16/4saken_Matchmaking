@@ -88,15 +88,18 @@ ConVar
 	z_max_player_zombies;
 
 char	 g_sMapName[32];
-bool	 g_bPreMatch = true;
-Database g_DBSourceBans;
+bool	 
+	g_bPreMatch = true,
+	g_bStartMatch = true;
+
+Database g_DBSourceBans = null;
 
 Handle
-	g_hTimerManager,
-	g_hTimerWait,
-	g_hTimerWaitAnnouncer,
-	g_hTimerCheckList,
-	g_hTimerWaitReadyup;
+	g_hTimerManager = null,
+	g_hTimerWait 	= null,
+	g_hTimerWaitAnnouncer = null,
+	g_hTimerCheckList = null,
+	g_hTimerWaitReadyup = null;
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
@@ -421,15 +424,15 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public Action VoteStart(int client, const char[] command, int argc)
+public Action VoteStart(int iClient, const char[] sCommand, int iArg)
 {
-	if (!g_cvarEnable.BoolValue)
-		return Plugin_Handled;
+	if (!g_cvarEnable.BoolValue || g_bPreMatch || L4D_GetClientTeam(iClient) == L4DTeam_Spectator)
+		return Plugin_Continue;
 
 	if (!IsNewBuiltinVoteAllowed)
 	{
-		CPrintToChat(client, "%t %t", "Tag", "TryAgain", CheckBuiltinVoteDelay());
-		return Plugin_Handled;
+		CPrintToChat(iClient, "%t %t", "Tag", "TryAgain", CheckBuiltinVoteDelay());
+		return Plugin_Continue;
 	}
 
 	char sVoteType[32];
@@ -442,7 +445,7 @@ public Action VoteStart(int client, const char[] command, int argc)
 	{
 		if (IsGameCompetitive(g_TypeMatch))
 		{
-			CPrintToChat(client, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+			CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
 			return Plugin_Handled;
 		}
 	}
@@ -451,7 +454,7 @@ public Action VoteStart(int client, const char[] command, int argc)
 	{
 		if (IsGameCompetitive(g_TypeMatch))
 		{
-			CPrintToChat(client, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+			CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
 			return Plugin_Handled;
 		}
 	}
@@ -460,12 +463,12 @@ public Action VoteStart(int client, const char[] command, int argc)
 	{
 		if (IsGameCompetitive(g_TypeMatch))
 		{
-			CPrintToChat(client, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+			CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
 			return Plugin_Handled;
 		}
 	}
 
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 
 public Action Cmd_ClientID(int iClient, int iArgs)
@@ -526,7 +529,8 @@ public Action Timer_ReadCFG(Handle hTimer)
 {
 	char
 		sCfgConvar[128],
-		sCfgName[128];
+		sCfgName[128],
+		sCurrentMap[32];
 	ConVar
 		l4d_ready_cfg_name;
 
@@ -556,6 +560,28 @@ public Action Timer_ReadCFG(Handle hTimer)
 		CreateTimer(5.0, Timer_ForceMatch);
 	}
 
+	GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
+	if(StrEqual(g_sMapName, sCurrentMap, false))
+	{
+		if (g_cvarDebug.BoolValue)
+		{
+			CPrintToChatAll("%t %t", "Tag", "MapConfirm", g_sMapName, sCurrentMap);
+			fkn_log("The current map (%s) corresponds to %s", g_sMapName, sCurrentMap);
+		}
+	}
+	else
+	{
+		CPrintToChatAll("%t %t", "Tag", "MapChange", g_sMapName, sCurrentMap);
+		fkn_log("The current map (%s) does not correspond to %s", g_sMapName, sCurrentMap);
+
+		KillTimerManager();
+		KillTimerWaitPlayers();
+		KillTimerWaitPlayersAnnouncer();
+		KillTimerCheckPlayers();
+		KillTimerWaitReadyup();
+		ServerCommand("changelevel %s", g_sMapName);
+	}
+	
 	return Plugin_Stop;
 }
 
@@ -575,9 +601,13 @@ public void KillTimerWaitReadyup()
 {
 	if (g_hTimerWaitReadyup != null)
 	{
-		KillTimer(g_hTimerWaitReadyup);
-		g_hTimerWaitReadyup = null;
+		delete g_hTimerWaitReadyup;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup Wait{default}", "Tag");
+	}
+	else
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
 	}
 }

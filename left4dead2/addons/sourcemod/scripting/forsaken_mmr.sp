@@ -217,6 +217,9 @@ public Action CMD_Stats(int iClient, int iArgs)
 
 	if (!ValidClients)
 	{
+		if(CONSOLE != iClient)
+			return Plugin_Handled;
+
 		char sSteamID[MAX_AUTHID_LENGTH];
 		GetClientAuthId(iClient, AuthId_SteamID64, sSteamID, MAX_AUTHID_LENGTH);
 
@@ -294,9 +297,7 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 			g_iTeamScore[L4DTeam_Infected] = L4D_GetTeamScore(1);
 	}
 
-	if (g_cvarDebug.BoolValue)
-		CPrintToChatAll("%t Survivor: %d | Infected: %d", "Tag", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
-
+	CPrintToChatAll("%t %t", "Tag", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
 	ProcessBonus(TeamA);
 	ProcessBonus(TeamB);
 
