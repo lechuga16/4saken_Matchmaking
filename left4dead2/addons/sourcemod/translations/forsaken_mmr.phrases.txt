@@ -36,8 +36,4 @@
 	{
 		"en"		"{lightgreen}You are in the evaluation period{default}, you are missing {green}%d{default} chapters to get your {olive}Rating{default}."
 	}
-	"Round"
-	{
-		"es"		"{lightgreen}Round 1{default}: {green}%d{default} | {lightgreen}Round 2{default}: {green}%d{default}"
-	}
 }

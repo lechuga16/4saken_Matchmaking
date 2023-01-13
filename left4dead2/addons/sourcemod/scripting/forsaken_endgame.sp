@@ -72,7 +72,6 @@ public APLRes
 public void OnPluginStart()
 {
 	LoadTranslation("forsaken_endgame.phrases");
-	LoadTranslation("forsaken_mmr.phrases");
 	HookEvent("round_end", Event_RoundEnd);
 
 	CreateConVar("sm_endgame_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
@@ -319,7 +318,8 @@ bool StartEndGame()
 			SET `status` = 0 \
 			WHERE `ip` = '%s:%d' \
 			ORDER BY `queueid` \
-			DESC LIMIT 1;", fkn_GetIP(), FindConVar("hostport").IntValue);
+			DESC LIMIT 1;",
+		   fkn_GetIP(), FindConVar("hostport").IntValue);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{
@@ -348,6 +348,7 @@ bool StartEndGame()
  */
 public bool CurrentMapEndGame()
 {
+	/*
 	JSON_Array jaMaps  = fkn_Maps();
 
 	int		   iLength = jaMaps.Length;
@@ -365,6 +366,11 @@ public bool CurrentMapEndGame()
 	}
 	json_cleanup_and_delete(jaMaps);
 	return false;
+	*/
+	if (L4D_GetCurrentChapter() == 4)
+		return true;
+	else
+		return false;
 }
 
 /**
@@ -383,10 +389,10 @@ public void ChapterPoints(MatchClosing hMatchClosing)
 	GetCurrentMap(sMapName, sizeof(sMapName));
 
 	Format(sQuery, sizeof(sQuery),
-			"INSERT INTO `queue_result` \
+		   "INSERT INTO `queue_result` \
 			(QueueID, MapCode, PointsTeamA, PointsTeamB, GameCanceled) \
 			VALUES('%d', '%s', '%d', '%d', '%s');",
-			fkn_QueueID(), sMapName, g_iTeamScore[TeamA], g_iTeamScore[TeamB], sMatchClosing[hMatchClosing]);
+		   fkn_QueueID(), sMapName, g_iTeamScore[TeamA], g_iTeamScore[TeamB], sMatchClosing[hMatchClosing]);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{

@@ -32,4 +32,8 @@
 	{
 		"es"		"El partido (ID:{green}%d{default}) ha sido cancelado por {blue}%N{default}."
 	}
+	"Round"
+	{
+		"es"		"{lightgreen}Equipo A{default}: {green}%d{default} | {lightgreen}Equipo B{default}: {green}%d{default}"
+	}
 }

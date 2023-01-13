@@ -32,8 +32,4 @@
 	{
 		"en"		"{lightgreen}Estás en el período de evaluación{default}, te faltan {green}%d{default} capitulos para obtener tu {olive}calificación{default}."
 	}
-	"Round"
-	{
-		"es"		"{lightgreen}Ronda 1{default}: {green}%d{default} | {lightgreen}Ronda 2{default}: {green}%d{default}"
-	}
 }
