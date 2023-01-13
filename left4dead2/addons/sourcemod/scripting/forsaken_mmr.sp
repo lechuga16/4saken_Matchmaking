@@ -3,7 +3,6 @@
 
 #define forsaken_left4dhooks_included
 #define CUSTOM_PLAYERINFO
-#define EVALUATION_PERIOD 8
 #include <colors>
 #include <sourcemod>
 #include <system2>
@@ -21,23 +20,6 @@
 *****************************************************************/
 
 #define PLUGIN_VERSION "1.0"
-
-/**
- * Player profile.
- *
- */
-enum struct PlayerInfo
-{
-	int	  client;						 // client index
-	char  steamid[MAX_AUTHID_LENGTH];	 // Player SteamID
-	char  name[MAX_NAME_LENGTH];		 // Player name
-	float rating;						 // Glicko Score
-	float deviation;					 // Glicko deviation
-	float skill;						 // Bonus deviation
-	int	  gamesplayed;					 // Number of games played
-	int	  lastgame;						 // Last Score Update
-	int	  wins;							 // Number of games won
-}
 
 /**
  * Team profile.
@@ -63,7 +45,7 @@ TypeMatch  g_TypeMatch;
 
 PlayerInfo g_Players[ForsakenTeam][MAX_PLAYER_TEAM];	// Information to calculate mmr of a team
 TeamsInfo  g_TeamInfo[ForsakenTeam];					// Information to calculate mmr of a team
-int		   g_iTeamScore[L4DTeam];						// Team score
+int		   g_iTeamScore[ForsakenTeam];					// Team score
 char
 	g_sMapName[32],
 	g_sIp[64];
@@ -170,13 +152,19 @@ public Action CMD_MMR(int iClient, int iArgs)
 		{
 			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
 			{
-				CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+				if(g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
+					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+				else
+					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamA][iID].gamesplayed, EVALUATION_PERIOD);
 				return Plugin_Handled;
 			}
 
 			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
 			{
-				CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
+				if(g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
+					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
+				else
+					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
 				return Plugin_Handled;
 			}
 		}
@@ -192,13 +180,19 @@ public Action CMD_MMR(int iClient, int iArgs)
 		{
 			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
 			{
-				CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+				if(g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
+					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+				else
+					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamA][iID].gamesplayed, EVALUATION_PERIOD);
 				return Plugin_Handled;
 			}
 
 			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
 			{
-				CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
+				if(g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
+					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
+				else
+					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
 				return Plugin_Handled;
 			}
 		}
@@ -217,7 +211,7 @@ public Action CMD_Stats(int iClient, int iArgs)
 
 	if (!ValidClients)
 	{
-		if(CONSOLE != iClient)
+		if (CONSOLE != iClient)
 			return Plugin_Handled;
 
 		char sSteamID[MAX_AUTHID_LENGTH];
@@ -284,20 +278,20 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 
 	if (!InSecondHalfOfRound())	   // Firs Half of Round
 	{
-		if (!L4D2_AreTeamsFlipped())	// Teams are not flipped
-			g_iTeamScore[L4DTeam_Survivor] = L4D_GetTeamScore(1);
+		if (!AreTeamsFlipped())	   // Teams are not flipped
+			g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
 		else
-			g_iTeamScore[L4DTeam_Survivor] = L4D_GetTeamScore(2);
+			g_iTeamScore[TeamB] = L4D_GetTeamScore(2);
 	}
 	else	// Second Half of Round
 	{
-		if (L4D2_AreTeamsFlipped())	   // Teams are flipped
-			g_iTeamScore[L4DTeam_Infected] = L4D_GetTeamScore(2);
+		if (AreTeamsFlipped())	  // Teams are flipped
+			g_iTeamScore[TeamB] = L4D_GetTeamScore(2);
 		else
-			g_iTeamScore[L4DTeam_Infected] = L4D_GetTeamScore(1);
+			g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
 	}
 
-	CPrintToChatAll("%t %t", "Tag", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
+	// CPrintToChatAll("%t %t", "Tag", "Round", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
 	ProcessBonus(TeamA);
 	ProcessBonus(TeamB);
 

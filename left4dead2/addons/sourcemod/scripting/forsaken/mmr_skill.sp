@@ -25,7 +25,7 @@ public int CheckMVPList(bool bIsMVP)
 	if (ClientMVP(bIsMVP) == CONSOLE)
 		return 0;
 
-	if (L4D2_AreTeamsFlipped() == false)
+	if (!AreTeamsFlipped())
 		return MVPListed(TeamA, bIsMVP);
 	else
 		return MVPListed(TeamB, bIsMVP);

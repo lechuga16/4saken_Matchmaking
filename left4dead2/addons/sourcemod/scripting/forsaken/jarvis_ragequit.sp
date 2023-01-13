@@ -6,7 +6,6 @@
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
-
 public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontBroadcast)
 {
 	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
@@ -17,7 +16,7 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 		return;
 
 	char sSteamId[32];
-	if(!GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId)))
+	if (!GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId)))
 		return;
 
 	if (strcmp(sSteamId, "BOT") == 0)
@@ -42,7 +41,7 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 
 			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
 
-			if(g_cvarDebug.BoolValue)
+			if (g_cvarDebug.BoolValue)
 				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 
@@ -60,7 +59,7 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 
 			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
 
-			if(g_cvarDebug.BoolValue)
+			if (g_cvarDebug.BoolValue)
 				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 	}
@@ -70,9 +69,9 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
 
-/** 
+/**
  * Check if the player has left the game.
- * 
+ *
  * @param iClient		Client index.
  * @param sAuth			SteamID of the player.
  * @return				True if the player has left the game, false otherwise.
@@ -96,9 +95,9 @@ public bool IsRageQuiters(int iClient, const char[] sAuth)
 	return false;
 }
 
-/** 
+/**
  * Remove the timer of the player who has left the game.
- * 
+ *
  * @param iClient		Client index.
  * @param sAuth			SteamID of the player.
  * @noreturn
@@ -125,9 +124,9 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 	}
 }
 
-/** 
+/**
  * Timer that executes the ban of the player by SourceBans.
- * 
+ *
  * @param iTimer		Timer index.
  * @param iClient		Client index.
  * @return				Stop the timer.
@@ -135,16 +134,16 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 public Action Timer_RageQuit(Handle iTimer, DataPack hPack)
 {
 	hPack.Reset();
-	int iID = hPack.ReadCell();
+	int			 iID  = hPack.ReadCell();
 	ForsakenTeam Team = hPack.ReadCell();
 
-	switch(BansAccount(iID, Team, "%BanCode:01%"))
+	switch (BansAccount(iID, Team, "%BanCode:01%"))
 	{
 		case 0: CreateOffLineBan(iID, Team, g_cvarBanRageQuit.IntValue, "%t", "BanReasonRQ");
 		case 1: CreateOffLineBan(iID, Team, g_cvarBanRageQuitx2.IntValue, "%t", "BanReasonRQ");
 		default: CreateOffLineBan(iID, Team, g_cvarBanRageQuitx3.IntValue, "%t", "BanReasonRQ");
 	}
-	
+
 	ForceEndGame(ragequit);
 	return Plugin_Stop;
 }

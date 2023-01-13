@@ -25,6 +25,14 @@
     {
         "en"        "Type Lobby: {olive}%s{default}."
     }
+    "TeamA"
+    {
+        "en"        "{blue}Team A{default}:\n"
+    }
+    "TeamB"
+    {
+        "en"        "{red}Team B{default}:\n"
+    }
     "InvalidTeam"
     {
         "en"        "Invalid team."
@@ -100,13 +108,13 @@
     {
         "en"        "{red}Not all players{default} are connected."
     }
-    "WaitingSurvivors"
+    "WaitingTeamA"
     {
-        "en"        "Waiting for {blue}survivors{default}"
+        "en"        "Waiting for {blue}Team A{default}:\n"
     }
-    "WaitingInfected"
+    "WaitingTeamB"
     {
-        "en"        "Waiting for {red}infected{default}"
+        "en"        "Waiting for {red}Team B{default}:\n"
     }
     "BanDesertion"
     {

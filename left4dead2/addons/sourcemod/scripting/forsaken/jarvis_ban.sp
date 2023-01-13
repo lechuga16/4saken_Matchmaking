@@ -151,7 +151,7 @@ public SMCResult ReadConfig_KeyValue(SMCParser smc, const char[] key, const char
  *
  * @return				True on success, false otherwise
  */
-public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason, any ...)
+public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason, any...)
 {
 	// server information
 	char
@@ -261,14 +261,14 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 {
 	if (dataPack == INVALID_HANDLE)
 	{
-		CPrintToChatAll("%s %T", "Tag", "BanFail", LANG_SERVER, error);
+		CPrintToChatAll("%t %T", "Tag", "BanFail", LANG_SERVER, error);
 		fkn_log("Failed to ban player: %s", error);
 		return;
 	}
 
 	if (results == null)
 	{
-		CPrintToChatAll("%s %T", "Tag", "BanFailQuery", LANG_SERVER, error);
+		CPrintToChatAll("%t %T", "Tag", "BanFailQuery", LANG_SERVER, error);
 		fkn_log("Verify Insert Query Failed: %s", error);
 		return;
 	}
@@ -307,18 +307,19 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 		sQuery[256],
 		error[255];
 
-	int 
+	int
 		iBans,
 		iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
 
-	Format(sQuery, sizeof(sQuery), 
-		"SELECT COUNT(*) \
+	Format(sQuery, sizeof(sQuery),
+		   "SELECT COUNT(*) \
 		FROM `sb_bans` \
 		WHERE `authid` LIKE '%s' \
 			AND `reason` LIKE '%s' \
 			AND `created` > '%d' \
 		GROUP BY `authid` \
-		HAVING COUNT(*) > '1'", sSteamID2, sBanCode, iTimeLimit);
+		HAVING COUNT(*) > '1';",
+		   sSteamID2, sBanCode, iTimeLimit);
 
 	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
 	{
@@ -333,8 +334,8 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 		iBans = rsSourceBans.FetchInt(0);
 	}
 
-	if(g_cvarDebug.BoolValue)
-		fkn_log("Query: %s", sQuery);	
+	if (g_cvarDebug.BoolValue)
+		fkn_log("Query: %s", sQuery);
 
 	return iBans;
 }

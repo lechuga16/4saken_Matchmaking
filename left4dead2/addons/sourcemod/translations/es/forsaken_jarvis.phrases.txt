@@ -21,6 +21,14 @@
     {
         "es"        "Tipo de Lobby: {olive}%s{default}."
     }
+    "TeamA"
+    {
+        "es"        "{blue}Equipo A{default}:\n"
+    }
+    "TeamB"
+    {
+        "es"        "{red}Equipo B{default}:\n"
+    }
     "InvalidTeam"
     {
         "es"        "Equipo inválido."
@@ -96,13 +104,13 @@
     {
         "es"        "{red}No todos los jugadores{default} están conectados."
     }
-    "WaitingSurvivors"
+    "WaitingTeamA"
     {
-        "es"        "Esperando {blue}supervivientes{default}"
+        "es"        "Esperando el{blue}Equipo A{default}:\n"
     }
-    "WaitingInfected"
+    "WaitingTeamB"
     {
-        "es"        "Esperando {red}infectados{default}"
+        "es"        "Esperando el {red}Equipo B{default}:\n"
     }
     "BanDesertion"
     {

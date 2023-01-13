@@ -4,9 +4,17 @@
 	{
 		"es"		"{olive}Clasificación{default}:{green}%.2f{default} {olive}Desviación{default}:{green}%.2f{default}"
 	}
+	"NoMMR"
+	{
+		"es"		"{lightgreen}Estas en evaluacion{default}, debes jugar mas capitulos ({green}%d{default}/{green}%d{default})."
+	}
 	"Stats"
 	{
 		"es"		"({blue}%s{default}:{blue}%s{default})\nClasificación:{green}%.2f{default} Desviación:{green}%.2f{default} Bonificación:{green}%.2f{default} Victorias:{green}%d{default}"
+	}
+	"NoBonus"
+	{
+		"es"		"La bonificación {red}no esta disponible{default} mientras estás en {olive}evaluacion{default}."
 	}
 	"BonusMVP"
 	{
@@ -22,10 +30,10 @@
 	}
 	"FinalScoreEvaluation"
 	{
-		"en"		"Estás en el período de evaluación, te faltan %d juegos para obtener tu calificación."
+		"en"		"{lightgreen}Estás en el período de evaluación{default}, te faltan {green}%d{default} capitulos para obtener tu {olive}calificación{default}."
 	}
 	"Round"
 	{
-		"es"		"{olive}Ronda 1{default}: {green}%d{default} | {olive}Ronda 2{default}: {green}%d{default}"
+		"es"		"{lightgreen}Ronda 1{default}: {green}%d{default} | {lightgreen}Ronda 2{default}: {green}%d{default}"
 	}
 }

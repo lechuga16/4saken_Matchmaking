@@ -32,4 +32,8 @@
 	{
 		"en"		"The match has ended, {blue}loading the data{default}..."
 	}
+	"CancelMatch"
+	{
+		"en"		"The match (ID:{green}%d{default}) was canceled due to {blue}%N{default}."
+	}
 }

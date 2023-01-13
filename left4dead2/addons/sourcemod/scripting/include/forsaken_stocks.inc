@@ -37,10 +37,28 @@
 #define MAX_INDEX_PLAYER   3
 #define CONSOLE			   0
 #define UNIXTIME_4WEEKS	   2419200
+#define EVALUATION_PERIOD 8
 
 // ==================================================
 // ENUMS
 // ==================================================
+
+/**
+ * Player profile.
+ *
+ */
+enum struct PlayerInfo
+{
+	int	  client;						 // client index
+	char  steamid[MAX_AUTHID_LENGTH];	 // Player SteamID
+	char  name[MAX_NAME_LENGTH];		 // Player name
+	float rating;						 // Glicko Score
+	float deviation;					 // Glicko deviation
+	float skill;						 // Bonus deviation
+	int	  gamesplayed;					 // Number of games played
+	int	  lastgame;						 // Last Score Update
+	int	  wins;							 // Number of games won
+}
 
 /**
  * Types of match.
@@ -72,13 +90,15 @@ enum ForsakenTeam
 /**
  * Types of game cancellation
  */
-enum CancelMatch
+enum MatchClosing
 {
-	unknown			 = 0,
+	endgame			 = 0,
 	ragequit		 = 1,
 	desertion		 = 2,
+	admin			 = 3,
+	unknown			 = 4,
 
-	CancelMatch_Size = 3
+	MatchClosing_Size = 5
 };
 
 /**
@@ -160,10 +180,12 @@ stock const char sForsakenTeam[ForsakenTeam_Size][] = {
 /**
  * Array that names the cancel match types.
  */
-stock const char sCancelMatch[CancelMatch_Size][] = {
-	"Unknown",
-	"Ragequit",
-	"Desertion"
+stock const char sMatchClosing[MatchClosing_Size][] = {
+	"EndGame",
+	"RageQuit",
+	"Desertion",
+	"Admin",
+	"Unknown"
 };
 
 stock const char sTypeBans[Bancode_Size][] = {
@@ -286,7 +308,7 @@ stock void LoadTranslation(const char[] translation)
  */
 stock bool InSecondHalfOfRound()
 {
-	return view_as<bool>(GameRules_GetProp("m_bInSecondHalfOfRound"));
+	return GameRules_GetProp("m_bInSecondHalfOfRound") ? true : false;
 }
 
 /**
@@ -411,4 +433,14 @@ stock int GetApplicableClients(int Admin, const char[] TargettedString, int Filt
 stock bool IsGameCompetitive(TypeMatch Match)
 {
 	return (Match == scrims || Match == veteran || Match == adept || Match == scout);
+}
+
+stock bool AreTeamsFlipped()
+{
+	return GameRules_GetProp("m_bAreTeamsFlipped") ? true : false;
+}
+
+stock int LogicTeamsFlipped()
+{
+	return GameRules_GetProp("m_bAreTeamsFlipped") ? 2 : 1;
 }

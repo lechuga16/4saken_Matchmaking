@@ -46,16 +46,6 @@ enum struct PlayerRageQuit
 	Handle timer;						  // Timer to check if the player has ragequitting.
 }
 
-/**
- * Basic structure of a player.
- */
-enum struct PlayerInfo
-{
-	int	 client;						// Client id
-	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
-	char name[MAX_NAME_LENGTH];			// Player name
-}
-
 State		   ConfigState;
 SMCParser	   ConfigParser;
 TypeMatch	   g_TypeMatch;
@@ -67,6 +57,7 @@ ConVar
 	g_cvarEnable,
 	g_cvarConfigCfg,
 	g_cvarPlayersToStart,
+	g_cvarChangeMap,
 
 	g_cvarTimerRageQuit,
 	g_cvarBanRageQuit,
@@ -87,19 +78,19 @@ ConVar
 	survivor_limit,
 	z_max_player_zombies;
 
-char	 g_sMapName[32];
-bool	 
-	g_bPreMatch = true,
-	g_bStartMatch = true;
+char g_sMapName[32];
+bool
+	g_bPreMatch			= true,
+	g_bStartMatch		= true;
 
 Database g_DBSourceBans = null;
 
 Handle
-	g_hTimerManager = null,
-	g_hTimerWait 	= null,
+	g_hTimerManager		  = null,
+	g_hTimerWait		  = null,
 	g_hTimerWaitAnnouncer = null,
-	g_hTimerCheckList = null,
-	g_hTimerWaitReadyup = null;
+	g_hTimerCheckList	  = null,
+	g_hTimerWaitReadyup	  = null;
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
@@ -150,7 +141,8 @@ public void
 	g_cvarDebug				= CreateConVar("sm_jarvis_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarEnable			= CreateConVar("sm_jarvis_enable", "1", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarConfigCfg			= CreateConVar("sm_jarvis_configcfg", "zonemod", "The config file to load", FCVAR_NONE);
-	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "2", "The minimum players to start the match", FCVAR_NONE, true, 2.0);
+	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "2", "The minimum players to start the match", FCVAR_NONE, true, 1.0);
+	g_cvarChangeMap			= CreateConVar("sm_jarvis_changemap", "1", "Change the map when it is verified that it does not correspond to the match", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	g_cvarTimerRageQuit		= CreateConVar("sm_jarvis_timeragequit", "300.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
 	g_cvarBanRageQuit		= CreateConVar("sm_jarvis_banragequit", "2880", "The time to ban the player (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0);
@@ -169,8 +161,8 @@ public void
 	g_cvarBanReadyupx3		= CreateConVar("sm_jarvis_banreadyupx3", "480", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time for the third time", FCVAR_NONE, true, 0.0);
 
 	RegConsoleCmd("sm_jarvis_listplayers", Cmd_ListPlayers, "Print the forsaken player list");
-	RegConsoleCmd("sm_jarvis_info", Cmd_MatchInfo, "Displays the cfg and map that will be used..");
-	RegConsoleCmd("sm_jarvis_clientid", Cmd_ClientID);
+	RegConsoleCmd("sm_jarvis_info", Cmd_MatchInfo, "Displays the cfg and map that will be used.");
+	RegConsoleCmd("sm_jarvis_clientid", Cmd_ClientID, "Print the client id of the player");
 
 	RegAdminCmd("sm_jarvis_killtimer", Cmd_KillTimer, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
 	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
@@ -205,6 +197,19 @@ public void OnMapEnd()
 		return;
 
 	KillTimerManager();
+}
+
+public void OnReadyUpInitiate()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	WaitingPlayers();
+	OrganizeTeams();
+	CheckCFG();
+
+	KillTimerWaitReadyup();
+	g_hTimerWaitReadyup = CreateTimer(g_cvarReadyupWait.FloatValue, Timer_ReadyUpWait);
 }
 
 public void OnRoundIsLive()
@@ -247,19 +252,6 @@ public void VerifyPlayers(int iClient, const char[] sAuth)
 	}
 }
 
-public void OnReadyUpInitiate()
-{
-	if (!g_cvarEnable.BoolValue)
-		return;
-
-	WaitingPlayers();
-	OrganizeTeams();
-	CheckCFG();
-
-	KillTimerWaitReadyup();
-	g_hTimerWaitReadyup = CreateTimer(g_cvarReadyupWait.FloatValue, Timer_ReadyUpWait);
-}
-
 public Action Timer_ReadyUpWait(Handle timer)
 {
 	bool IsBanned = false;
@@ -274,13 +266,13 @@ public Action Timer_ReadyUpWait(Handle timer)
 
 		if (iClientTA != CONSOLE && !IsReady(iClientTA))
 		{
-			switch(BansAccount(iID, TeamA, "%BanCode:03%"))
+			switch (BansAccount(iID, TeamA, "%BanCode:03%"))
 			{
 				case 0: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyup.IntValue, sReason);
 				case 1: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx2.IntValue, sReason);
 				default: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx3.IntValue, sReason);
 			}
-			
+
 			if (g_cvarDebug.BoolValue)
 				fkn_log("Player not Ready: Client: %N | TeamA | Ban: %d", iClientTA, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
@@ -288,7 +280,7 @@ public Action Timer_ReadyUpWait(Handle timer)
 		}
 		else if (iClientTB != CONSOLE && !IsReady(iClientTB))
 		{
-			switch(BansAccount(iID, TeamB, "%BanCode:03%"))
+			switch (BansAccount(iID, TeamB, "%BanCode:03%"))
 			{
 				case 0: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyup.IntValue, sReason);
 				case 1: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyupx2.IntValue, sReason);
@@ -358,10 +350,10 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 		sPrintBufferTA[1024],
 		sPrintBufferTB[1024];
 
-	Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%t {blue}Supervivientes{default}:\n", "Tag");
+	Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%t %t", "Tag", "TeamA");
 	StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
-	Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%t {red}Infectados{default}:\n", "Tag");
+	Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%t %t", "Tag", "TeamB");
 	StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
 	for (int iID = 0; iID <= 3; iID++)
@@ -513,7 +505,7 @@ any Native_ForsakenBan(Handle plugin, int numParams)
  */
 public void CheckCFG()
 {
-	if (!IsGameCompetitive(g_TypeMatch))
+	if (!IsGameCompetitive(g_TypeMatch) || !L4D_IsFirstMapInScenario())
 		return;
 
 	CreateTimer(40.0, Timer_ReadCFG);
@@ -560,8 +552,20 @@ public Action Timer_ReadCFG(Handle hTimer)
 		CreateTimer(5.0, Timer_ForceMatch);
 	}
 
+	if (!g_cvarChangeMap.BoolValue)
+	{
+		if (IsInReady())
+		{
+			KillTimerWaitPlayers();
+			KillTimerWaitPlayersAnnouncer();
+			KillTimerCheckPlayers();
+			KillTimerWaitReadyup();
+		}
+		return Plugin_Stop;
+	}
+
 	GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
-	if(StrEqual(g_sMapName, sCurrentMap, false))
+	if (StrEqual(g_sMapName, sCurrentMap, false))
 	{
 		if (g_cvarDebug.BoolValue)
 		{
@@ -574,14 +578,18 @@ public Action Timer_ReadCFG(Handle hTimer)
 		CPrintToChatAll("%t %t", "Tag", "MapChange", g_sMapName, sCurrentMap);
 		fkn_log("The current map (%s) does not correspond to %s", g_sMapName, sCurrentMap);
 
+		if (IsInReady())
+		{
+			KillTimerWaitPlayers();
+			KillTimerWaitPlayersAnnouncer();
+			KillTimerCheckPlayers();
+			KillTimerWaitReadyup();
+		}
+
 		KillTimerManager();
-		KillTimerWaitPlayers();
-		KillTimerWaitPlayersAnnouncer();
-		KillTimerCheckPlayers();
-		KillTimerWaitReadyup();
 		ServerCommand("changelevel %s", g_sMapName);
 	}
-	
+
 	return Plugin_Stop;
 }
 

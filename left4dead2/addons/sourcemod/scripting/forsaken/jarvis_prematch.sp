@@ -53,11 +53,11 @@ public Action Timer_GetMatchData(Handle timer)
  */
 public void StartMatch()
 {
-	if (LGO_IsMatchModeLoaded()	&& !g_bStartMatch)
+	if (LGO_IsMatchModeLoaded() && !g_bStartMatch)
 		return;
 
 	g_bStartMatch = !g_bStartMatch;
-	
+
 	char sCfgConvar[32];
 	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	int iHumanCount = GetHumanCount();

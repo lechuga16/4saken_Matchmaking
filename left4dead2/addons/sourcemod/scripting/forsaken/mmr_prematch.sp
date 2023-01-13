@@ -50,29 +50,26 @@ public void DBInfoPlayers(int Index, ForsakenTeam Team)
 	}
 
 	DBResultSet DBResul;
-	char sQuery[512];
+	char		sQuery[512];
 
-	Format(sQuery, sizeof(sQuery), 
-	"SELECT `m`.`Rating`,\
+	Format(sQuery, sizeof(sQuery),
+		   "SELECT `m`.`Rating`,\
 			`m`.`Deviation`,\
 			`m`.`GamesPlayed`,\
 			`m`.`LastGame`,\
 			`m`.`Wins` \
-		FROM\
-			`users_general` AS `g`\
-		INNER JOIN `users_mmr` AS `m`\
-		ON\
-			`g`.`MMRID` = `m`.`MMRID`\
-		WHERE\
-			`g`.`SteamID64` LIKE '%s'", 
-	g_Players[Team][Index].steamid);
+	FROM `users_general` AS `g`\
+	INNER JOIN `users_mmr` AS `m`\
+	ON `g`.`MMRID` = `m`.`MMRID`\
+	WHERE `g`.`SteamID64` LIKE '%s'",
+		   g_Players[Team][Index].steamid);
 
 	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
 	{
 		char error[512];
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
-		fkn_log("Error: %s",error);
-		fkn_log("Query: %s",sQuery);
+		fkn_log("Error: %s", error);
+		fkn_log("Query: %s", sQuery);
 		return;
 	}
 

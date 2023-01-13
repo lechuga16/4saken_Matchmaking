@@ -15,7 +15,7 @@
  */
 public void OrganizeTeams()
 {
-	if (!IsGameCompetitive(g_TypeMatch))
+	if (!IsGameCompetitive(g_TypeMatch) || InSecondHalfOfRound())
 		return;
 
 	CreateTimer(10.0, Timer_PreventKillBot);
@@ -31,7 +31,7 @@ public void OrganizeTeams()
 public Action Timer_PreventKillBot(Handle hTimer)
 {
 	KillTimerManager();
-	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _ ,TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Stop;
 }
 

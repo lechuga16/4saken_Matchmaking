@@ -28,4 +28,8 @@
 	{
 		"es"		"El partido ha finalizado, {blue}cargando los datos{default}..."
 	}
+	"CancelMatch"
+	{
+		"es"		"El partido (ID:{green}%d{default}) ha sido cancelado por {blue}%N{default}."
+	}
 }

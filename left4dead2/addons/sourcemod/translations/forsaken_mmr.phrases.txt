@@ -8,9 +8,17 @@
 	{
 		"en"		"{olive}Rating{default}:{green}%.2f{default} {olive}RD{default}:{green}%.2f{default}"
 	}
+	"NoMMR"
+	{
+		"en"		"{lightgreen}You are in evaluation{default}, you must play more chapters ({green}%d{default}/{green}%d{default})."
+	}
 	"Stats"
 	{
 		"en"		"({blue}%s{default}:{blue}%s{default})\nRating:{green}%.2f{default} RD:{green}%.2f{default} Bonus:{green}%.2f{default} Win:{green}%d{default}"
+	}
+	"NoBonus"
+	{
+		"es"		"The bonus is {red}not available{default} while you are in {olive}evaluation{default}."
 	}
 	"BonusMVP"
 	{
@@ -26,10 +34,10 @@
 	}
 	"FinalScoreEvaluation"
 	{
-		"en"		"You are in the evaluation period, you are missing %d games to get your rating."
+		"en"		"{lightgreen}You are in the evaluation period{default}, you are missing {green}%d{default} chapters to get your {olive}Rating{default}."
 	}
 	"Round"
 	{
-		"es"		"{olive}Round 1{default}: {green}%d{default} | {olive}Round 2{default}: {green}%d{default}"
+		"es"		"{lightgreen}Round 1{default}: {green}%d{default} | {lightgreen}Round 2{default}: {green}%d{default}"
 	}
 }

@@ -43,7 +43,7 @@ native bool IsEndGame();
  * 
  * @noreturn
  */
-native void ForceEndGame(CancelMatch unknown);
+native void ForceEndGame(MatchClosing hMatchClosing);
 
 public SharedPlugin __pl_forsaken_endgame =
 {

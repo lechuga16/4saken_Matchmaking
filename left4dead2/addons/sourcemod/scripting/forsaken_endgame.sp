@@ -33,8 +33,9 @@ GlobalForward
 Database
 	g_dbForsaken;
 
-CancelMatch
-	g_CancelMatch;
+int
+	g_iTeamScore[ForsakenTeam],	   // Team score
+	g_iScore_Round1;			   // Team score
 
 /*****************************************************************
 			P L U G I N   I N F O
@@ -71,14 +72,15 @@ public APLRes
 public void OnPluginStart()
 {
 	LoadTranslation("forsaken_endgame.phrases");
-
+	LoadTranslation("forsaken_mmr.phrases");
 	HookEvent("round_end", Event_RoundEnd);
 
 	CreateConVar("sm_endgame_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
 	g_cvarDebug	   = CreateConVar("sm_endgame_debug", "0", "Debug messagess", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	g_cvarEnable   = CreateConVar("sm_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY , true, 0.0, true, 1.0);
+	g_cvarEnable   = CreateConVar("sm_endgame_enable", "1", "Was the end of the game before the last map", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarTimeKick = CreateConVar("sm_endgame_timekick", "10.0", "Set counter before kicking players", FCVAR_NOTIFY, true, 0.0, true, 10.0);
 
+	RegConsoleCmd("sm_endgame_score", Cmd_Score, "Print chapter score");
 	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_GENERIC);
 	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_GENERIC);
 	RegAdminCmd("sm_endgame_cancel", Cmd_Cancel, ADMFLAG_GENERIC);
@@ -89,11 +91,9 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
-	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
-		return;
-
-	if (!g_bRound_End)
-		g_bRound_End = !g_bRound_End;
+	g_iScore_Round1		= 0;
+	g_iTeamScore[TeamA] = 0;
+	g_iTeamScore[TeamB] = 0;
 }
 
 public void OnRoundLiveCountdown()
@@ -120,6 +120,9 @@ public void OnRoundIsLive()
 		return;
 
 	g_bAnnounce = true;
+
+	if (!g_bRound_End)
+		g_bRound_End = !g_bRound_End;
 }
 
 public Action Cmd_CheckMap(int iClient, int iArgs)
@@ -171,8 +174,36 @@ public Action Cmd_Cancel(int iClient, int iArgs)
 		return Plugin_Continue;
 	}
 
-	ForceEndGame(unknown);
+	if (iClient == CONSOLE)
+	{
+		CReplyToCommand(iClient, "This command cannot be used from the console.");
+		return Plugin_Continue;
+	}
+
+	int QueueID = fkn_QueueID();
+	CReplyToCommand(iClient, "%t %t", "Tag", "CancelMatch", QueueID, iClient);
+	fkn_log("The match (ID:%d) was canceled due to %N.", QueueID, iClient);
+	ChapterPoints(admin);
+	StartEndGame();
+
 	return Plugin_Continue;
+}
+
+public Action Cmd_Score(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_endgame_score");
+		return Plugin_Handled;
+	}
+
+	if (!InSecondHalfOfRound())
+		CReplyToCommand(iClient, "{lightgreen}Ronda 1{default}: {green}%d{default}", L4D_GetTeamScore(LogicTeamsFlipped()));
+	else
+		CReplyToCommand(iClient, "{lightgreen}Ronda 1{default}: {green}%d{default} | {lightgreen}Ronda 2{default}: {green}%d{default}", g_iScore_Round1, L4D_GetTeamScore(LogicTeamsFlipped()));
+
+	CReplyToCommand(iClient, "{lightgreen}TeamA{default}: {green}%d{default} |{lightgreen}TeamB{default}: {green}%d{default}", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+	return Plugin_Handled;
 }
 
 /*****************************************************************
@@ -197,18 +228,15 @@ public int Native_IsEndGame(Handle plugin, int numParams)
  */
 any Native_ForceEndGame(Handle plugin, int numParams)
 {
-	g_CancelMatch = view_as<CancelMatch>(GetNativeCell(1));
+	MatchClosing hMatchClosing = view_as<MatchClosing>(GetNativeCell(1));
 
 	if (!g_bNativeAvailable)
 	{
 		ThrowNativeError(SP_ERROR_NATIVE, "Endgame has already been forced");
-		fkn_log("The attempt to force the game to close was rejected due to the timeout, Reason: %s", sCancelMatch[g_CancelMatch]);
+		fkn_log("The attempt to force the game to close was rejected due to the timeout, Reason: %s", sMatchClosing[hMatchClosing]);
 		CreateTimer(10.0, Timer_NativeAvailable);
 		return 0;
 	}
-	
-	if(!IsInReady() && InSecondHalfOfRound())
-		ChapterPoints();
 
 	StartEndGame();
 	return 0;
@@ -223,7 +251,6 @@ any Native_ForceEndGame(Handle plugin, int numParams)
 public Action Timer_NativeAvailable(Handle timer)
 {
 	g_bNativeAvailable = true;
-	g_CancelMatch	   = unknown;
 	return Plugin_Stop;
 }
 
@@ -232,23 +259,23 @@ public Action Timer_NativeAvailable(Handle timer)
 ****************************************************************/
 public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 {
-	if(!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded() || !g_bRound_End)
+	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded() || !g_bRound_End)
 		return;
 
 	g_bRound_End = !g_bRound_End;
 
-	if (g_cvarDebug.BoolValue)
-		CPrintToChatAll("%t EndGame: {olive}%s{default}", "Tag", g_bIsEndGame ? "True" : "False");
+	ScoreTeams();
+	ScoreLogicTeams();
 
-	if (InSecondHalfOfRound())
-	{
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t ChapterPoints", "Tag");
-		ChapterPoints();
+	if (!InSecondHalfOfRound())
+		return;
 
-		if (g_bIsEndGame)
-			StartEndGame(true);
-	}
+	ChapterPoints(endgame);
+
+	if (!g_bIsEndGame)
+		return;
+
+	StartEndGame();
 }
 
 /*****************************************************************
@@ -276,31 +303,23 @@ public void DatabaseConnect()
 }
 
 /**
- * @brief Force game over by loading current player and server information.
- * 		After that, the server is restarted.
+ * @brief Clears the reservation from the database, kicks the players, and restarts the server.
  *
- *  @return bool    True if the game over was forced, False if not.
- *
+ * @noreturn
  */
-bool StartEndGame(bool iscallback = false)
+bool StartEndGame()
 {
 	Call_StartForward(g_gfEndGame);
 	if (Call_Finish() != 0)
 		fkn_log("ForceEndGame: error in forward Call_Finish");
 
 	char sQuery[256];
-	Format(sQuery, sizeof(sQuery), 
-		"UPDATE \
-			`l4d2_queue_game` \
-		SET \
-			`status` = 0 \
-		WHERE \
-			`ip` = '%s:%d' \
-		ORDER BY \
-			`queueid` \
-		DESC \
-		LIMIT 1;", 
-		fkn_GetIP(), FindConVar("hostport").IntValue);
+	Format(sQuery, sizeof(sQuery),
+		   "UPDATE `l4d2_queue_game` \
+			SET `status` = 0 \
+			WHERE `ip` = '%s:%d' \
+			ORDER BY `queueid` \
+			DESC LIMIT 1;", fkn_GetIP(), FindConVar("hostport").IntValue);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{
@@ -308,11 +327,10 @@ bool StartEndGame(bool iscallback = false)
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
 
 		fkn_log("Failed to query (error: %s)", error);
+		fkn_log("Query: %s", sQuery);
 		CPrintToChatAll("%t %t", "Tag", "FailEndedReserved");
 
-		if (iscallback)
-			CreateTimer(g_cvarTimeKick.FloatValue, KickAll);
-
+		CreateTimer(g_cvarTimeKick.FloatValue, KickAll);
 		return false;
 	}
 	else
@@ -349,44 +367,26 @@ public bool CurrentMapEndGame()
 	return false;
 }
 
-public void ChapterPoints()
+/**
+ * @brief Upload game points to database
+ *
+ * @param hMatchClosing  Reason for the end of the game
+ * @noreturn
+ * @error               If the query failed.
+ */
+public void ChapterPoints(MatchClosing hMatchClosing)
 {
-	TypeMatch Match = fkn_TypeMatch();
-
-	if (Match == unranked || Match == invalid)
-		return;
-
-	int
-		iSurvivorTeamIndex,
-		iInfectedTeamIndex,
-		iPointsTeamA,
-		iPointsTeamB,
-		iQueueID;
-
 	char
 		sMapName[32],
 		sQuery[256];
 
 	GetCurrentMap(sMapName, sizeof(sMapName));
 
-	iSurvivorTeamIndex = L4D2_AreTeamsFlipped();
-	iInfectedTeamIndex = !L4D2_AreTeamsFlipped();
-
-	iPointsTeamA	   = L4D2Direct_GetVSCampaignScore(iSurvivorTeamIndex);
-	iPointsTeamB	   = L4D2Direct_GetVSCampaignScore(iInfectedTeamIndex);
-
-	iQueueID = fkn_QueueID();
-
-	Format(sQuery, sizeof(sQuery), 
-	"INSERT INTO `queue_result` \
-	(	QueueID, \
-		MapCode, \
-		TeamsFlipped, \
-		PointsTeamA, \
-		PointsTeamB,\
-		GameCanceled) \
-	VALUES('%d', '%s', '%d', '%d', '%d', '%s');",
-		   iQueueID, sMapName, iInfectedTeamIndex, iPointsTeamA, iPointsTeamB, sCancelMatch[g_CancelMatch]);
+	Format(sQuery, sizeof(sQuery),
+			"INSERT INTO `queue_result` \
+			(QueueID, MapCode, PointsTeamA, PointsTeamB, GameCanceled) \
+			VALUES('%d', '%s', '%d', '%d', '%s');",
+			fkn_QueueID(), sMapName, g_iTeamScore[TeamA], g_iTeamScore[TeamB], sMatchClosing[hMatchClosing]);
 
 	if (!SQL_FastQuery(g_dbForsaken, sQuery))
 	{
@@ -394,8 +394,12 @@ public void ChapterPoints()
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
 
 		fkn_log("Failed to query (error: %s)", error);
+		fkn_log("Query: %s", sQuery);
 		CPrintToChatAll("%t %t", "Tag", "FailEndedPoints");
 	}
+
+	if (g_cvarDebug.BoolValue)
+		fkn_log("Query:%s", sQuery);
 }
 
 /**
@@ -406,6 +410,37 @@ public void ChapterPoints()
 public Action KickAll(Handle timer)
 {
 	ServerCommand("sm_kick @all %t", "KickAll");
-	ServerCommand("_restart");
+	// ServerCommand("_restart");
 	return Plugin_Stop;
+}
+
+/**
+ * @brief Save the score of the current round.
+ *
+ * @noreturn
+ */
+public void ScoreLogicTeams()
+{
+	if (!InSecondHalfOfRound())	   // Firs Half of Round
+	{
+		if (!AreTeamsFlipped())	   // Teams are not flipped
+			g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
+		else
+			g_iTeamScore[TeamB] = L4D_GetTeamScore(2);
+	}
+	else	// Second Half of Round
+	{
+		if (AreTeamsFlipped())	  // Teams are flipped
+			g_iTeamScore[TeamB] = L4D_GetTeamScore(2);
+		else
+			g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
+	}
+
+	CPrintToChatAll("%t %t", "Tag", "Round", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+}
+
+public void ScoreTeams()
+{
+	if (!InSecondHalfOfRound())
+		g_iScore_Round1 = L4D_GetTeamScore(LogicTeamsFlipped());
 }

@@ -3,52 +3,52 @@
 #endif
 #define _mmr_pug_included
 
-#define CONSTANT_SCORE 4.0	   // 4.0 players
+#define CONSTANT_SCORE 4.0	  // 4.0 players
 public void RoundEnd_Pugs()
 {
-	if (g_iTeamScore[L4DTeam_Survivor] > g_iTeamScore[L4DTeam_Infected])
+	if (g_iTeamScore[TeamA] > g_iTeamScore[TeamB])
 	{
-		if (L4D2_AreTeamsFlipped())
+		if (AreTeamsFlipped())
 		{
-			if(g_cvarDebug.BoolValue)
-				fkn_log("TeamA Win, TA:%d TB:%d", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
+			if (g_cvarDebug.BoolValue)
+				fkn_log("TeamA Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
 			ProcessMMR(TeamA, Result_Win);
 			ProcessMMR(TeamB, Result_Loss);
 		}
 		else
 		{
-			if(g_cvarDebug.BoolValue)
-				fkn_log("TeamB Win, TA:%d TB:%d", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
+			if (g_cvarDebug.BoolValue)
+				fkn_log("TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
 			ProcessMMR(TeamA, Result_Loss);
 			ProcessMMR(TeamB, Result_Win);
 		}
 	}
-	else if (g_iTeamScore[L4DTeam_Survivor] < g_iTeamScore[L4DTeam_Infected])
+	else if (g_iTeamScore[TeamA] < g_iTeamScore[TeamB])
 	{
-		if (L4D2_AreTeamsFlipped())
+		if (AreTeamsFlipped())
 		{
-			if(g_cvarDebug.BoolValue)
-				fkn_log("TeamA Loss, TA:%d TB:%d", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
+			if (g_cvarDebug.BoolValue)
+				fkn_log("TeamA Loss, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
 			ProcessMMR(TeamA, Result_Loss);
 			ProcessMMR(TeamB, Result_Win);
 		}
 		else
 		{
-			if(g_cvarDebug.BoolValue)
-				fkn_log("TeamB Win, TA:%d TB:%d", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
+			if (g_cvarDebug.BoolValue)
+				fkn_log("TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
 			ProcessMMR(TeamA, Result_Win);
 			ProcessMMR(TeamB, Result_Loss);
 		}
 	}
-	else if (g_iTeamScore[L4DTeam_Survivor] == g_iTeamScore[L4DTeam_Infected])
+	else if (g_iTeamScore[TeamA] == g_iTeamScore[TeamB])
 	{
-		if(g_cvarDebug.BoolValue)
-			fkn_log("Team Draw, TA:%d TB:%d", g_iTeamScore[L4DTeam_Survivor], g_iTeamScore[L4DTeam_Infected]);
+		if (g_cvarDebug.BoolValue)
+			fkn_log("Team Draw, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
 		ProcessMMR(TeamA, Result_Draw);
 		ProcessMMR(TeamB, Result_Draw);
 	}
-	g_iTeamScore[L4DTeam_Survivor] = 0;
-	g_iTeamScore[L4DTeam_Infected] = 0;
+	g_iTeamScore[TeamA] = 0;
+	g_iTeamScore[TeamB] = 0;
 }
 
 public void ProcessMMR(ForsakenTeam team, MatchResults Result)
@@ -94,29 +94,27 @@ public void ProcessMMR(ForsakenTeam team, MatchResults Result)
 
 		int iGamesPlayed = g_Players[team][iID].gamesplayed++;
 
-		if(EVALUATION_PERIOD < iGamesPlayed)
+		if (EVALUATION_PERIOD < iGamesPlayed)
 			g_Players[team][iID].deviation += fFinalRD;
 		g_Players[team][iID].rating += fFinalRating;
 
-		if(EVALUATION_PERIOD < iGamesPlayed)
-			CPrintToChat(iClient, "%t %t", "Tag", "FinalScorePersonal", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+		if (EVALUATION_PERIOD < iGamesPlayed)
+			CPrintToChat(iClient, "%t %t", "Tag", "FinalScorePersonal", g_Players[team][iID].rating, g_Players[team][iID].deviation);
 		else
-			CPrintToChat(iClient, "%t %t", "Tag", "FinalScoreEvaluation", iGamesPlayed);
+			CPrintToChat(iClient, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - iGamesPlayed));
 
 		char sQuery[512];
 		Format(sQuery, sizeof(sQuery),
-			   "UPDATE `users_mmr` AS m \
-			INNER JOIN `users_general` AS g \
-			ON \
-				`g`.`MMRID` = `m`.`MMRID` \
-			SET \
-				`m`.`Rating` = %f, \
-				`m`.`Deviation` = %f, \
-				`m`.`GamesPlayed` = %d, \
-				`m`.`LastGame` = %d, \
-				`m`.`Wins` = %d \
-			WHERE \
-				`g`.`SteamID64` LIKE '%s'",
+				"UPDATE `users_mmr` AS m \
+				INNER JOIN `users_general` AS g \
+				ON `g`.`MMRID` = `m`.`MMRID` \
+				SET \
+					`m`.`Rating` = %f, \
+					`m`.`Deviation` = %f, \
+					`m`.`GamesPlayed` = %d, \
+					`m`.`LastGame` = %d, \
+					`m`.`Wins` = %d \
+				WHERE `g`.`SteamID64` LIKE '%s'",
 			   g_Players[team][iID].rating,
 			   g_Players[team][iID].deviation,
 			   g_Players[team][iID].gamesplayed,
@@ -210,9 +208,16 @@ public void ProcessBonus(ForsakenTeam team)
 			fFinalRD;
 
 		int iClient = g_Players[team][iID].client;
-
+		int iGamesPlayed = g_Players[team][iID].gamesplayed++;
+		
 		if (iClient == CONSOLE)
 			continue;
+
+		if (EVALUATION_PERIOD >= iGamesPlayed)
+		{
+			CPrintToChat(iClient, "%t %t", "Tag", "NoBonus");
+			continue;
+		}
 
 		for (int j = 0; j <= MAX_INDEX_PLAYER; j++)
 		{

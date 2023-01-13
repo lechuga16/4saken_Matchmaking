@@ -60,7 +60,8 @@ public Plugin myinfo =
 
 }
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+public APLRes
+	AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	if (!L4D_IsEngineLeft4Dead2())
 	{
@@ -106,11 +107,11 @@ public void OnClientPutInServer(int iClient)
 	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
 		return;
 
-	if(IsFakeClient(iClient))
+	if (IsFakeClient(iClient))
 		return;
 
 	CreateTimer(5.0, Timer_GetMatch, iClient);
-	if(g_bGetMatch)
+	if (g_bGetMatch)
 	{
 		g_bGetMatch = !g_bGetMatch;
 		GetMatch();
@@ -119,7 +120,7 @@ public void OnClientPutInServer(int iClient)
 
 public Action Timer_GetMatch(Handle timer, int iClient)
 {
-	if(!g_bGetMatch)
+	if (!g_bGetMatch)
 		g_bGetMatch = !g_bGetMatch;
 	return Plugin_Stop;
 }
@@ -149,16 +150,16 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 	CReplyToCommand(iClient, "%s MapName: {green}%s{default}", PREFIX, g_sMapName);
 
 	CReplyToCommand(iClient, "%s TeamA:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
-					PREFIX, g_Players[TeamA][0].name, g_Players[TeamA][0].steamid, 	
-							g_Players[TeamA][1].name, g_Players[TeamA][1].steamid,
-							g_Players[TeamA][2].name, g_Players[TeamA][2].steamid,
-							g_Players[TeamA][3].name, g_Players[TeamA][3].steamid);
+					PREFIX, g_Players[TeamA][0].name, g_Players[TeamA][0].steamid,
+					g_Players[TeamA][1].name, g_Players[TeamA][1].steamid,
+					g_Players[TeamA][2].name, g_Players[TeamA][2].steamid,
+					g_Players[TeamA][3].name, g_Players[TeamA][3].steamid);
 
 	CReplyToCommand(iClient, "%s TeamB:\n({blue}%s{default}:%s) ({blue}%s{default}:%s)\n({blue}%s{default}:%s) ({blue}%s{default}:%s)",
 					PREFIX, g_Players[TeamB][0].name, g_Players[TeamB][0].steamid,
-							g_Players[TeamB][1].name, g_Players[TeamB][1].steamid,
-							g_Players[TeamB][2].name, g_Players[TeamB][2].steamid,
-							g_Players[TeamB][3].name, g_Players[TeamB][3].steamid);
+					g_Players[TeamB][1].name, g_Players[TeamB][1].steamid,
+					g_Players[TeamB][2].name, g_Players[TeamB][2].steamid,
+					g_Players[TeamB][3].name, g_Players[TeamB][3].steamid);
 
 	return Plugin_Handled;
 }

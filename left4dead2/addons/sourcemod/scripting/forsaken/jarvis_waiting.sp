@@ -116,10 +116,10 @@ public void MissingPlayers()
 		printBufferTA[512],
 		printBufferTB[512];
 
-	Format(tmpBufferTA, sizeof(tmpBufferTA), "%t %t:\n{olive}", "Tag", "WaitingSurvivors");
+	Format(tmpBufferTA, sizeof(tmpBufferTA), "%t %t{olive}", "Tag", "WaitingTeamA");
 	StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 
-	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t:\n{olive}", "Tag", "WaitingInfected");
+	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t{olive}", "Tag", "WaitingTeamB");
 	StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
@@ -187,17 +187,17 @@ public void BanDesertionPlayers()
 	{
 		if (!g_RageQuit[TeamA][iID].ispresent)
 		{
-			switch(BansAccount(iID, TeamA, "%BanCode:02%"))
+			switch (BansAccount(iID, TeamA, "%BanCode:02%"))
 			{
 				case 0: CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, "%t", "BanDesertion");
 				case 1: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx2.IntValue, "%t", "BanDesertion");
 				default: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx3.IntValue, "%t", "BanDesertion");
 			}
 		}
-			
+
 		if (!g_RageQuit[TeamB][iID].ispresent)
 		{
-			switch(BansAccount(iID, TeamB, "%BanCode:02%"))
+			switch (BansAccount(iID, TeamB, "%BanCode:02%"))
 			{
 				case 0: CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, "%t", "BanDesertion");
 				case 1: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx2.IntValue, "%t", "BanDesertion");

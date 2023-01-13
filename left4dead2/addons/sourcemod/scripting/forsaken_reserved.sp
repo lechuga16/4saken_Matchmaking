@@ -30,7 +30,6 @@ char
 /*****************************************************************
 			P L U G I N   I N F O
 *****************************************************************/
-
 public Plugin myinfo =
 {
 	name		= "Forsaken Reserved",
@@ -38,6 +37,7 @@ public Plugin myinfo =
 	description = "Functions that help in booking servers for matchmaking",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/lechuga16/4saken_Matchmaking"
+
 
 }
 
@@ -61,7 +61,6 @@ public APLRes
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-
 public void OnPluginStart()
 {
 	LoadTranslation("forsaken_reserved.phrases");
@@ -70,8 +69,8 @@ public void OnPluginStart()
 	g_cvarEnable = CreateConVar("sm_reserved_enable", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_reserved", Cmd_Reserved, "Check if the server is reserved");
 
-	g_iPort		 = FindConVar("hostport").IntValue;
-	g_sIp		 = fkn_GetIP();
+	g_iPort = FindConVar("hostport").IntValue;
+	g_sIp	= fkn_GetIP();
 	AutoExecConfig(true, "forsaken_reserved");
 }
 
@@ -80,7 +79,7 @@ public void OnClientPutInServer(int iClient)
 	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
 		return;
 
-	if(IsFakeClient(iClient))
+	if (IsFakeClient(iClient))
 		return;
 
 	GetReserve(iClient);
@@ -88,7 +87,7 @@ public void OnClientPutInServer(int iClient)
 
 public Action Cmd_Reserved(int iClient, int iArgs)
 {
-	if(iArgs != 0)
+	if (iArgs != 0)
 	{
 		CReplyToCommand(iClient, "Usage: sm_reserved");
 		return Plugin_Handled;
@@ -104,7 +103,7 @@ public Action Cmd_Reserved(int iClient, int iArgs)
 
 /**
  * @brief Create an http request and retrieve if the server is reserved.
- * 
+ *
  * @noreturn
  */
 public void GetReserve(int iClient)
@@ -116,8 +115,8 @@ public void GetReserve(int iClient)
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpReserve, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
 	httpRequest.Timeout = 5;
-	httpRequest.Any = iClient;
-	if(g_cvarDebug.BoolValue)
+	httpRequest.Any		= iClient;
+	if (g_cvarDebug.BoolValue)
 		httpRequest.SetProgressCallback(HttpProgressReserved);
 	httpRequest.GET();
 	delete httpRequest;
@@ -150,7 +149,7 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 
 	g_bReserve = view_as<bool>(StringToInt(sContent, 10));
 
-	if(!g_bReserve)
+	if (!g_bReserve)
 	{
 		if (g_cvarDebug.BoolValue)
 			fkn_log("%N was kicked, server without unreserved.", request.Any);
