@@ -17,7 +17,7 @@
 
 #define PLUGIN_VERSION	"0.1"
 #define MAX_PLAYER_TEAM 4
-#define PREFIX			"[{olive}Forsaken{default}]"
+#define PREFIX			"[{olive}4saken{default}]"
 
 ConVar
 	g_cvarDebug,
@@ -92,6 +92,9 @@ public void OnPluginStart()
 	g_cvarEnable = CreateConVar("sm_fkn_enable", "1", "Activate forsaken", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	RegConsoleCmd("sm_fkn_showip", Cmd_ShowIP, "Get ip and port server");
 	RegAdminCmd("sm_fkn_playersinfo", Cmd_PlayersInfo, ADMFLAG_GENERIC, "Shows the name and SteamID of the players");
+	RegAdminCmd("sm_fkn_downloadCache", Cmd_DownloadCache, ADMFLAG_GENERIC, "Download cache match");
+	RegAdminCmd("sm_fkn_deleteCache", Cmd_DeleteCache, ADMFLAG_GENERIC, "Delete cache match");
+	RegAdminCmd("sm_fkn_updatecache", Cmd_UpdateCache, ADMFLAG_GENERIC, "Delete cache match");
 
 	AutoExecConfig(true, "forsaken");
 
@@ -99,7 +102,48 @@ public void OnPluginStart()
 	BuildPath(Path_SM, g_sPatchIP, sizeof(g_sPatchIP), DIR_IP);
 	JSON_Check();
 	GetIPv4();
-	GetMatch();
+}
+
+public void OnPluginEnd()
+{
+	/*
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	char
+		sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
+
+	if(FileExists(sPatch))
+		DeleteFile(sPatch);
+		*/
+}
+
+public void OnMapStart()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	if (g_bGetMatch)
+	{
+		g_bGetMatch = !g_bGetMatch;
+		GetMatch();
+	}
+}
+
+public void OnMapEnd()
+{
+	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
+		return;
+
+	char
+		sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
+
+	/*
+	if(FileExists(sPatch))
+		DeleteFile(sPatch);
+		*/
 }
 
 public void OnClientPutInServer(int iClient)
@@ -110,7 +154,7 @@ public void OnClientPutInServer(int iClient)
 	if (IsFakeClient(iClient))
 		return;
 
-	CreateTimer(5.0, Timer_GetMatch, iClient);
+	CreateTimer(2.0, Timer_GetMatch, iClient);
 	if (g_bGetMatch)
 	{
 		g_bGetMatch = !g_bGetMatch;
@@ -161,6 +205,46 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 					g_Players[TeamB][2].name, g_Players[TeamB][2].steamid,
 					g_Players[TeamB][3].name, g_Players[TeamB][3].steamid);
 
+	return Plugin_Handled;
+}
+
+public Action Cmd_DownloadCache(int iClient, int iArgs)
+{
+	GetMatch();
+	CReplyToCommand(iClient, "%s Downloading cache match...", PREFIX);
+	return Plugin_Handled;
+}
+
+public Action Cmd_DeleteCache(int iClient, int iArgs)
+{
+	char
+		sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
+
+	if(FileExists(sPatch))
+		DeleteFile(sPatch);
+
+	CReplyToCommand(iClient, "%s Cache match deleted", PREFIX);
+	return Plugin_Handled;
+}
+
+public Action Cmd_UpdateCache(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_fkn_updatecache");
+		return Plugin_Handled;
+	}
+
+	if (g_bGetMatch)
+	{
+		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);
+		return Plugin_Handled;
+	}
+
+	g_bGetMatch = !g_bGetMatch;
+	GetMatch();
+	CReplyToCommand(iClient, "%s Cache match updated", PREFIX);
 	return Plugin_Handled;
 }
 
