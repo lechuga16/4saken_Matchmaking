@@ -1,6 +1,6 @@
 ## Complementos de emparejamiento
 
-![4saken](https://4saken.us/img/logo.60eb2b1a.png)
+![4saken](https://4saken.us/img/logo.c11e96a8.png)
 
 - En el siguiente documento se explicará el funcionamiento de los complementos desarrollados para apoyar el funcionamiento del sitio web 4saken.us dentro de los servidores modificados competitivamente del videojuego ‘Left 4 Dead 2’.
 - Se considerara que servidores utilizaran la configuración competitiva del repositorio de [L4D2-Competitive-Rework](https://github.com/SirPlease/L4D2-Competitive-Rework).
