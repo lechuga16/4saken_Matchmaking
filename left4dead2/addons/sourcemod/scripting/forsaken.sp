@@ -36,8 +36,8 @@ int
 	g_iPort;
 
 bool g_bGetMatch = true;
-TypeMatch
-	g_TypeMatch = invalid;
+
+// TypeMatch g_TypeMatch = invalid;
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
@@ -69,15 +69,15 @@ public APLRes
 		return APLRes_Failure;
 	}
 
-	CreateNative("fkn_log", Native_Log);
-	CreateNative("fkn_TypeMatch", Native_TypeMatch);
-	CreateNative("fkn_QueueID", Native_QueueID);
-	CreateNative("fkn_SteamIDTA", Native_SteamIDTA);
-	CreateNative("fkn_SteamIDTB", Native_SteamIDTB);
+	//CreateNative("fkn_log", Native_Log);
+	// CreateNative("fkn_TypeMatch", Native_TypeMatch);
+	// CreateNative("fkn_QueueID", Native_QueueID);
+	// CreateNative("fkn_SteamIDTA", Native_SteamIDTA);
+	// CreateNative("fkn_SteamIDTB", Native_SteamIDTB);
 	CreateNative("fkn_NameTA", Native_NameTA);
 	CreateNative("fkn_NameTB", Native_NameTB);
-	CreateNative("fkn_GetIPv4", Native_GetIPv4);
-	CreateNative("fkn_MapName", Native_MapName);
+	//CreateNative("fkn_GetIPv4", Native_GetIPv4);
+	//CreateNative("fkn_MapName", Native_MapName);
 	RegPluginLibrary("forsaken");
 	return APLRes_Success;
 }
@@ -94,7 +94,7 @@ public void OnPluginStart()
 	RegAdminCmd("sm_fkn_playersinfo", Cmd_PlayersInfo, ADMFLAG_GENERIC, "Shows the name and SteamID of the players");
 	RegAdminCmd("sm_fkn_downloadCache", Cmd_DownloadCache, ADMFLAG_GENERIC, "Download cache match");
 	RegAdminCmd("sm_fkn_deleteCache", Cmd_DeleteCache, ADMFLAG_GENERIC, "Delete cache match");
-	RegAdminCmd("sm_fkn_updatecache", Cmd_UpdateCache, ADMFLAG_GENERIC, "Delete cache match");
+	RegAdminCmd("sm_fkn_updatecache", Cmd_UpdateCache, ADMFLAG_GENERIC, "Update cache match");
 
 	AutoExecConfig(true, "forsaken");
 

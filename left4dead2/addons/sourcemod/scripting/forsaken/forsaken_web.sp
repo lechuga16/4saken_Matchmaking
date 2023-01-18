@@ -19,18 +19,17 @@ void GetMatch()
 
 	char sPatch[128];
 	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
-
 	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_FORSAKEN_MATCH, fkn_GetIP(), g_iPort);
 	if (g_cvarDebug.BoolValue)
 		fkn_log("GetMatch URL: %s", g_sURL);
 
-	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpMatchInfo, g_sURL);
-	httpRequest.SetHeader("Content-Type", "application/json");
-	httpRequest.SetOutputFile(sPatch);
+	System2HTTPRequest httpMatch = new System2HTTPRequest(HttpMatchInfo, g_sURL);
+	httpMatch.SetHeader("Content-Type", "application/json");
+	httpMatch.SetOutputFile(sPatch);
 	if (g_cvarDebug.BoolValue)
-		httpRequest.SetProgressCallback(HttpProgressMatch);
-	httpRequest.GET();
-	delete httpRequest;
+		httpMatch.SetProgressCallback(HttpProgressMatch);
+	httpMatch.GET();
+	delete httpMatch;
 }
 
 public void HttpProgressMatch(System2HTTPRequest request, int dlTotal, int dlNow, int ulTotal, int ulNow)
@@ -71,7 +70,7 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 	joMatch		= json_read_from_file(sPatch);
 
 	g_iQueueID	= joMatch.GetInt("queueid");
-	g_TypeMatch = view_as<TypeMatch>(joMatch.GetInt("region"));
+	// g_TypeMatch = view_as<TypeMatch>(joMatch.GetInt("region"));
 	jaTA		= view_as<JSON_Array>(joMatch.GetObject("teamA"));
 	jaTB		= view_as<JSON_Array>(joMatch.GetObject("teamB"));
 	joMatch.GetString("map", g_sMapName, sizeof(g_sMapName));
@@ -118,13 +117,16 @@ public void GetIPv4()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
+	char sPatch[128];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IPV4);
 
-	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpIPv4, URL_IPV4);
-	httpRequest.SetHeader("Content-Type", "application/json");
+	System2HTTPRequest httpIPv4 = new System2HTTPRequest(HttpIPv4, URL_IPV4);
+	httpIPv4.SetHeader("Content-Type", "application/json");
+	httpIPv4.SetOutputFile(sPatch);
 	if (g_cvarDebug.BoolValue)
-		httpRequest.SetProgressCallback(HttpProgressIpv4);
-	httpRequest.GET();
-	delete httpRequest;
+		httpIPv4.SetProgressCallback(HttpProgressIpv4);
+	httpIPv4.GET();
+	delete httpIPv4;
 }
 
 public void HttpProgressIpv4(System2HTTPRequest request, int dlTotal, int dlNow, int ulTotal, int ulNow)
@@ -134,9 +136,7 @@ public void HttpProgressIpv4(System2HTTPRequest request, int dlTotal, int dlNow,
 
 public void HttpIPv4(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
 {
-	char
-		url[256],
-		content[128];
+	char url[256];
 
 	request.GetURL(url, sizeof(url));
 
@@ -146,11 +146,8 @@ public void HttpIPv4(bool success, const char[] error, System2HTTPRequest reques
 		return;
 	}
 
-	for (int found = 0; found < response.ContentLength;)
-	{
-		found += response.GetContent(content, sizeof(content), found);
-	}
-
-	JSON_Object jsIP = json_decode(content);
-	jsIP.GetString("ip", g_sIPv4, sizeof(g_sIPv4));
+	char sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IPV4);
+	JSON_Object joIPv4	= json_read_from_file(sPatch);
+	joIPv4.GetString("ip", g_sIPv4, sizeof(g_sIPv4));
 }

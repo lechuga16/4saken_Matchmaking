@@ -3,8 +3,10 @@
 
 #define forsaken_left4dhooks_included 1
 #include <forsaken>
+#undef REQUIRE_PLUGIN
 #include <forsaken_endgame>
 #include <forsaken_jarvis>
+#define REQUIRE_PLUGIN
 #include <colors>
 #include <json>
 #include <sourcemod>

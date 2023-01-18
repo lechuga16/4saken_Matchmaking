@@ -31,21 +31,21 @@
  * @param ...           Variable number of format parameters.
  * @noreturn
  */
-native void fkn_log(const char[] format, any ...);
+// native void fkn_log(const char[] format, any ...);
 
 /**
  * Gets the type of match broadcast on 4saken.us
  *
  * @return              An integer, 0 is that information is not yet obtained
  */
-native TypeMatch fkn_TypeMatch();
+// native TypeMatch fkn_TypeMatch();
 
 /**
  * Get lobby queue number
  *
  * @return              An integer, 0 is that information is not yet obtained
  */
-native int fkn_QueueID();
+// native int fkn_QueueID();
 
 /**
  * Gets the steamid of the players that are assigned to Team A
@@ -54,9 +54,9 @@ native int fkn_QueueID();
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
-native void fkn_SteamIDTA(int index, char[] buffer, int maxlength);
 
+native void fkn_SteamIDTA(int index, char[] buffer, int maxlength);
+ */
 /**
  * Gets the steamid of the players that are assigned to Team B
  *
@@ -94,7 +94,7 @@ native void fkn_NameTB(int index, char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void fkn_GetIPv4(char[] buffer, int maxlength);
+// native void fkn_GetIPv4(char[] buffer, int maxlength);
 
 /**
  * Gets the name of the map provided by Forsaken
@@ -103,7 +103,7 @@ native void fkn_GetIPv4(char[] buffer, int maxlength);
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
  */
-native void fkn_MapName(char[] buffer, int maxlength);
+// native void fkn_MapName(char[] buffer, int maxlength);
 
 public SharedPlugin __pl_forsaken =
 {

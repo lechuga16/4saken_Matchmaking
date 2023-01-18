@@ -13,7 +13,7 @@
  * @param format        Formatting rules.
  * @param ...           Variable number of format parameters.
  * @noreturn
- */
+
 any Native_Log(Handle plugin, int numParams)
 {
 	char
@@ -27,27 +27,29 @@ any Native_Log(Handle plugin, int numParams)
 	LogToFileEx(sLogPath, "[%s] %s", sFilename, sBuffer);
 	return 0;
 }
-
+ */
 /**
  * Gets the type of match broadcast on 4saken.us
  *
  * @return 				An integer, 0 is that information is not yet obtained
- */
+
 any Native_TypeMatch(Handle plugin, int numParams)
 {
 	return g_TypeMatch;
 }
+ */
+
 
 /**
  * Get lobby queue number
  *
  * @return 				An integer, 0 is that information is not yet obtained
- */
+
 any Native_QueueID(Handle plugin, int numParams)
 {
 	return g_iQueueID;
 }
-
+ */
 /**
  * Gets the steamid of the players that are assigned to Team 1
  *
@@ -73,7 +75,7 @@ any Native_SteamIDTA(Handle plugin, int numParams)
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
+
 any Native_SteamIDTB(Handle plugin, int numParams)
 {
 	int
@@ -83,7 +85,7 @@ any Native_SteamIDTB(Handle plugin, int numParams)
 	SetNativeString(2, g_Players[TeamB][index].steamid, maxlen);
 	return 0;
 }
-
+ */
 /**
  * Gets the name of the players that are assigned to Team A
  *
@@ -91,7 +93,7 @@ any Native_SteamIDTB(Handle plugin, int numParams)
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
+ 
 any Native_NameTA(Handle plugin, int numParams)
 {
 	int
@@ -101,7 +103,7 @@ any Native_NameTA(Handle plugin, int numParams)
 	SetNativeString(2, g_Players[TeamA][index].name, maxlen);
 	return 0;
 }
-
+ */
 /**
  * Gets the name of the players that are assigned to Team B
  *
@@ -126,7 +128,7 @@ any Native_NameTB(Handle plugin, int numParams)
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
+
 any Native_GetIPv4(Handle plugin, int numParams)
 {
 	int maxlen = GetNativeCell(2);
@@ -134,14 +136,14 @@ any Native_GetIPv4(Handle plugin, int numParams)
 	SetNativeString(1, g_sIPv4, maxlen);
 	return 0;
 }
-
+ */
 /**
  * Gets the name of the map provided by Forsaken
  *
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
+
 any Native_MapName(Handle plugin, int numParams)
 {
 	int maxlen = GetNativeCell(2);
@@ -149,3 +151,4 @@ any Native_MapName(Handle plugin, int numParams)
 	SetNativeString(1, g_sMapName, maxlen);
 	return 0;
 }
+ */
