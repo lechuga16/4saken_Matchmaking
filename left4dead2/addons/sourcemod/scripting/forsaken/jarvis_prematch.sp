@@ -14,36 +14,10 @@
  */
 public void PreMatch()
 {
-	CreateTimer(3.0, Timer_GetMatchData);
-}
-
-/**
- * @brief Gets the match data from forsaken.smx.
- *
- * @param timer		Timer handle.
- * @return			Stop the timer.
- */
-public Action Timer_GetMatchData(Handle timer)
-{
 	g_TypeMatch = fkn_TypeMatch();
-	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-	{
-		// Get the steamids from the player index
-		fkn_SteamIDTA(iID, g_Players[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(iID, g_Players[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
-
-		// Get the player names from the steamid
-		fkn_NameTA(iID, g_Players[TeamA][iID].name, MAX_NAME_LENGTH);
-		fkn_NameTB(iID, g_Players[TeamB][iID].name, MAX_NAME_LENGTH);
-
-		// Get the steamids from the player index
-		fkn_SteamIDTA(iID, g_RageQuit[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(iID, g_RageQuit[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
-	}
-	fkn_MapName(g_sMapName, sizeof(g_sMapName));
+	PlayersAndRQs();
 
 	CheckPlayersPresent();
-	return Plugin_Stop;
 }
 
 /**
@@ -64,20 +38,7 @@ public void StartMatch()
 
 	if (iHumanCount == g_cvarPlayersToStart.IntValue)
 	{
-		char
-			sMatchMap[32];
-		ConVar
-			match_restart;
-
 		CPrintToChatAll("%t %t", "Tag", "StartMatch", sCfgConvar, g_sMapName);
-
-		match_restart = FindConVar("confogl_match_map");
-		match_restart.GetString(sMatchMap, sizeof(sMatchMap));
-
-		if (!StrEqual("", sMatchMap, false))
-			return;
-
-		ServerCommand("confogl_match_map %s", g_sMapName);
 		ServerCommand("sm_forcematch %s", sCfgConvar);
 	}
 	else if (iHumanCount < g_cvarPlayersToStart.IntValue)

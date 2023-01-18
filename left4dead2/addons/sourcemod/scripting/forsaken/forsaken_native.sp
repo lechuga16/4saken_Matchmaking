@@ -57,7 +57,7 @@ any Native_QueueID(Handle plugin, int numParams)
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
+
 any Native_SteamIDTA(Handle plugin, int numParams)
 {
 	int
@@ -67,7 +67,7 @@ any Native_SteamIDTA(Handle plugin, int numParams)
 	SetNativeString(2, g_Players[TeamA][index].steamid, maxlen);
 	return 0;
 }
-
+ */
 /**
  * Gets the steamid of the players that are assigned to Team 2
  *
@@ -111,7 +111,7 @@ any Native_NameTA(Handle plugin, int numParams)
  * @param buffer        Buffer to copy to.
  * @param maxlength     Maximum size of the buffer.
  * @noreturn
- */
+
 any Native_NameTB(Handle plugin, int numParams)
 {
 	int
@@ -120,7 +120,7 @@ any Native_NameTB(Handle plugin, int numParams)
 
 	SetNativeString(2, g_Players[TeamB][index].name, maxlen);
 	return 0;
-}
+} */
 /**
  * Gets the IPv4
  *

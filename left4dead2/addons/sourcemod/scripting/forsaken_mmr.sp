@@ -42,8 +42,6 @@ ConVar
 
 Database   g_dbForsaken;
 TypeMatch  g_TypeMatch;
-
-PlayerInfo g_Players[ForsakenTeam][MAX_PLAYER_TEAM];	// Information to calculate mmr of a team
 TeamsInfo  g_TeamInfo[ForsakenTeam];					// Information to calculate mmr of a team
 int		   g_iTeamScore[ForsakenTeam];					// Team score
 char
@@ -124,7 +122,6 @@ public void OnMapStart()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	PreMatch();
 	if (!g_bPreMatch)
 	{
 		ScrimMatch();
@@ -135,6 +132,14 @@ public void OnMapStart()
 		g_bPreMatch = false;
 }
 
+public void OnCacheDownload()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	if (g_bPreMatch)
+		PreMatch();
+}
 public Action CMD_MMR(int iClient, int iArgs)
 {
 	char TargetString[128];

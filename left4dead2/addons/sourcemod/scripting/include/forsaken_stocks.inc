@@ -45,6 +45,24 @@
 // ==================================================
 
 /**
+ * Basic structure of a player.
+ */
+enum struct PlayerBasic
+{
+	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
+	char name[MAX_NAME_LENGTH];			// Player name
+}
+
+/**
+ * Basic structure of an entity for Glicko calculation.
+ */
+enum struct GlickoBasic
+{
+	float rating;		// Glicko Score
+	float deviation;	// Glicko deviation
+}
+
+/**
  * Player profile.
  *
  */
@@ -60,6 +78,9 @@ enum struct PlayerInfo
 	int	  lastgame;						 // Last Score Update
 	int	  wins;							 // Number of games won
 }
+
+stock PlayerInfo	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
+stock PlayerBasic	   g_PlayersBasic[ForsakenTeam][MAX_PLAYER_TEAM];
 
 /**
  * Types of match.
@@ -124,24 +145,6 @@ enum TypeBans
 
 	Bancode_Size = 3
 };
-
-/**
- * Basic structure of a player.
- */
-enum struct PlayerBasic
-{
-	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
-	char name[MAX_NAME_LENGTH];			// Player name
-}
-
-/**
- * Basic structure of an entity for Glicko calculation.
- */
-enum struct GlickoBasic
-{
-	float rating;		// Glicko Score
-	float deviation;	// Glicko deviation
-}
 
 // ==================================================
 // Array
@@ -508,7 +511,7 @@ stock bool fkn_GetIPv4(char[] sBuffer, int iMaxlength)
 	return true;
 }
 
-stock bool fkn_Players(int iIndex, char[] sTABuffer, int iTAMaxlength, char[] sTBBuffer, int iTBMaxlength)
+stock bool fkn_Players()
 {
 	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
 
@@ -518,8 +521,8 @@ stock bool fkn_Players(int iIndex, char[] sTABuffer, int iTAMaxlength, char[] sT
 		return false;
 	}
 
-	jaTA		= view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	jaTB		= view_as<JSON_Array>(joMatch.GetObject("teamB"));
+	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
 
 	if (jaTA == null)
 	{
@@ -548,57 +551,42 @@ stock bool fkn_Players(int iIndex, char[] sTABuffer, int iTAMaxlength, char[] sT
 	return true;
 }
 
+stock bool fkn_PlayersBasic()
 {
 	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
 
 	if (joMatch == null)
 	{
-		fkn_log("Error: fkn_SteamIDTA() - (joMatch == null)");
+		fkn_log("Error: fkn_Players() - (joMatch == null)");
 		return false;
 	}
 
-	JSON_Array jaTA	   = view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	JSON_Object joPlayerTA = jaTA.GetObject(iIndex);
-	joPlayerTA.GetString("steamid", sBuffer[iIndex], iMaxlength);
+	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
 
-	json_cleanup_and_delete(joMatch);
-	return true;
-}
-
-/*
-stock bool fkn_SteamIDTA(int iIndex, char[] sBuffer, int iMaxlength);
-{
-	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
-
-	if (joMatch == null)
+	if (jaTA == null)
 	{
-		fkn_log("Error: fkn_SteamIDTA() - (joMatch == null)");
+		fkn_log("Error: fkn_Players() - (jaTA == null)");
 		return false;
 	}
-
-	JSON_Array jaTA	   = view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	JSON_Object joPlayerTA = jaTA.GetObject(iIndex);
-	joPlayerTA.GetString("steamid", sBuffer[iIndex], iMaxlength);
-
-	json_cleanup_and_delete(joMatch);
-	return true;
-}
-
-stock bool fkn_SteamIDTB(int iIndex, char[] sBuffer, int iMaxlength);
-{
-	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH)
-
-		if (joMatch == null)
+	else if (jaTB == null)
 	{
-		fkn_log("Error: fkn_SteamIDTA() - (joMatch == null)");
+		fkn_log("Error: fkn_Players() - (jaTB == null)");
 		return false;
 	}
 
-	JSON_Array jaTB	   = view_as<JSON_Array>(joMatch.GetObject("teamB"));
-	JSON_Object joPlayerTB = jaTB.GetObject(iIndex);
-	joPlayerTB.GetString("steamid", sBuffer[iIndex], iMaxlength);
+	for (int i = 0; i <= 3; i++)
+	{
+		JSON_Object joPlayerTA = jaTA.GetObject(i);
+		JSON_Object joPlayerTB = jaTB.GetObject(i);
+
+		joPlayerTA.GetString("steamid", g_PlayersBasic[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_PlayersBasic[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+
+		joPlayerTA.GetString("personaname", g_PlayersBasic[TeamA][i].name, MAX_NAME_LENGTH);
+		joPlayerTB.GetString("personaname", g_PlayersBasic[TeamB][i].name, MAX_NAME_LENGTH);
+	}
 
 	json_cleanup_and_delete(joMatch);
 	return true;
 }
-*/

@@ -50,62 +50,9 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 		fkn_log("ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
 		return;
 	}
-
-	char
-		sPatch[64];
-	JSON_Object
-		joMatch;
-	JSON_Array
-		jaTA,
-		jaTB;
-
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
-
-	if (!FileExists(sPatch))
-	{
-		fkn_log("Error: %s File not found", DIR_CACHEMATCH);
-		return;
-	}
-
-	joMatch		= json_read_from_file(sPatch);
-
-	g_iQueueID	= joMatch.GetInt("queueid");
-	// g_TypeMatch = view_as<TypeMatch>(joMatch.GetInt("region"));
-	jaTA		= view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	jaTB		= view_as<JSON_Array>(joMatch.GetObject("teamB"));
-	joMatch.GetString("map", g_sMapName, sizeof(g_sMapName));
-
-	if (joMatch == null)
-	{
-		fkn_log("Error: JSON_Object joMatch == null");
-		return;
-	}
-
-	if (jaTA == null)
-	{
-		fkn_log("Error: JSON_Array jaTA == null");
-		return;
-	}
-
-	if (jaTB == null)
-	{
-		fkn_log("Error: JSON_Array jaTB == null");
-		return;
-	}
-
-	for (int i = 0; i <= 3; i++)
-	{
-		JSON_Object joPlayerTA = jaTA.GetObject(i);
-		JSON_Object joPlayerTB = jaTB.GetObject(i);
-
-		joPlayerTA.GetString("steamid", g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		joPlayerTB.GetString("steamid", g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
-
-		joPlayerTA.GetString("personaname", g_Players[TeamA][i].name, MAX_NAME_LENGTH);
-		joPlayerTB.GetString("personaname", g_Players[TeamB][i].name, MAX_NAME_LENGTH);
-	}
-
-	json_cleanup_and_delete(joMatch);
+	Call_StartForward(g_gfCacheDownload);
+	if (Call_Finish() != 0)
+		fkn_log("forsaken_web: error in forward Call_Finish");
 }
 
 /**

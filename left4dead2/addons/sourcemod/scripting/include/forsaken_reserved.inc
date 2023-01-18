@@ -16,33 +16,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if defined _forsaken_included
+#if defined _forsaken_reserved_included
   #endinput
 #endif
-#define _forsaken_included
-
-
-#include <forsaken_stocks>
+#define _forsaken_reserved_included
 
 /**
- * @brief Calls when the forsaken information has been downloaded.
+ * Called when getting the name of the chapter that should start the match.
+ * 
+ * @noreturn
  */
-forward void OnCacheDownload();
+forward void OnMapDownload(const char[] sMap);
 
-public SharedPlugin __pl_forsaken =
+public SharedPlugin __pl_forsaken_reserved =
 {
-    name = "forsaken",
-    file = "forsaken.smx",
-#if defined REQUIRE_PLUGIN
-    required = 1,
-#else
-    required = 0,
-#endif
+    name = "forsaken_reserved",
+    file = "forsaken_reserved.smx",
 };
-
-#if !defined REQUIRE_PLUGIN
-public __pl_forsaken_SetNTVOptional()
-{
-
-}
-#endif
