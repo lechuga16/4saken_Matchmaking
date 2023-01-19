@@ -38,6 +38,7 @@ public void OnPluginStart_prematch()
 	g_cvarChangeMap		 = CreateConVar("sm_jarvis_changemap", "1", "Change the map when it is verified that it does not correspond to the match", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	RegConsoleCmd("sm_jarvis_listplayers", Cmd_ListPlayers, "Print the forsaken player list");
+	RegConsoleCmd("sm_jarvis_refreshlistplayers", Cmd_RefreshListPlayers, "Refresh the forsaken player list");
 	RegConsoleCmd("sm_jarvis_info", Cmd_MatchInfo, "Displays the cfg and map that will be used.");
 	RegConsoleCmd("sm_jarvis_clientid", Cmd_ClientID, "Print the client id of the player");
 }
@@ -46,9 +47,17 @@ public void OMS_prematch()
 {
 	if (g_bPreMatch)
 		ReadConfigSourcebans();
-
+		
 	if (LGO_IsMatchModeLoaded() && g_bPreMatch)
 		g_bPreMatch = !g_bPreMatch;
+}
+
+public void OCD_prematch()
+{
+	fkn_MapName(g_sMapName, sizeof(g_sMapName));
+	g_TypeMatch = fkn_TypeMatch();
+	PlayersAndRQs();
+	ClienIndexList();
 }
 
 public Action Cmd_ListPlayers(int iClient, int iArgs)
@@ -135,6 +144,22 @@ public Action Cmd_ClientID(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
+public Action Cmd_RefreshListPlayers(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_jarvis_refreshlistplayers");
+		return Plugin_Handled;
+	}
+
+	fkn_MapName(g_sMapName, sizeof(g_sMapName));
+	g_TypeMatch = fkn_TypeMatch();
+	PlayersAndRQs();
+	ClienIndexList();
+	FakeClientCommand(iClient, "sm_jarvis_listplayers");
+	return Plugin_Handled;
+}
+
 /*****************************************************************
 			P L U G I N   F U N C T I O N S
 *****************************************************************/
@@ -162,9 +187,6 @@ public void Map_PreMatch()
  */
 public void Start_PreMatch()
 {
-	g_TypeMatch = fkn_TypeMatch();
-	PlayersAndRQs();
-
 	CheckPlayersPresent();
 	StartMatch();
 }
@@ -253,21 +275,55 @@ stock bool PlayersAndRQs()
 		return false;
 	}
 
-	for (int i = 0; i <= 3; i++)
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		JSON_Object joPlayerTA = jaTA.GetObject(i);
-		JSON_Object joPlayerTB = jaTB.GetObject(i);
+		JSON_Object joPlayerTA = jaTA.GetObject(iID);
+		JSON_Object joPlayerTB = jaTB.GetObject(iID);
 
-		joPlayerTA.GetString("steamid", g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		joPlayerTB.GetString("steamid", g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTA.GetString("steamid", g_Players[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_Players[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
 
-		joPlayerTA.GetString("personaname", g_Players[TeamA][i].name, MAX_NAME_LENGTH);
-		joPlayerTB.GetString("personaname", g_Players[TeamB][i].name, MAX_NAME_LENGTH);
+		joPlayerTA.GetString("personaname", g_Players[TeamA][iID].name, MAX_NAME_LENGTH);
+		joPlayerTB.GetString("personaname", g_Players[TeamB][iID].name, MAX_NAME_LENGTH);
 
-		joPlayerTA.GetString("steamid", g_RageQuit[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		joPlayerTB.GetString("steamid", g_RageQuit[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTA.GetString("steamid", g_RageQuit[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_RageQuit[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
 	}
 
 	json_cleanup_and_delete(joMatch);
 	return true;
+}
+
+public void ClienIndexList()
+{
+	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
+	{
+		if (!IsHuman(i))
+			continue;
+
+		char sStemaID[32];
+		if (!GetClientAuthId(i, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
+			continue;
+
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+		{
+			if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
+			{
+				if (g_Players[TeamA][iID].client != i)
+				{
+					g_Players[TeamA][iID].client = i;
+					continue;
+				}
+			}
+
+			if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
+			{
+				if (g_Players[TeamB][iID].client != i)
+				{
+					g_Players[TeamB][iID].client = i;
+					continue;
+				}
+			}
+		}
+	}
 }

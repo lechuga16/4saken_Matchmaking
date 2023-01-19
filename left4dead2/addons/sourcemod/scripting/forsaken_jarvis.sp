@@ -111,9 +111,9 @@ public void OnReadyUpInitiate()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
-
-	ORUI_Waiting();
+	
 	ORUI_Teams();
+	ORUI_Waiting();
 	ORUI_CheckMatch();
 	ORUI_Readyup();
 }
@@ -140,8 +140,8 @@ public void OnClientPutInServer(int iClient)
 	if (IsFakeClient(iClient))
 		return;
 
-	if (g_bPlayersToStartFull)
-		OCPIS_Reserved(iClient);
+	if (!g_bPlayersToStartFull)
+		OCPIS_Reserved();
 }
 
 public void OnClientAuthorized(int iClient, const char[] sAuth)
@@ -150,6 +150,14 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 		return;
 
 	OnCA_RageQuit(iClient, sAuth);
+}
+
+public void OnCacheDownload()
+{
+	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
+		return;
+		
+	OCD_prematch();
 }
 
 /****************************************************************

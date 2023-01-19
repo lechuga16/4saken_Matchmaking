@@ -26,7 +26,7 @@
 #include <forsaken_left4dhooks>
 #include <forsaken_l4d2util>
 
-#define URL_STATUS	  	 "forsaken-blk.herokuapp.com/queue/matchstatus"
+#define URL_STATUS		   "forsaken-blk.herokuapp.com/queue/matchstatus"
 #define URL_STATUSV2	   "forsaken-blk.herokuapp.com/queue/matchstatusV2"
 #define URL_FORSAKEN_MATCH "forsaken-blk.herokuapp.com/queue/get-match-info"
 #define URL_IPV4		   "api.ipify.org?format=json"
@@ -80,8 +80,8 @@ enum struct PlayerInfo
 	int	  wins;							 // Number of games won
 }
 
-stock PlayerInfo	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
-stock PlayerBasic	   g_PlayersBasic[ForsakenTeam][MAX_PLAYER_TEAM];
+stock PlayerInfo  g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
+stock PlayerBasic g_PlayersBasic[ForsakenTeam][MAX_PLAYER_TEAM];
 
 /**
  * Types of match.
@@ -522,8 +522,8 @@ stock bool fkn_Players()
 		return false;
 	}
 
-	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
+	JSON_Array jaTA = view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB = view_as<JSON_Array>(joMatch.GetObject("teamB"));
 
 	if (jaTA == null)
 	{
@@ -562,8 +562,8 @@ stock bool fkn_PlayersBasic()
 		return false;
 	}
 
-	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
+	JSON_Array jaTA = view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB = view_as<JSON_Array>(joMatch.GetObject("teamB"));
 
 	if (jaTA == null)
 	{

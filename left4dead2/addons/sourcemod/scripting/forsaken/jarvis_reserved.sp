@@ -37,9 +37,9 @@ public Action Cmd_Reserved(int iClient, int iArgs)
 	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUSV2, g_sIp, g_iPort);
 	System2HTTPRequest httpRequest = new System2HTTPRequest(CMD_HttpReserved, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
-	httpRequest.Any		= iClient;
+	httpRequest.Any	= iClient;
 	httpRequest.GET();
-	// delete httpRequest;
+	delete httpRequest;
 
 	return Plugin_Continue;
 }
@@ -59,10 +59,16 @@ public void CMD_HttpReserved(bool success, const char[] error, System2HTTPReques
 	}
 
 	response.GetContent(sContent, sizeof(sContent));
+	JSON_Object joInfo = json_decode(sContent);
 
-	fkn_log("sContent: %s", sContent);
+	if (joInfo == null)
+	{
+		fkn_log("Error: HttpReserve() - (joInfo == null)");
+		return;
+	}
 
-	// CReplyToCommand(request.Any, "%t %t", "Tag", "CmdReserved", g_bReserve ? "Reserved" : "Unreserved");
+	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
+	CReplyToCommand(request.Any, "%t %t", "Tag", "CmdReserved", g_bReserve ? "Reserved" : "Unreserved");
 }
 
 /*****************************************************************
@@ -74,7 +80,7 @@ public void CMD_HttpReserved(bool success, const char[] error, System2HTTPReques
  *
  * @noreturn
  */
-public void OCPIS_Reserved(int iClient)
+public void OCPIS_Reserved()
 {
 	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUSV2, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
@@ -83,7 +89,6 @@ public void OCPIS_Reserved(int iClient)
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpReserved, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
 	httpRequest.Timeout = 5;
-	httpRequest.Any		= iClient;
 	if (g_cvarDebug.BoolValue)
 		httpRequest.SetProgressCallback(HttpProgressReserved);
 	httpRequest.GET();
@@ -124,18 +129,18 @@ public void HttpReserved(bool success, const char[] error, System2HTTPRequest re
 	}
 
 	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
-
-	fkn_log("GET status: %d", joInfo.GetInt("status"));
 	
-	if (!g_bReserve)
+	if (g_bReserve)
+	{
+		joInfo.GetString("map", g_sMapName, sizeof(g_sMapName));
+		json_cleanup_and_delete(joInfo);
+		Map_PreMatch();
+		Start_PreMatch();
+	}
+	else
 	{
 		if (g_cvarDebug.BoolValue)
 			fkn_log("%N was kicked, server without unreserved.", request.Any);
-		KickClient(request.Any, "%t", "KickMsg");
-		return;
+		ServerCommand("sm_kick @all %t", "KickMsg");
 	}
-
-	joInfo.GetString("map", g_sMapName, sizeof(g_sMapName));
-	Map_PreMatch();
-	Start_PreMatch();
 }
