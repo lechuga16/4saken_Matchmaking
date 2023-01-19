@@ -141,6 +141,17 @@ public void HttpReserved(bool success, const char[] error, System2HTTPRequest re
 	{
 		if (g_cvarDebug.BoolValue)
 			fkn_log("%N was kicked, server without unreserved.", request.Any);
-		ServerCommand("sm_kick @all %t", "KickMsg");
+		KickAllClient();
+	}
+}
+
+public void KickAllClient()
+{
+	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
+	{
+		if (!IsHuman(i))
+			continue;
+
+		KickClientEx(i, "%t", "KickMsg");
 	}
 }
