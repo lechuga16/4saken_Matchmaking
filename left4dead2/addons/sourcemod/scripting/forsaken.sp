@@ -109,6 +109,7 @@ public void OnMapStart()
 
 	if (g_bGetMatch)
 	{
+		CreateTimer(2.0, Timer_GetMatch);
 		g_bGetMatch = !g_bGetMatch;
 		GetMatch();
 	}
@@ -135,18 +136,19 @@ public void OnClientPutInServer(int iClient)
 	if (IsFakeClient(iClient))
 		return;
 
-	CreateTimer(2.0, Timer_GetMatch, iClient);
 	if (g_bGetMatch)
 	{
+		CreateTimer(2.0, Timer_GetMatch, iClient);
 		g_bGetMatch = !g_bGetMatch;
 		GetMatch();
 	}
+	else
+		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);
 }
 
-public Action Timer_GetMatch(Handle timer, int iClient)
+public Action Timer_GetMatch(Handle timer)
 {
-	if (!g_bGetMatch)
-		g_bGetMatch = !g_bGetMatch;
+	g_bGetMatch = !g_bGetMatch;
 	return Plugin_Stop;
 }
 
@@ -219,13 +221,14 @@ public Action Cmd_UpdateCache(int iClient, int iArgs)
 
 	if (g_bGetMatch)
 	{
-		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);
-		return Plugin_Handled;
+		CreateTimer(2.0, Timer_GetMatch, iClient);
+		g_bGetMatch = !g_bGetMatch;
+		CReplyToCommand(iClient, "%s Cache match updated", PREFIX);
+		GetMatch();
 	}
+	else
+		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);
 
-	g_bGetMatch = !g_bGetMatch;
-	GetMatch();
-	CReplyToCommand(iClient, "%s Cache match updated", PREFIX);
 	return Plugin_Handled;
 }
 

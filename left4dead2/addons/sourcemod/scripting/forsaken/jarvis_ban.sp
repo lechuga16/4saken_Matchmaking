@@ -4,6 +4,55 @@
 #define _jarvis_ban_included
 
 /*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
+int iServerID = 0;
+
+char
+	DatabasePrefix[10] = "sb",
+	WebsiteAddress[128];
+
+enum State
+{
+	ConfigStateNone = 0,
+	ConfigStateConfig,
+	ConfigStateReasons,
+	ConfigStateHacking,
+	ConfigStateTime
+}
+
+State	  ConfigState;
+SMCParser ConfigParser;
+Database  g_DBSourceBans = null;
+
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+public void OnPluginStart_Bans()
+{
+	Database.Connect(GotDatabase, "sourcebans");
+}
+
+/*****************************************************************
+			N A T I V E S
+*****************************************************************/
+
+// OffLineBan(int iTarget, int Team, int iTime, const char[] sReason, any ...)
+any Native_ForsakenBan(Handle plugin, int numParams)
+{
+	int
+		iTarget = GetNativeCell(1),
+		Team	= GetNativeCell(2),
+		iTime	= GetNativeCell(3);
+
+	char sReason[PLATFORM_MAX_PATH];
+	FormatNativeString(0, 4, 5, sizeof(sReason), _, sReason);
+	CreateOffLineBan(iTarget, view_as<ForsakenTeam>(Team), iTime, sReason);
+	return 0;
+}
+
+/*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
 

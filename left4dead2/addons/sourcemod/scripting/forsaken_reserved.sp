@@ -2,12 +2,12 @@
 #pragma newdecls required
 
 #include <forsaken_stocks>
-#include <forsaken_endgame>
 #include <colors>
 #include <sourcemod>
 #include <system2>
 #undef REQUIRE_PLUGIN
 #include <confogl>
+#define REQUIRE_PLUGIN
 
 /*****************************************************************
 			G L O B A L   V A R S
@@ -75,17 +75,6 @@ public void OnPluginStart()
 	AutoExecConfig(true, "forsaken_reserved");
 }
 
-public void OnClientPutInServer(int iClient)
-{
-	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
-		return;
-
-	if (IsFakeClient(iClient))
-		return;
-
-	GetReserve(iClient);
-}
-
 public Action Cmd_Reserved(int iClient, int iArgs)
 {
 	if (iArgs != 0)
@@ -107,7 +96,7 @@ public Action Cmd_Reserved(int iClient, int iArgs)
  *
  * @noreturn
  */
-public void GetReserve(int iClient)
+public void OCPIS_Reserved(int iClient)
 {
 	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUSV2, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
@@ -158,20 +147,20 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 
 	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
 
-	char sMap[32];
-	joInfo.GetString("map", sMap, sizeof(sMap));
-
-	Call_StartForward(g_gfMap);
-	Call_PushString(sMap);
-	Call_Finish();
+	fkn_log("GET status: %s", g_bReserve ? "Reserved" : "Unreserved");
 
 	if (!g_bReserve)
 	{
 		if (g_cvarDebug.BoolValue)
 			fkn_log("%N was kicked, server without unreserved.", request.Any);
 		KickClient(request.Any, "%t", "KickMsg");
+		return;
 	}
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("%N was allowed in, the server was reserved.", request.Any);
+	char sMap[32];
+	joInfo.GetString("map", sMap, sizeof(sMap));
+
+	Call_StartForward(g_gfMap);
+	Call_PushString(sMap);
+	Call_Finish();
 }

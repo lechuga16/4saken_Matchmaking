@@ -3,25 +3,50 @@
 #endif
 #define _jarvis_ragequit_included
 
+/*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
+ConVar
+	g_cvarTimerRageQuit,
+	g_cvarBanRageQuit,
+	g_cvarBanRageQuitx2,
+	g_cvarBanRageQuitx3;
+
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+
+public void OnPluginStart_RageQuit()
+{
+	g_cvarTimerRageQuit = CreateConVar("sm_jarvis_timeragequit", "300.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
+	g_cvarBanRageQuit	= CreateConVar("sm_jarvis_banragequit", "2880", "The time to ban the player (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0);
+	g_cvarBanRageQuitx2 = CreateConVar("sm_jarvis_banragequitx2", "5760", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the second time", FCVAR_NONE, true, 0.0);
+	g_cvarBanRageQuitx3 = CreateConVar("sm_jarvis_banragequitx3", "10080", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the third time", FCVAR_NONE, true, 0.0);
+}
+
+public void OnCA_RageQuit(int iClient, const char[] sAuth)
+{
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{
+		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
+			g_Players[TeamA][iID].client = iClient;
+		else if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
+			g_Players[TeamB][iID].client = iClient;
+	}
+
+	if (IsRageQuiters(iClient, sAuth))
+	{
+		RemoveRageQuiters(iClient, sAuth);
+		fkn_log("ClientConnected: %N is ragequiter", iClient);
+	}
+}
+
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
-public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontBroadcast)
+public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 {
-	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
-		return;
-
-	int iClient = GetClientOfUserId(GetEventInt(hEvent, "userid"));
-	if (!IsValidClientIndex(iClient))
-		return;
-
-	char sSteamId[32];
-	if (!GetClientAuthId(iClient, AuthId_SteamID64, sSteamId, sizeof(sSteamId)))
-		return;
-
-	if (strcmp(sSteamId, "BOT") == 0)
-		return;
-
 	char sReason[128];
 	GetEventString(hEvent, "reason", sReason, sizeof(sReason));
 

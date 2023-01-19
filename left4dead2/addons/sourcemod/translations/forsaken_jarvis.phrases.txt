@@ -77,6 +77,24 @@
     {
         "en"        "[BanCode:03] Delay to start the game."
     }
+    // jarvis_reserved.sp
+	"CmdReserved"
+	{
+		"en"		"The server is: %s"
+	}
+	"Reserved"
+	{
+		"en"		"{blue}Reserved{default}"
+	}
+	"Unreserved"
+	{
+		
+		"en"		"{red}Unreserved{default}"
+	}
+	"KickMsg"
+	{
+		"en"		"This server can only be used under a reservation from 4saken\n Go to https://4saken.us/"
+	}
     // jarvis_prematch.sp
     "NotEnoughPlayers"
     {

@@ -4,8 +4,36 @@
 #define _jarvis_waiting_included
 
 /*****************************************************************
-			P L U G I N   F U N C T I O N S
+			G L O B A L   V A R S
 *****************************************************************/
+
+ConVar
+	g_cvarTimeWait,
+	g_cvarTimeWaitAnnouncer,
+	g_cvarBanDesertion,
+	g_cvarBanDesertionx2,
+	g_cvarBanDesertionx3;
+
+Handle
+	g_hTimerWait		  = null,
+	g_hTimerWaitAnnouncer = null,
+	g_hTimerCheckList	  = null,
+	g_hTimerWaitReadyup	  = null;
+
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+
+public void OnPluginStart_Waiting()
+{
+	g_cvarTimeWait			= CreateConVar("sm_jarvis_timewait", "300.0", "The time to wait for the players to join the server", FCVAR_NONE, true, 0.0);
+	g_cvarTimeWaitAnnouncer = CreateConVar("sm_jarvis_timewaitannouncer", "30.0", "The time to announcer the players to join the server", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertion		= CreateConVar("sm_jarvis_bandesertion", "720", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertionx2	= CreateConVar("sm_jarvis_bandesertionx2", "2880", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the second time", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertionx3	= CreateConVar("sm_jarvis_bandesertionx3", "5760", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the third time", FCVAR_NONE, true, 0.0);
+
+	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
+}
 
 /**
  * @brief Starts the timer that checks if all players are online, start the game or ban unconnected players.
@@ -15,7 +43,7 @@
  *
  * @noreturn
  */
-public void WaitingPlayers()
+public void ORUI_Waiting()
 {
 	if (!IsGameCompetitive(g_TypeMatch))
 		return;
@@ -28,6 +56,22 @@ public void WaitingPlayers()
 	g_hTimerWaitAnnouncer = CreateTimer(g_cvarTimeWaitAnnouncer.FloatValue, Timer_WaitPlayersAnnounce, _, TIMER_REPEAT);
 	g_hTimerCheckList	  = CreateTimer(2.0, Timer_CheckListPlayers, _, TIMER_REPEAT);
 }
+
+public Action Cmd_MissingPlayers(int iClient, int iArgs)
+{
+	if (iArgs != 0)
+	{
+		CReplyToCommand(iClient, "Usage: sm_jarvis_missingplayers");
+		return Plugin_Handled;
+	}
+
+	MissingPlayers();
+	return Plugin_Handled;
+}
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
 
 /**
  * @brief Kill the timer that checks if all players are online, start the game or ban unconnected players.

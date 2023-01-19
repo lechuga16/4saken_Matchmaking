@@ -73,6 +73,19 @@
     {
         "es"        "[BanCode:03] Retraso para iniciar el juego."
     }
+    // jarvis_reserved.sp
+	"Reserved"
+	{
+		"es"		"{blue}Reservado{default}"
+	}
+	"Unreserved"
+	{
+		"es"		"{red}Sin Reserva{default}"
+	}
+	"KickMsg"
+	{
+		"es"		"Este servidor solo puede ser usado bajo una reserva desde 4saken\nPara jugar entra a https://4saken.us/"
+	}
     // jarvis_prematch.sp
     "NotEnoughPlayers"
     {

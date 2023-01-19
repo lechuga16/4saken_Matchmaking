@@ -4,8 +4,26 @@
 #define _jarvis_teams_included
 
 /*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
+ConVar
+	survivor_limit,
+	z_max_player_zombies;
+
+Handle g_hTimerManager = null;
+
+/*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
+
+public void OnPluginStart_Teams()
+{
+	RegAdminCmd("sm_jarvis_killtimer", Cmd_KillTimer, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
+
+	survivor_limit		 = FindConVar("survivor_limit");
+	z_max_player_zombies = FindConVar("z_max_player_zombies");
+}
 
 /**
  * Create a timer that prevents bots from dying when the game is loading.
@@ -13,13 +31,51 @@
  *
  * @noreturn
  */
-public void OrganizeTeams()
+public void ORUI_Teams()
 {
 	if (!IsGameCompetitive(g_TypeMatch) || InSecondHalfOfRound())
 		return;
 
 	CreateTimer(10.0, Timer_PreventKillBot);
 }
+
+public Action Cmd_KillTimer(int iClient, int iArgs)
+{
+	if (iArgs != 1)
+	{
+		CReplyToCommand(iClient, "Usage: sm_jarvis_killtimer <manager|waitplayers|waitreadyup>");
+		return Plugin_Handled;
+	}
+
+	char sArg[16];
+	GetCmdArg(1, sArg, sizeof(sArg));
+
+	if (StrEqual(sArg, "manager", false))
+	{
+		KillTimerManager();
+		if (!g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Organizing Teams{default}", "Tag");
+	}
+	else if (StrEqual(sArg, "waitplayers", false))
+	{
+		KillTimerWaitPlayers();
+		KillTimerWaitPlayersAnnouncer();
+		if (!g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait{default}/{green}Announcer{default}", "Tag");
+	}
+	else if (StrEqual(sArg, "waitreadyup", false))
+	{
+		KillTimerWaitReadyup();
+		if (!g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup Wait{default}", "Tag");
+	}
+
+	return Plugin_Continue;
+}
+
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
 
 /**
  * Create a timer that organizes the teams.
