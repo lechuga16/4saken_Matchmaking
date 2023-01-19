@@ -110,7 +110,6 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[fkn_TypeMatch()]);
 
 	char		sMapName[32];
-	PlayerBasic Players[ForsakenTeam][MAX_PLAYER_TEAM];
 	fkn_PlayersBasic();
 
 	CReplyToCommand(iClient, "%s QueueID: ({green}%d{default})", PREFIX, fkn_QueueID());
@@ -131,10 +130,10 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 
 	for (int iID = 0; iID <= 3; iID++)
 	{
-		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "({olive}%s{default}:", Players[TeamA][iID].steamid);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "({olive}%s{default}:", g_PlayersBasic[TeamA][iID].steamid);
 		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
-		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%s) ", Players[TeamA][iID].name);
+		Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%s) ", g_PlayersBasic[TeamA][iID].name);
 		StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
 		if (iID == 1)
@@ -143,10 +142,10 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 			StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 		}
 
-		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "({olive}%s{default}:", Players[TeamB][iID].steamid);
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "({olive}%s{default}:", g_PlayersBasic[TeamB][iID].steamid);
 		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
-		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%s) ", Players[TeamB][iID].name);
+		Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%s) ", g_PlayersBasic[TeamB][iID].name);
 		StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
 		if (iID == 1)

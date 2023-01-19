@@ -83,3 +83,21 @@ public void CheckPlayersPresent()
 		}
 	}
 }
+
+public void OnMapDownload(const char[] sMap)
+{
+	strcopy(g_sMapName, sizeof(g_sMapName), sMap);
+
+	ConVar match_restart;
+	char sMatch_Map[32];
+	match_restart = FindConVar("confogl_match_map");
+	match_restart.GetString(sMatch_Map, sizeof(sMatch_Map));
+
+	if (!StrEqual("", sMatch_Map, false))
+		return;
+
+	ServerCommand("confogl_match_map %s", g_sMapName);
+	
+	if(g_cvarDebug.BoolValue)
+		fkn_log("OnMapDownload: %s", g_sMapName);
+}

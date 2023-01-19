@@ -140,6 +140,15 @@ public void OnCacheDownload()
 	if (g_bPreMatch)
 		PreMatch();
 }
+
+public void OnReadyUpInitiatePre()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	OnReadyUp_Prematch();
+}
+
 public Action CMD_MMR(int iClient, int iArgs)
 {
 	char TargetString[128];
@@ -263,9 +272,6 @@ public Action CMD_Stats(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-/****************************************************************
-			C A L L B A C K   F U N C T I O N S
-****************************************************************/
 public void OnRoundLiveCountdown()
 {
 	if (!g_bRound_End)
@@ -273,6 +279,10 @@ public void OnRoundLiveCountdown()
 
 	ClienIndexList();
 }
+
+/****************************************************************
+			C A L L B A C K   F U N C T I O N S
+****************************************************************/
 
 public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 {

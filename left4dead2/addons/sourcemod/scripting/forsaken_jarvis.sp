@@ -132,8 +132,8 @@ public Plugin myinfo =
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-public void
-	OnPluginStart()
+
+public void OnPluginStart()
 {
 	LoadTranslation("forsaken_jarvis.phrases");
 
@@ -141,7 +141,7 @@ public void
 	g_cvarDebug				= CreateConVar("sm_jarvis_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarEnable			= CreateConVar("sm_jarvis_enable", "1", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarConfigCfg			= CreateConVar("sm_jarvis_configcfg", "zonemod", "The config file to load", FCVAR_NONE);
-	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "2", "The minimum players to start the match", FCVAR_NONE, true, 1.0);
+	g_cvarPlayersToStart	= CreateConVar("sm_jarvis_playerstostart", "1", "The minimum players to start the match", FCVAR_NONE, true, 1.0);
 	g_cvarChangeMap			= CreateConVar("sm_jarvis_changemap", "1", "Change the map when it is verified that it does not correspond to the match", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	g_cvarTimerRageQuit		= CreateConVar("sm_jarvis_timeragequit", "300.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
@@ -304,22 +304,6 @@ public void OnCacheDownload()
 
 	if (g_bPreMatch)
 		PreMatch();
-}
-
-public void OnMapDownload(const char[] sMap)
-{
-	char sMatchMap[32];
-	ConVar match_restart;
-	match_restart = FindConVar("confogl_match_map");
-	match_restart.GetString(sMatchMap, sizeof(sMatchMap));
-
-	if (!StrEqual("", sMatchMap, false) || StrEqual("", sMap, false))
-		return;
-
-	ServerCommand("confogl_match_map %s", g_sMapName);
-
-	if(g_cvarDebug.BoolValue)
-		fkn_log("OnMapDownload: %s", sMap);
 }
 
 public Action Cmd_KillTimer(int iClient, int iArgs)
