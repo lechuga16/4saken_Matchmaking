@@ -3,8 +3,11 @@
 
 #define forsaken_left4dhooks_included 1
 #include <forsaken>
+#undef REQUIRE_PLUGIN
 #include <forsaken_endgame>
 #include <forsaken_jarvis>
+#include <forsaken_reserved>
+#define REQUIRE_PLUGIN
 #include <colors>
 #include <json>
 #include <sourcemod>
@@ -88,7 +91,12 @@ public void
 
 public void OnEndGame()
 {
-	CPrintToChatAll("%s Forward EndGame is {blue}on{default}", PREFIX);
+	CPrintToChatAll("%s Forward {blue}EndGame{default} is {green}on{default}", PREFIX);
+}
+
+public void OnMapDownload(const char[] sMap)
+{
+	CPrintToChatAll("%s Forward {blue}Reserved{default} is {green}%s{default}", PREFIX, sMap);
 }
 
 public Action Cmd_Forsaken(int iClient, int iArgs)
@@ -103,14 +111,7 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 
 	char		sMapName[32];
 	PlayerBasic Players[ForsakenTeam][MAX_PLAYER_TEAM];
-	for (int i = 0; i <= 3; i++)
-	{
-		fkn_SteamIDTA(i, Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		fkn_SteamIDTB(i, Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
-
-		fkn_NameTA(i, Players[TeamA][i].name, MAX_NAME_LENGTH);
-		fkn_NameTB(i, Players[TeamB][i].name, MAX_NAME_LENGTH);
-	}
+	fkn_PlayersBasic();
 
 	CReplyToCommand(iClient, "%s QueueID: ({green}%d{default})", PREFIX, fkn_QueueID());
 	fkn_MapName(sMapName, sizeof(sMapName));
@@ -456,23 +457,7 @@ void CheckMVPList(int iClient, bool bIsMVP = true)
 public void MVPListed(int iClient, ForsakenTeam team, bool bIsMVP)
 {
 	Player Players[ForsakenTeam][MAX_PLAYER_TEAM];
-
-	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
-	{
-		switch (team)
-		{
-			case TeamA:
-			{
-				fkn_SteamIDTA(i, Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-				fkn_NameTA(i, Players[TeamA][i].name, MAX_NAME_LENGTH);
-			}
-			case TeamB:
-			{
-				fkn_SteamIDTB(i, Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
-				fkn_NameTB(i, Players[TeamB][i].name, MAX_NAME_LENGTH);
-			}
-		}
-	}
+	fkn_Players();
 
 	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{

@@ -29,19 +29,38 @@
 #define URL_FORSAKEN	   "forsaken-blk.herokuapp.com/queue/matchstatus"
 #define URL_FORSAKEN_MATCH "forsaken-blk.herokuapp.com/queue/get-match-info"
 #define URL_IPV4		   "api.ipify.org?format=json"
+#define DIR_IPV4		   "logs/forsaken_IPv4.json"
 #define DIR_CACHEMATCH	   "logs/forsaken_match.json"
 #define DIR_IP			   "configs/forsaken/IP.json"
-#define DIR_MAP			   "configs/forsaken/Maps.json"
+
 #define DIR_FORSAKENLOG	   "logs/forsaken.log"
 #define MAX_PLAYER_TEAM	   4
 #define MAX_INDEX_PLAYER   3
 #define CONSOLE			   0
 #define UNIXTIME_4WEEKS	   2419200
-#define EVALUATION_PERIOD 8
+#define EVALUATION_PERIOD  8
 
 // ==================================================
 // ENUMS
 // ==================================================
+
+/**
+ * Basic structure of a player.
+ */
+enum struct PlayerBasic
+{
+	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
+	char name[MAX_NAME_LENGTH];			// Player name
+}
+
+/**
+ * Basic structure of an entity for Glicko calculation.
+ */
+enum struct GlickoBasic
+{
+	float rating;		// Glicko Score
+	float deviation;	// Glicko deviation
+}
 
 /**
  * Player profile.
@@ -59,6 +78,9 @@ enum struct PlayerInfo
 	int	  lastgame;						 // Last Score Update
 	int	  wins;							 // Number of games won
 }
+
+stock PlayerInfo	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
+stock PlayerBasic	   g_PlayersBasic[ForsakenTeam][MAX_PLAYER_TEAM];
 
 /**
  * Types of match.
@@ -92,11 +114,11 @@ enum ForsakenTeam
  */
 enum MatchClosing
 {
-	endgame			 = 0,
-	ragequit		 = 1,
-	desertion		 = 2,
-	admin			 = 3,
-	unknown			 = 4,
+	endgame			  = 0,
+	ragequit		  = 1,
+	desertion		  = 2,
+	admin			  = 3,
+	unknown			  = 4,
 
 	MatchClosing_Size = 5
 };
@@ -123,24 +145,6 @@ enum TypeBans
 
 	Bancode_Size = 3
 };
-
-/**
- * Basic structure of a player.
- */
-enum struct PlayerBasic
-{
-	char steamid[MAX_AUTHID_LENGTH];	// Player SteamID
-	char name[MAX_NAME_LENGTH];			// Player name
-}
-
-/**
- * Basic structure of an entity for Glicko calculation.
- */
-enum struct GlickoBasic
-{
-	float rating;		// Glicko Score
-	float deviation;	// Glicko deviation
-}
 
 // ==================================================
 // Array
@@ -198,20 +202,6 @@ stock const char sTypeBans[Bancode_Size][] = {
 // FUNCTIONS
 // ==================================================
 
-/**
- * Returns the name of the plugin.
- */
-stock void GetPluginBasename(Handle plugin, char[] buffer, int maxlength)
-{
-	GetPluginFilename(plugin, buffer, maxlength);
-
-	int check = -1;
-	if ((check = FindCharInString(buffer, '/', true)) != -1 || (check = FindCharInString(buffer, '\\', true)) != -1)
-	{
-		Format(buffer, maxlength, "%s", buffer[check + 1]);
-	}
-}
-
 stock bool IsHuman(int iClient)
 {
 	if (IsClientConnected(iClient) && !IsFakeClient(iClient))
@@ -261,22 +251,6 @@ stock char[] fkn_GetIP()
 	JoIp.GetString("IP", sIp, sizeof(sIp));
 	json_cleanup_and_delete(JoIp);
 	return sIp;
-}
-
-/**
- * Retrieves a list of maps from file Maps.json
- *
- * @return				a JSON_Array
- * @noreturn
- */
-stock JSON_Array fkn_Maps()
-{
-	char
-		sPatch[128];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_MAP);
-
-	JSON_Array arr = view_as<JSON_Array>(json_read_from_file(sPatch, JSON_NONE));
-	return arr;
 }
 
 /**
@@ -443,4 +417,176 @@ stock bool AreTeamsFlipped()
 stock int LogicTeamsFlipped()
 {
 	return GameRules_GetProp("m_bAreTeamsFlipped") ? 2 : 1;
+}
+
+// ==================================================
+// forsaken's functions
+// ==================================================
+
+stock void fkn_log(const char[] sMessage, any...)
+{
+	static int check = -1;
+	static char
+		sFormat[512],
+		sFilename[64],
+		sLogPath[PLATFORM_MAX_PATH];
+
+	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), DIR_FORSAKENLOG);
+	VFormat(sFormat, sizeof(sFormat), sMessage, 2);
+
+	GetPluginFilename(null, sFilename, sizeof(sFilename));
+	if ((check = FindCharInString(sFilename, '/', true)) != -1 || (check = FindCharInString(sFilename, '\\', true)) != -1)
+		Format(sFilename, sizeof(sFilename), "%s", sFilename[check + 1]);
+
+	ReplaceString(sFilename, sizeof(sFilename), ".smx", "", false);
+	LogToFileEx(sLogPath, "[%s] %s", sFilename, sFormat);
+}
+
+stock JSON_Object JsonObjectMatch(char[] sDirectory)
+{
+	char sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), sDirectory);
+	return json_read_from_file(sPatch);
+}
+
+stock int fkn_QueueID()
+{
+	int			iQueueID = 0;
+	JSON_Object joMatch	 = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log("Error: fkn_QueueID() - (joMatch == null)");
+		return iQueueID;
+	}
+
+	iQueueID = joMatch.GetInt("queueid");
+	json_cleanup_and_delete(joMatch);
+	return iQueueID;
+}
+
+stock TypeMatch fkn_TypeMatch()
+{
+	TypeMatch	Type	= invalid;
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log("Error: fkn_TypeMatch() - (joMatch == null)");
+		return Type;
+	}
+
+	Type = view_as<TypeMatch>(joMatch.GetInt("region"));
+	json_cleanup_and_delete(joMatch);
+	return Type;
+}
+
+stock bool fkn_MapName(char[] sBuffer, int iMaxlength)
+{
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log("Error: fkn_MapName() - (joMatch == null)");
+		return false;
+	}
+
+	joMatch.GetString("map", sBuffer, iMaxlength);
+	json_cleanup_and_delete(joMatch);
+	return true;
+}
+
+stock bool fkn_GetIPv4(char[] sBuffer, int iMaxlength)
+{
+	JSON_Object joIPv4 = JsonObjectMatch(DIR_IPV4);
+
+	if (joIPv4 == null)
+	{
+		fkn_log("Error: fkn_GetIPv4 - (joIPv4 == null)");
+		return false;
+	}
+
+	joIPv4.GetString("ip", sBuffer, iMaxlength);
+	json_cleanup_and_delete(joIPv4);
+	return true;
+}
+
+stock bool fkn_Players()
+{
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log("Error: fkn_Players() - (joMatch == null)");
+		return false;
+	}
+
+	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
+
+	if (jaTA == null)
+	{
+		fkn_log("Error: fkn_Players() - (jaTA == null)");
+		return false;
+	}
+	else if (jaTB == null)
+	{
+		fkn_log("Error: fkn_Players() - (jaTB == null)");
+		return false;
+	}
+
+	for (int i = 0; i <= 3; i++)
+	{
+		JSON_Object joPlayerTA = jaTA.GetObject(i);
+		JSON_Object joPlayerTB = jaTB.GetObject(i);
+
+		joPlayerTA.GetString("steamid", g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+
+		joPlayerTA.GetString("personaname", g_Players[TeamA][i].name, MAX_NAME_LENGTH);
+		joPlayerTB.GetString("personaname", g_Players[TeamB][i].name, MAX_NAME_LENGTH);
+	}
+
+	json_cleanup_and_delete(joMatch);
+	return true;
+}
+
+stock bool fkn_PlayersBasic()
+{
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log("Error: fkn_Players() - (joMatch == null)");
+		return false;
+	}
+
+	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
+
+	if (jaTA == null)
+	{
+		fkn_log("Error: fkn_Players() - (jaTA == null)");
+		return false;
+	}
+	else if (jaTB == null)
+	{
+		fkn_log("Error: fkn_Players() - (jaTB == null)");
+		return false;
+	}
+
+	for (int i = 0; i <= 3; i++)
+	{
+		JSON_Object joPlayerTA = jaTA.GetObject(i);
+		JSON_Object joPlayerTB = jaTB.GetObject(i);
+
+		joPlayerTA.GetString("steamid", g_PlayersBasic[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_PlayersBasic[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+
+		joPlayerTA.GetString("personaname", g_PlayersBasic[TeamA][i].name, MAX_NAME_LENGTH);
+		joPlayerTB.GetString("personaname", g_PlayersBasic[TeamB][i].name, MAX_NAME_LENGTH);
+	}
+
+	json_cleanup_and_delete(joMatch);
+	return true;
 }

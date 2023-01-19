@@ -3,6 +3,7 @@
 #include <colors>
 #include <forsaken>
 #include <forsaken_endgame>
+#include <forsaken_reserved>
 #include <json>
 #include <left4dhooks>
 #include <sourcemod>
@@ -49,7 +50,6 @@ enum struct PlayerRageQuit
 State		   ConfigState;
 SMCParser	   ConfigParser;
 TypeMatch	   g_TypeMatch;
-PlayerInfo	   g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
 PlayerRageQuit g_RageQuit[ForsakenTeam][MAX_PLAYER_TEAM];
 
 ConVar
@@ -182,10 +182,7 @@ public void OnMapStart()
 		return;
 
 	if (g_bPreMatch)
-	{
-		PreMatch();
 		ReadConfigSourcebans();
-	}
 
 	if (LGO_IsMatchModeLoaded() && g_bPreMatch)
 		g_bPreMatch = !g_bPreMatch;
@@ -298,6 +295,31 @@ public Action Timer_ReadyUpWait(Handle timer)
 		ForceEndGame(ragequit);
 
 	return Plugin_Stop;
+}
+
+public void OnCacheDownload()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	if (g_bPreMatch)
+		PreMatch();
+}
+
+public void OnMapDownload(const char[] sMap)
+{
+	char sMatchMap[32];
+	ConVar match_restart;
+	match_restart = FindConVar("confogl_match_map");
+	match_restart.GetString(sMatchMap, sizeof(sMatchMap));
+
+	if (!StrEqual("", sMatchMap, false) || StrEqual("", sMap, false))
+		return;
+
+	ServerCommand("confogl_match_map %s", g_sMapName);
+
+	if(g_cvarDebug.BoolValue)
+		fkn_log("OnMapDownload: %s", sMap);
 }
 
 public Action Cmd_KillTimer(int iClient, int iArgs)
@@ -618,4 +640,47 @@ public void KillTimerWaitReadyup()
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
 	}
+}
+
+stock bool PlayersAndRQs()
+{
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log("Error: fkn_Players() - (joMatch == null)");
+		return false;
+	}
+
+	JSON_Array jaTA	= view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB	= view_as<JSON_Array>(joMatch.GetObject("teamB"));
+
+	if (jaTA == null)
+	{
+		fkn_log("Error: fkn_Players() - (jaTA == null)");
+		return false;
+	}
+	else if (jaTB == null)
+	{
+		fkn_log("Error: fkn_Players() - (jaTB == null)");
+		return false;
+	}
+
+	for (int i = 0; i <= 3; i++)
+	{
+		JSON_Object joPlayerTA = jaTA.GetObject(i);
+		JSON_Object joPlayerTB = jaTB.GetObject(i);
+
+		joPlayerTA.GetString("steamid", g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+
+		joPlayerTA.GetString("personaname", g_Players[TeamA][i].name, MAX_NAME_LENGTH);
+		joPlayerTB.GetString("personaname", g_Players[TeamB][i].name, MAX_NAME_LENGTH);
+
+		joPlayerTA.GetString("steamid", g_RageQuit[TeamA][i].steamid, MAX_AUTHID_LENGTH);
+		joPlayerTB.GetString("steamid", g_RageQuit[TeamB][i].steamid, MAX_AUTHID_LENGTH);
+	}
+
+	json_cleanup_and_delete(joMatch);
+	return true;
 }

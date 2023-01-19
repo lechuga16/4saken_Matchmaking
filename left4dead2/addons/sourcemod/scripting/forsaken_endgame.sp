@@ -81,7 +81,6 @@ public void OnPluginStart()
 
 	RegConsoleCmd("sm_endgame_score", Cmd_Score, "Print chapter score");
 	RegAdminCmd("sm_endgame_checkmap", Cmd_CheckMap, ADMFLAG_GENERIC);
-	RegAdminCmd("sm_endgame_maplist", Cmd_Maplist, ADMFLAG_GENERIC);
 	RegAdminCmd("sm_endgame_cancel", Cmd_Cancel, ADMFLAG_GENERIC);
 
 	DatabaseConnect();
@@ -130,38 +129,6 @@ public Action Cmd_CheckMap(int iClient, int iArgs)
 		CReplyToCommand(iClient, "%t %t", "Tag", "Lastmap");
 	else
 		CReplyToCommand(iClient, "%t %t", "Tag", "NotLastMap");
-	return Plugin_Continue;
-}
-
-public Action Cmd_Maplist(int iClient, int iArgs)
-{
-	JSON_Array jaMaps = fkn_Maps();
-
-	int
-		iLength = jaMaps.Length;
-	char
-		sTmpBuffer[32],
-		sPrintBuffer[512];
-
-	Format(sTmpBuffer, sizeof(sTmpBuffer), "%t :\n", "MapList");
-	StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
-
-	for (int index = 0; index < iLength; index++)
-	{
-		char sListMap[32];
-		jaMaps.GetString(index, sListMap, sizeof(sListMap));
-
-		Format(sTmpBuffer, sizeof(sTmpBuffer), "{green}%s{default} ", sListMap);
-		StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
-		if (index == 3 || index == 7)
-		{
-			Format(sTmpBuffer, sizeof(sTmpBuffer), "\n", sListMap);
-			StrCat(sPrintBuffer, sizeof(sPrintBuffer), sTmpBuffer);
-		}
-	}
-
-	CReplyToCommand(iClient, "%t %s", "Tag", sPrintBuffer);
-	json_cleanup_and_delete(jaMaps);
 	return Plugin_Continue;
 }
 

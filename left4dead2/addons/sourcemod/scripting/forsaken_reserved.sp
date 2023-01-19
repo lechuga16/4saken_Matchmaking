@@ -27,6 +27,8 @@ char
 	g_sURL[256],
 	g_sIp[64];
 
+GlobalForward g_gfMap;
+
 /*****************************************************************
 			P L U G I N   I N F O
 *****************************************************************/
@@ -37,12 +39,9 @@ public Plugin myinfo =
 	description = "Functions that help in booking servers for matchmaking",
 	version		= PLUGIN_VERSION,
 	url			= "https://github.com/lechuga16/4saken_Matchmaking"
-
-
 }
 
-public APLRes
-	AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	if (!L4D_IsEngineLeft4Dead2())
 	{
@@ -55,6 +54,8 @@ public APLRes
 		return APLRes_Failure;
 	}
 
+	g_gfMap = CreateGlobalForward("OnMapDownload", ET_Ignore);
+	RegPluginLibrary("forsaken_reserved");
 	return APLRes_Success;
 }
 
@@ -147,7 +148,22 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 	if (g_cvarDebug.BoolValue)
 		fkn_log("GET request: %s", sContent);
 
-	g_bReserve = view_as<bool>(StringToInt(sContent, 10));
+	JSON_Object joInfo = json_decode(sContent);
+
+	if (joInfo == null)
+	{
+		fkn_log("Error: HttpReserve() - (joInfo == null)");
+		return;
+	}
+
+	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
+
+	char sMap[32];
+	joInfo.GetString("map", sMap, sizeof(sMap));
+
+	Call_StartForward(g_gfMap);
+	Call_PushString(sMap);
+	Call_Finish();
 
 	if (!g_bReserve)
 	{
