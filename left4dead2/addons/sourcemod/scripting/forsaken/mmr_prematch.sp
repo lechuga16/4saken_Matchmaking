@@ -16,7 +16,10 @@ public void PreMatch()
 	g_TypeMatch = fkn_TypeMatch();
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 	fkn_Players();
+}
 
+public void OnReadyUp_Prematch()
+{
 	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{
 		DBInfoPlayers(i, TeamA);
@@ -38,9 +41,9 @@ public void DBInfoPlayers(int Index, ForsakenTeam Team)
 	FROM `users_general` AS `g`\
 	INNER JOIN `users_mmr` AS `m`\
 	ON `g`.`MMRID` = `m`.`MMRID`\
-	WHERE `g`.`SteamID64` LIKE '%s'",
+	WHERE `g`.`SteamID64` LIKE '%s';",
 		   g_Players[Team][Index].steamid);
-
+	
 	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
 	{
 		char error[512];

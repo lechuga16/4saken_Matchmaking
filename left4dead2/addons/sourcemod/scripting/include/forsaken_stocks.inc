@@ -26,7 +26,8 @@
 #include <forsaken_left4dhooks>
 #include <forsaken_l4d2util>
 
-#define URL_FORSAKEN	   "forsaken-blk.herokuapp.com/queue/matchstatus"
+#define URL_STATUS	  	 "forsaken-blk.herokuapp.com/queue/matchstatus"
+#define URL_STATUSV2	   "forsaken-blk.herokuapp.com/queue/matchstatusV2"
 #define URL_FORSAKEN_MATCH "forsaken-blk.herokuapp.com/queue/get-match-info"
 #define URL_IPV4		   "api.ipify.org?format=json"
 #define DIR_IPV4		   "logs/forsaken_IPv4.json"

@@ -1,7 +1,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#include <forsaken>
+#include <forsaken_stocks>
 #include <forsaken_endgame>
 #include <colors>
 #include <sourcemod>
@@ -54,7 +54,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		return APLRes_Failure;
 	}
 
-	g_gfMap = CreateGlobalForward("OnMapDownload", ET_Ignore);
+	g_gfMap = CreateGlobalForward("OnMapDownload", ET_Ignore, Param_String);
 	RegPluginLibrary("forsaken_reserved");
 	return APLRes_Success;
 }
@@ -109,7 +109,7 @@ public Action Cmd_Reserved(int iClient, int iArgs)
  */
 public void GetReserve(int iClient)
 {
-	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_FORSAKEN, g_sIp, g_iPort);
+	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUSV2, g_sIp, g_iPort);
 	if (g_cvarDebug.BoolValue)
 		fkn_log("URL: %s", g_sURL);
 
@@ -133,7 +133,7 @@ public void HttpReserve(bool success, const char[] error, System2HTTPRequest req
 {
 	char
 		sUrl[256],
-		sContent[10];
+		sContent[128];
 
 	request.GetURL(sUrl, sizeof(sUrl));
 
