@@ -40,10 +40,10 @@ ConVar
 	g_cvarDebug,
 	g_cvarEnable;
 
-Database   g_dbForsaken;
-TypeMatch  g_TypeMatch;
-TeamsInfo  g_TeamInfo[ForsakenTeam];					// Information to calculate mmr of a team
-int		   g_iTeamScore[ForsakenTeam];					// Team score
+Database  g_dbForsaken;
+TypeMatch g_TypeMatch;
+TeamsInfo g_TeamInfo[ForsakenTeam];		 // Information to calculate mmr of a team
+int		  g_iTeamScore[ForsakenTeam];	 // Team score
 char
 	g_sMapName[32],
 	g_sIp[64];
@@ -59,6 +59,7 @@ bool
 #include "forsaken/mmr_prematch.sp"
 #include "forsaken/mmr_pug.sp"
 #include "forsaken/mmr_scrims.sp"
+//#include "forsaken/mmr_1v1.sp"
 #include "forsaken/mmr_skill.sp"
 
 /*****************************************************************
@@ -100,6 +101,7 @@ public void OnPluginStart()
 
 	RegConsoleCmd("sm_mmr", CMD_MMR, "Show player mmr");
 	RegAdminCmd("sm_mmr_stats", CMD_Stats, ADMFLAG_GENERIC, "Show player stats");
+	RegAdminCmd("sm_mmr_all", CMD_All, ADMFLAG_ROOT, "Show player stats");
 
 	HookEvent("round_end", Event_RoundEnd);
 	SQLConnect();
@@ -117,6 +119,15 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	IndexPug(iClient);
 }
 
+public void OnCacheDownload()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	if (!g_bPreMatch)
+		OCD_Prematch();
+}
+
 public void OnMapStart()
 {
 	if (!g_cvarEnable.BoolValue)
@@ -132,21 +143,18 @@ public void OnMapStart()
 		g_bPreMatch = false;
 }
 
-public void OnCacheDownload()
-{
-	if (!g_cvarEnable.BoolValue)
-		return;
-
-	if (g_bPreMatch)
-		PreMatch();
-}
-
 public void OnReadyUpInitiatePre()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
+}
 
-	OnReadyUp_Prematch();
+public void OnRoundLiveCountdown()
+{
+	if (!g_bRound_End)
+		g_bRound_End = !g_bRound_End;
+
+	ClienIndexList();
 }
 
 public Action CMD_MMR(int iClient, int iArgs)
@@ -166,7 +174,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 		{
 			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
 			{
-				if(g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
+				if (g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
 					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
 				else
 					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamA][iID].gamesplayed, EVALUATION_PERIOD);
@@ -175,7 +183,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 
 			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
 			{
-				if(g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
+				if (g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
 					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
 				else
 					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
@@ -194,7 +202,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 		{
 			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
 			{
-				if(g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
+				if (g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
 					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
 				else
 					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamA][iID].gamesplayed, EVALUATION_PERIOD);
@@ -203,7 +211,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 
 			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
 			{
-				if(g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
+				if (g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
 					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
 				else
 					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
@@ -272,18 +280,26 @@ public Action CMD_Stats(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public void OnRoundLiveCountdown()
+public Action CMD_All(int iClient, int iArgs)
 {
-	if (!g_bRound_End)
-		g_bRound_End = !g_bRound_End;
+	CReplyToCommand(iClient, "%t TeamA %s:%.0f|%s:%.0f|%s:%.0f|%s:%.0f ", "Tag",
+					g_Players[TeamA][0].name, g_Players[TeamA][0].rating,
+					g_Players[TeamA][1].name, g_Players[TeamA][1].rating,
+					g_Players[TeamA][2].name, g_Players[TeamA][2].rating,
+					g_Players[TeamA][3].name, g_Players[TeamA][3].rating);
 
-	ClienIndexList();
+	CReplyToCommand(iClient, "%t TeamB %s:%.0f|%s:%.0f|%s:%.0f|%s:%.0f ", "Tag",
+					g_Players[TeamB][0].name, g_Players[TeamB][0].rating,
+					g_Players[TeamB][1].name, g_Players[TeamB][1].rating,
+					g_Players[TeamB][2].name, g_Players[TeamB][2].rating,
+					g_Players[TeamB][3].name, g_Players[TeamB][3].rating);
+
+	return Plugin_Handled;
 }
 
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
-
 public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 {
 	if (!g_cvarEnable.BoolValue || g_bPreMatch || !g_bRound_End)
