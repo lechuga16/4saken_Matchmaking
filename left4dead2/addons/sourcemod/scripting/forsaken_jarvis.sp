@@ -1,4 +1,7 @@
 
+#pragma semicolon 1
+#pragma newdecls required
+
 #define forsaken_left4dhooks_included 1
 #include <colors>
 #include <forsaken>
@@ -21,11 +24,7 @@
 #define PLUGIN_VERSION "1.0"
 #define JVPrefix	   "[J.A.R.V.I.S]"
 
-ConVar
-	g_cvarDebug,
-	g_cvarEnable;
-
-bool g_bPlayersToStartFull = false;
+ConVar g_cvarDebugOT;
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
@@ -75,8 +74,9 @@ public void OnPluginStart()
 {
 	LoadTranslation("forsaken_jarvis.phrases");
 	CreateConVar("sm_jarvis_version", PLUGIN_VERSION, "Plugin version", FCVAR_REPLICATED | FCVAR_NOTIFY | FCVAR_SPONLY | FCVAR_DONTRECORD);
-	g_cvarDebug	 = CreateConVar("sm_jarvis_debug", "0", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarEnable = CreateConVar("sm_jarvis_enable", "1", "Turn on debug messages", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarDebug	 	= CreateConVar("sm_jarvis_debug", "0", "Activate messages and logs for debugging", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarDebugOT	= CreateConVar("sm_jarvis_debugOT", "0", "turn on debugging messages to organize teams", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarEnable 	= CreateConVar("sm_jarvis_enable", "1", "Activate the plugin", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	OnPluginStart_Reserved();
 	OnPluginStart_prematch();
@@ -97,6 +97,7 @@ public void OnMapStart()
 		return;
 
 	OMS_prematch();
+	ORUI_Teams();
 }
 
 public void OnMapEnd()
@@ -112,9 +113,8 @@ public void OnReadyUpInitiate()
 	if (!g_cvarEnable.BoolValue)
 		return;
 	
-	ORUI_Teams();
 	ORUI_Waiting();
-	ORUI_CheckMatch();
+	//ORUI_CheckMatch();
 	ORUI_Readyup();
 }
 
@@ -123,7 +123,7 @@ public void OnRoundIsLive()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (!IsGameCompetitive(g_TypeMatch))
+	if (g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
 
 	KillTimerWaitPlayers();
@@ -140,8 +140,7 @@ public void OnClientPutInServer(int iClient)
 	if (IsFakeClient(iClient))
 		return;
 
-	if (!g_bPlayersToStartFull)
-		OCPIS_Reserved();
+	OCPIS_Reserved();
 }
 
 public void OnClientAuthorized(int iClient, const char[] sAuth)

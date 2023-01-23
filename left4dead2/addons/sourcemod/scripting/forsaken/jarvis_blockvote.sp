@@ -17,6 +17,9 @@ public Action VoteStart(int iClient, const char[] sCommand, int iArg)
 	if (!g_cvarEnable.BoolValue || g_bPreMatch || L4D_GetClientTeam(iClient) == L4DTeam_Spectator)
 		return Plugin_Continue;
 
+	if (g_TypeMatch == invalid || g_TypeMatch == unranked)
+		return Plugin_Continue;
+
 	if (!IsNewBuiltinVoteAllowed)
 	{
 		CPrintToChat(iClient, "%t %t", "Tag", "TryAgain", CheckBuiltinVoteDelay());
@@ -29,31 +32,22 @@ public Action VoteStart(int iClient, const char[] sCommand, int iArg)
 	GetCmdArg(1, sVoteType, sizeof(sVoteType));
 	GetCmdArg(2, sVoteArgument, sizeof(sVoteArgument));
 
-	if (strcmp(sVoteType, "Kick", false) == 0)
-	{
-		if (IsGameCompetitive(g_TypeMatch))
-		{
-			CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
-			return Plugin_Handled;
-		}
-	}
-
 	if (strcmp(sVoteType, "ReturnToLobby", false) == 0)
 	{
-		if (IsGameCompetitive(g_TypeMatch))
-		{
-			CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
-			return Plugin_Handled;
-		}
+		CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+		return Plugin_Handled;
+	}
+
+	if (strcmp(sVoteType, "Kick", false) == 0)
+	{
+		CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+		return Plugin_Handled;
 	}
 
 	if (strcmp(sVoteType, "ChangeMission", false) == 0)
 	{
-		if (IsGameCompetitive(g_TypeMatch))
-		{
-			CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
-			return Plugin_Handled;
-		}
+		CPrintToChat(iClient, "%t %t", "Tag", "NoVote", sTypeMatch[g_TypeMatch]);
+		return Plugin_Handled;
 	}
 
 	return Plugin_Continue;

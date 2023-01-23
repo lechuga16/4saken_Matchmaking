@@ -106,11 +106,11 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 		CReplyToCommand(iClient, "Usage: {blue}sm_native_forsaken{default}");
 		return Plugin_Continue;
 	}
+	TypeMatch Type = fkn_TypeMatch();
+	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[Type]);
 
-	CReplyToCommand(iClient, "%s Type Match: ({olive}%s{default})", PREFIX, sTypeMatch[fkn_TypeMatch()]);
-
-	char		sMapName[32];
-	fkn_PlayersBasic();
+	char	sMapName[32];
+	fkn_Players(Type, true);
 
 	CReplyToCommand(iClient, "%s QueueID: ({green}%d{default})", PREFIX, fkn_QueueID());
 	fkn_MapName(sMapName, sizeof(sMapName));
@@ -192,7 +192,7 @@ public Action Cmd_MMR(int iClient, int iArgs)
 		   "SELECT `Rating`, `Deviation`, `Wins` \
 			FROM `users_mmr` AS m \
 			INNER JOIN `users_general` AS g \
-			ON `g`.`MMRID` = `m`.`MMRID` \
+			ON `g`.`Pug_MMRID` = `m`.`Pug_MMRID` \
 			WHERE `g`.`SteamID64` = '%s';", sCommunityID);
 
 	if ((rsForsaken = SQL_Query(g_DBForsaken, sQuery)) == null)
@@ -456,7 +456,7 @@ void CheckMVPList(int iClient, bool bIsMVP = true)
 public void MVPListed(int iClient, ForsakenTeam team, bool bIsMVP)
 {
 	Player Players[ForsakenTeam][MAX_PLAYER_TEAM];
-	fkn_Players();
+	fkn_Players(fkn_TypeMatch());
 
 	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{

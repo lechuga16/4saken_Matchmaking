@@ -4,60 +4,81 @@
 #define _mmr_pug_included
 
 #define CONSTANT_SCORE 4.0	  // 4.0 players
+
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+
+public void OCA_Pug(int iClient)
+{
+	if (IsGameCompetitive(g_TypeMatch))
+		IndexClientAuthorized(iClient);
+}
+
+public void ORLC_Pug()
+{
+	if (IsGameCompetitive(g_TypeMatch))
+		IndexClientAll();
+}
+
+/****************************************************************
+			C A L L B A C K   F U N C T I O N S
+****************************************************************/
+
 public void RoundEnd_Pugs()
+{
+	ProcessBonus(TeamA);
+	ProcessBonus(TeamB);
+
+	if (InSecondHalfOfRound())
+		ProcesPug();
+}
+
+void ProcesPug()
 {
 	if (g_iTeamScore[TeamA] > g_iTeamScore[TeamB])
 	{
 		if (AreTeamsFlipped())
 		{
-			if (g_cvarDebug.BoolValue)
-				fkn_log("TeamA Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
-			ProcessMMR(TeamA, Result_Win);
-			ProcessMMR(TeamB, Result_Loss);
+			fkn_log(true, "TeamA Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingPug(TeamA, Result_Win);
+			ProcessRatingPug(TeamB, Result_Loss);
 		}
 		else
 		{
-			if (g_cvarDebug.BoolValue)
-				fkn_log("TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
-			ProcessMMR(TeamA, Result_Loss);
-			ProcessMMR(TeamB, Result_Win);
+			fkn_log(true, "TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingPug(TeamA, Result_Loss);
+			ProcessRatingPug(TeamB, Result_Win);
 		}
 	}
 	else if (g_iTeamScore[TeamA] < g_iTeamScore[TeamB])
 	{
 		if (AreTeamsFlipped())
 		{
-			if (g_cvarDebug.BoolValue)
-				fkn_log("TeamA Loss, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
-			ProcessMMR(TeamA, Result_Loss);
-			ProcessMMR(TeamB, Result_Win);
+			fkn_log(true, "TeamA Loss, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingPug(TeamA, Result_Loss);
+			ProcessRatingPug(TeamB, Result_Win);
 		}
 		else
 		{
-			if (g_cvarDebug.BoolValue)
-				fkn_log("TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
-			ProcessMMR(TeamA, Result_Win);
-			ProcessMMR(TeamB, Result_Loss);
+			fkn_log(true, "TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingPug(TeamA, Result_Win);
+			ProcessRatingPug(TeamB, Result_Loss);
 		}
 	}
 	else if (g_iTeamScore[TeamA] == g_iTeamScore[TeamB])
 	{
-		if (g_cvarDebug.BoolValue)
-			fkn_log("Team Draw, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
-		ProcessMMR(TeamA, Result_Draw);
-		ProcessMMR(TeamB, Result_Draw);
+		fkn_log(true, "Team Draw, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+		ProcessRatingPug(TeamA, Result_Draw);
+		ProcessRatingPug(TeamB, Result_Draw);
 	}
 	g_iTeamScore[TeamA] = 0;
 	g_iTeamScore[TeamB] = 0;
 }
 
-public void ProcessMMR(ForsakenTeam team, MatchResults Result)
+void ProcessRatingPug(ForsakenTeam team, MatchResults Result)
 {
-	ForsakenTeam opponent;
-	if (team == TeamA)
-		opponent = TeamB;
-	else
-		opponent = TeamA;
+	ForsakenTeam opponent = GetOpponent(team);
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
@@ -73,10 +94,10 @@ public void ProcessMMR(ForsakenTeam team, MatchResults Result)
 		if (iClient == CONSOLE)
 			continue;
 
-		for (int j = 0; j <= MAX_INDEX_PLAYER; j++)
+		for (int jID = 0; jID <= MAX_INDEX_PLAYER; jID++)
 		{
-			fSum_d += Glicko_sum_d(g_Players[team][iID], g_Players[opponent][j]);
-			fSum_FinalRating += Glicko_sum_FinalRating(g_Players[team][iID], g_Players[opponent][j], Result);
+			fSum_d += Glicko_sum_d(g_Players[team][iID], g_Players[opponent][jID]);
+			fSum_FinalRating += Glicko_sum_FinalRating(g_Players[team][iID], g_Players[opponent][jID], Result);
 		}
 
 		fGlicko_d	 = Glicko_d(fSum_d);
@@ -104,93 +125,42 @@ public void ProcessMMR(ForsakenTeam team, MatchResults Result)
 			CPrintToChat(iClient, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - iGamesPlayed));
 
 		char sQuery[512];
-		Format(sQuery, sizeof(sQuery),
-				"UPDATE `users_mmr` AS m \
-				INNER JOIN `users_general` AS g \
-				ON `g`.`MMRID` = `m`.`MMRID` \
-				SET \
-					`m`.`Rating` = %f, \
-					`m`.`Deviation` = %f, \
-					`m`.`GamesPlayed` = %d, \
-					`m`.`LastGame` = %d, \
-					`m`.`Wins` = %d \
-				WHERE `g`.`SteamID64` LIKE '%s'",
-			   g_Players[team][iID].rating,
-			   g_Players[team][iID].deviation,
-			   g_Players[team][iID].gamesplayed,
-			   GetTime(),
-			   g_Players[team][iID].wins,
-			   g_Players[team][iID].steamid);
+		g_dbForsaken.Format(sQuery, sizeof(sQuery),
+			"UPDATE `users_mmr` AS m \
+			INNER JOIN `users_general` AS g \
+			ON `g`.`Pug_MMRID` = `m`.`Pug_MMRID` \
+			SET \
+				`m`.`Rating` = %f, \
+				`m`.`Deviation` = %f, \
+				`m`.`GamesPlayed` = %d, \
+				`m`.`LastGame` = %d, \
+				`m`.`Wins` = %d \
+			WHERE `g`.`SteamID64` LIKE '%s'",
+			g_Players[team][iID].rating,
+			g_Players[team][iID].deviation,
+			g_Players[team][iID].gamesplayed,
+			GetTime(),
+			g_Players[team][iID].wins,
+			g_Players[team][iID].steamid);
 
-		if (!SQL_FastQuery(g_dbForsaken, sQuery))
-		{
-			char error[512];
-			SQL_GetError(g_dbForsaken, error, sizeof(error));
-			fkn_log("Error: %s", error);
-			fkn_log("Query: %s", sQuery);
-			return;
-		}
+		fkn_log(true, "sQuery: %s", sQuery);
+
+		g_dbForsaken.Query(OnPugCallback, sQuery);
 	}
 }
 
-public void ClienIndexList()
+void OnPugCallback(Database db, DBResultSet results, const char[] error, any data)
 {
-	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
+	if (results == null)
 	{
-		if (!IsHuman(i))
-			continue;
-
-		char sStemaID[32];
-		if (!GetClientAuthId(i, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
-			continue;
-
-		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-		{
-			if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
-			{
-				if (g_Players[TeamA][iID].client != i)
-				{
-					g_Players[TeamA][iID].client = i;
-					continue;
-				}
-			}
-
-			if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
-			{
-				if (g_Players[TeamB][iID].client != i)
-				{
-					g_Players[TeamB][iID].client = i;
-					continue;
-				}
-			}
-		}
+		fkn_log(false, "Error: %s", error);
+		return;
 	}
 }
 
-public void IndexPug(int iClient)
-{
-	if (g_TypeMatch == unranked || g_TypeMatch == invalid)
-		return;
-
-	char sStemaID[32];
-	if (!GetClientAuthId(iClient, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
-		return;
-
-	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-	{
-		if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
-		{
-			g_Players[TeamA][iID].client = iClient;
-			continue;
-		}
-
-		if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
-		{
-			g_Players[TeamB][iID].client = iClient;
-			continue;
-		}
-	}
-}
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
 
 public void ProcessBonus(ForsakenTeam team)
 {

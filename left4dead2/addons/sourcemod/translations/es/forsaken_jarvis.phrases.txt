@@ -21,6 +21,14 @@
     {
         "es"        "Tipo de Lobby: {olive}%s{default}."
     }
+    "PlayerA"
+    {
+        "es"        "{blue}Jugador{default}: "
+    }
+    "PlayerB"
+    {
+        "es"        "{red}Jugador{default}: "
+    }
     "TeamA"
     {
         "es"        "{blue}Equipo A{default}:\n"
@@ -48,10 +56,6 @@
     "ConfigChange"
     {
         "es"        "La cfg actual ({green}%s{default}) no corresponde a {olive}%s{default}."
-    }
-    "MapConfirm"
-    {
-        "es"        "El mapa actual ({green}%s{default}) corresponde a {olive}%s{default}."
     }
     "MapChange"
     {
@@ -91,10 +95,6 @@
     {
         "es"        "No hay suficientes jugadores para iniciar la partida ({green}%d{default}/{green}%d{default})."
     }
-    "StartMatch"
-    {
-        "es"        "Iniciando la cfg ({olive}%s{default}) y cambiando el mapa a ({olive}%s{default})."
-    }
     // jarvis_ban.sp
     "BanFail"
     {
@@ -117,13 +117,21 @@
     {
         "es"        "{red}No todos los jugadores{default} están conectados."
     }
+    "WaitingPlayerA"
+    {
+        "es"        "Esperando al {blue}jugador{default}: "
+    }
+    "WaitingPlayerB"
+    {
+        "es"        "Esperando al {red}jugador{default}: "
+    }
     "WaitingTeamA"
     {
-        "es"        "Esperando el{blue}Equipo A{default}:\n"
+        "es"        "Esperando {blue}Equipo A{default}:\n"
     }
     "WaitingTeamB"
     {
-        "es"        "Esperando el {red}Equipo B{default}:\n"
+        "es"        "Esperando {red}Equipo B{default}:\n"
     }
     "BanDesertion"
     {

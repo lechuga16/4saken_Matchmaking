@@ -18,10 +18,6 @@
 #define PLUGIN_VERSION	"0.1"
 #define PREFIX			"[{olive}4saken{default}]"
 
-ConVar
-	g_cvarDebug,
-	g_cvarEnable;
-
 char
 	g_sURL[256],
 	g_sIPv4[32],
@@ -32,16 +28,11 @@ int
 	g_iQueueID = 0,
 	g_iPort;
 
-bool g_bGetMatch = true;
+bool 
+	g_bGetMatch = true,
+	g_bGetIPv4 = true;
 
-GlobalForward 
-	g_gfCacheDownload;
-
-/*****************************************************************
-			L I B R A R Y   I N C L U D E S
-*****************************************************************/
-
-#include "forsaken/forsaken_web.sp"
+GlobalForward  g_gfCacheDownload;
 
 /*****************************************************************
 			P L U G I N   I N F O
@@ -87,6 +78,9 @@ public void OnPluginStart()
 	BuildPath(Path_SM, g_sPatchIP, sizeof(g_sPatchIP), DIR_IP);
 	JSON_Check();
 	GetIPv4();
+
+	if(LGO_IsMatchModeLoaded())
+		GetMatch();
 }
 
 public void OnPluginEnd()
@@ -94,12 +88,8 @@ public void OnPluginEnd()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	char
-		sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
-
-	if(FileExists(sPatch))
-		DeleteFile(sPatch);
+	DeleteCache();
+	DeleteIPV4();
 }
 
 public void OnMapStart()
@@ -107,12 +97,12 @@ public void OnMapStart()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (g_bGetMatch)
+/*	if (g_bGetMatch)
 	{
 		CreateTimer(2.0, Timer_GetMatch);
 		g_bGetMatch = !g_bGetMatch;
 		GetMatch();
-	}
+	}*/
 }
 
 public void OnMapEnd()
@@ -120,12 +110,8 @@ public void OnMapEnd()
 	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
 		return;
 
-	char
-		sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
-
-	if(FileExists(sPatch))
-		DeleteFile(sPatch);
+	// DeleteCache();
+	// DeleteIPV4();
 }
 
 public void OnClientPutInServer(int iClient)
@@ -136,17 +122,17 @@ public void OnClientPutInServer(int iClient)
 	if (IsFakeClient(iClient))
 		return;
 
-	if (g_bGetMatch)
+/*	if (g_bGetMatch)
 	{
 		CreateTimer(2.0, Timer_GetMatch, iClient);
 		g_bGetMatch = !g_bGetMatch;
 		GetMatch();
 	}
 	else
-		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);
+		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);*/
 }
 
-public Action Timer_GetMatch(Handle timer)
+Action Timer_GetMatch(Handle timer)
 {
 	g_bGetMatch = !g_bGetMatch;
 	return Plugin_Stop;
@@ -242,7 +228,7 @@ public Action Cmd_UpdateCache(int iClient, int iArgs)
  *
  * @noreturn
  */
-public void JSON_Check()
+void JSON_Check()
 {
 	if (!g_cvarEnable.BoolValue)
 		return;
@@ -250,8 +236,7 @@ public void JSON_Check()
 	if (FileExists(g_sPatchIP))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("%s Not found", DIR_IP);
+	fkn_log(true, "%s Not found", DIR_IP);
 
 	JSON_Create();
 }
@@ -261,7 +246,7 @@ public void JSON_Check()
  *
  * @noreturn
  */
-public void JSON_Create()
+void JSON_Create()
 {
 	char	output[32];
 
@@ -271,14 +256,141 @@ public void JSON_Create()
 
 	if (!FileExists(g_sPatchIP))
 	{
-		fkn_log("Error: %s Invalid file path", DIR_IP);
+		fkn_log(false, "Error: %s Invalid file path", DIR_IP);
 		return;
 	}
 
 	json_write_to_file(JoIp, g_sPatchIP, JSON_ENCODE_PRETTY);
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("%s Created !", DIR_IP);
-
+	fkn_log(true, "%s Created !", DIR_IP);
 	json_cleanup_and_delete(JoIp);
+}
+
+void DeleteCache()
+{
+	char
+		sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
+
+	if(FileExists(sPatch))
+		DeleteFile(sPatch);
+}
+
+void DeleteIPV4()
+{
+	char
+		sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IPV4);
+
+	if(FileExists(sPatch))
+		DeleteFile(sPatch);
+}
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
+/**
+ * @brief Create an httpRequest, and retrieve the match data.
+ *
+ * @noreturn
+ */
+public void GetMatch()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	char sPatch[128];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_CACHEMATCH);
+	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_FORSAKEN_MATCH, fkn_GetIP(), g_iPort);
+	fkn_log(true, "GetMatch URL: %s", g_sURL);
+
+	System2HTTPRequest httpMatch = new System2HTTPRequest(HttpMatchInfo, g_sURL);
+	httpMatch.SetHeader("Content-Type", "application/json");
+	httpMatch.SetOutputFile(sPatch);
+	if (g_cvarDebug.BoolValue)
+		httpMatch.SetProgressCallback(HttpProgressMatch);
+	httpMatch.GET();
+	delete httpMatch;
+}
+
+void HttpProgressMatch(System2HTTPRequest request, int dlTotal, int dlNow, int ulTotal, int ulNow)
+{
+	PrintToServer("forsaken_match.json downloaded %d of %d bytes", dlNow, dlTotal);
+	fkn_log(true, "forsaken_match.json downloaded %d of %d bytes", dlNow, dlTotal);
+}
+
+void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
+{
+	char
+		url[256];
+
+	request.GetURL(url, sizeof(url));
+
+	if (!success)
+	{
+		fkn_log(false, "ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
+		return;
+	}
+
+	CreateTimer(1.0, Timer_StartForward);
+}
+
+Action Timer_StartForward(Handle timer)
+{
+	Call_StartForward(g_gfCacheDownload);
+	if (Call_Finish() != 0)
+		fkn_log(false, "forsaken_web: error in forward Call_Finish");
+
+	return Plugin_Stop;
+}
+
+/**
+ * @brief Create an http request and retrieve the IPv4 of the server.
+ *
+ * @noreturn
+ */
+void GetIPv4()
+{
+	if (!g_cvarEnable.BoolValue)
+		return;
+
+	if(!g_bGetIPv4)
+		return;
+
+	g_bGetIPv4 = !g_bGetIPv4;
+	
+	char sPatch[128];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IPV4);
+
+	System2HTTPRequest httpIPv4 = new System2HTTPRequest(HttpIPv4, URL_IPV4);
+	httpIPv4.SetHeader("Content-Type", "application/json");
+	httpIPv4.SetOutputFile(sPatch);
+	if (g_cvarDebug.BoolValue)
+		httpIPv4.SetProgressCallback(HttpProgressIpv4);
+	httpIPv4.GET();
+	delete httpIPv4;
+}
+
+void HttpProgressIpv4(System2HTTPRequest request, int dlTotal, int dlNow, int ulTotal, int ulNow)
+{
+	PrintToServer("IPv4 downloaded %d of %d bytes", dlNow, dlTotal);
+}
+
+void HttpIPv4(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
+{
+	char url[256];
+
+	request.GetURL(url, sizeof(url));
+
+	if (!success)
+	{
+		fkn_log(false, "ERROR: Couldn't retrieve URL %s. Error: %s", url, error);
+		return;
+	}
+
+	char sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IPV4);
+	JSON_Object joIPv4	= json_read_from_file(sPatch);
+	joIPv4.GetString("ip", g_sIPv4, sizeof(g_sIPv4));
 }

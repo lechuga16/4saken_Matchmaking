@@ -1,3 +1,6 @@
+#pragma semicolon 1
+#pragma newdecls required
+
 #define forsaken_left4dhooks_included 1
 #include <forsaken>
 #include <forsaken_endgame>
@@ -16,10 +19,7 @@
 
 #define PLUGIN_VERSION "0.1"
 
-ConVar
-	g_cvarDebug,
-	g_cvarEnable,
-	g_cvarTimeKick;
+ConVar g_cvarTimeKick;
 
 bool
 	g_bIsEndGame	   = false,
@@ -148,7 +148,7 @@ public Action Cmd_Cancel(int iClient, int iArgs)
 
 	int QueueID = fkn_QueueID();
 	CReplyToCommand(iClient, "%t %t", "Tag", "CancelMatch", QueueID, iClient);
-	fkn_log("The match (ID:%d) was canceled due to %N.", QueueID, iClient);
+	fkn_log(false, "The match (ID:%d) was canceled due to %N.", QueueID, iClient);
 	ChapterPoints(admin);
 	StartEndGame();
 
@@ -199,7 +199,7 @@ any Native_ForceEndGame(Handle plugin, int numParams)
 	if (!g_bNativeAvailable)
 	{
 		ThrowNativeError(SP_ERROR_NATIVE, "Endgame has already been forced");
-		fkn_log("The attempt to force the game to close was rejected due to the timeout, Reason: %s", sMatchClosing[hMatchClosing]);
+		fkn_log(false, "The attempt to force the game to close was rejected due to the timeout, Reason: %s", sMatchClosing[hMatchClosing]);
 		CreateTimer(10.0, Timer_NativeAvailable);
 		return 0;
 	}
@@ -259,13 +259,13 @@ public void DatabaseConnect()
 		return;
 
 	if (!SQL_CheckConfig("4saken"))
-		fkn_log("The 4saken configuration is not found in databases.cfg");
+		fkn_log(false, "The 4saken configuration is not found in databases.cfg");
 
 	char error[255];
 	g_dbForsaken = SQL_Connect("4saken", true, error, sizeof(error));
 
 	if (g_dbForsaken == null)
-		fkn_log("Could not connect to database: %s", error);
+		fkn_log(false, "Could not connect to database: %s", error);
 }
 
 /**
@@ -277,7 +277,7 @@ bool StartEndGame()
 {
 	Call_StartForward(g_gfEndGame);
 	if (Call_Finish() != 0)
-		fkn_log("ForceEndGame: error in forward Call_Finish");
+		fkn_log(false, "ForceEndGame: error in forward Call_Finish");
 
 	char sQuery[256];
 	Format(sQuery, sizeof(sQuery),
@@ -293,8 +293,8 @@ bool StartEndGame()
 		char error[255];
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
 
-		fkn_log("Failed to query (error: %s)", error);
-		fkn_log("Query: %s", sQuery);
+		fkn_log(false, "Failed to query (error: %s)", error);
+		fkn_log(false, "Query: %s", sQuery);
 		CPrintToChatAll("%t %t", "Tag", "FailEndedReserved");
 
 		CreateTimer(g_cvarTimeKick.FloatValue, KickAll);
@@ -315,29 +315,7 @@ bool StartEndGame()
  */
 public bool CurrentMapEndGame()
 {
-	/*
-	JSON_Array jaMaps  = fkn_Maps();
-
-	int		   iLength = jaMaps.Length;
-	for (int index = 0; index < iLength; index += 1)
-	{
-		char sListMap[32];
-		jaMaps.GetString(index, sListMap, sizeof(sListMap));
-
-		char sMapName[32];
-		GetCurrentMap(sMapName, sizeof(sMapName));
-		if (strcmp(sMapName, sListMap) == 0)
-		{
-			return true;
-		}
-	}
-	json_cleanup_and_delete(jaMaps);
-	return false;
-	*/
-	if (L4D_GetCurrentChapter() == 4)
-		return true;
-	else
-		return false;
+	return (L4D_GetCurrentChapter() == 4) ? true : false;
 }
 
 /**
@@ -366,13 +344,13 @@ public void ChapterPoints(MatchClosing hMatchClosing)
 		char error[255];
 		SQL_GetError(g_dbForsaken, error, sizeof(error));
 
-		fkn_log("Failed to query (error: %s)", error);
-		fkn_log("Query: %s", sQuery);
+		fkn_log(false, "Failed to query (error: %s)", error);
+		fkn_log(false, "Query: %s", sQuery);
 		CPrintToChatAll("%t %t", "Tag", "FailEndedPoints");
 	}
 
 	if (g_cvarDebug.BoolValue)
-		fkn_log("Query:%s", sQuery);
+		fkn_log(false, "Query:%s", sQuery);
 }
 
 /**

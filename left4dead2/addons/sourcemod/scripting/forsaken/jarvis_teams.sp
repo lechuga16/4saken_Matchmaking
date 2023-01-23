@@ -11,7 +11,9 @@ ConVar
 	survivor_limit,
 	z_max_player_zombies;
 
-Handle g_hTimerManager = null;
+Handle 
+	g_hTimerKillBot = null,
+	g_hTimerManager = null;
 
 /*****************************************************************
 			F O R W A R D   P U B L I C S
@@ -33,10 +35,11 @@ public void OnPluginStart_Teams()
  */
 public void ORUI_Teams()
 {
-	if (!IsGameCompetitive(g_TypeMatch) || InSecondHalfOfRound())
+	if (InSecondHalfOfRound() || g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
 
-	CreateTimer(10.0, Timer_PreventKillBot);
+	KillTimerManager();
+	g_hTimerKillBot = CreateTimer(15.0, Timer_PreventKillBot);
 }
 
 public Action Cmd_KillTimer(int iClient, int iArgs)
@@ -86,8 +89,7 @@ public Action Cmd_KillTimer(int iClient, int iArgs)
  */
 public Action Timer_PreventKillBot(Handle hTimer)
 {
-	KillTimerManager();
-	g_hTimerManager = CreateTimer(3.0, Timer_OrganizeTeams, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
+	g_hTimerManager = CreateTimer(2.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
 	return Plugin_Stop;
 }
 
@@ -102,9 +104,9 @@ public Action Timer_OrganizeTeams(Handle hTimer)
 {
 	for (int index = 1; index <= MaxClients; index++)
 	{
-		if (!IsClientInGame(index) || IsFakeClient(index))
-			continue;
-		CheckTeam(index);
+		if (IsClientInGame(index) && IsClientConnected(index) && !IsFakeClient(index) && !IsClientSourceTV(index))
+			CheckTeam(index);
+
 	}
 
 	return Plugin_Continue;
@@ -130,6 +132,9 @@ public void CheckTeam(int iClient)
 		{
 			if (GetClientTeamEx(iClient) == L4DTeam_Spectator)
 				return;
+
+			if(g_cvarDebugOT.BoolValue)
+				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0", "Tag", iClient, sForsakenTeam[ClientTeam]);
 			ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
 		}
 		case TeamA:
@@ -138,17 +143,33 @@ public void CheckTeam(int iClient)
 				return;
 
 			if (GetTeamHumanCount(L4DTeam_Survivor) == GetTeamMaxHumans(L4DTeam_Survivor))
+			{
+				if(g_cvarDebugOT.BoolValue)
+					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamA Full)", "Tag", iClient, sForsakenTeam[ClientTeam]);
 				ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
-			ServerCommand("sm_swapto 2 #%d", GetClientUserId(iClient));
+				return;
+			}
+
+			if(g_cvarDebugOT.BoolValue)
+				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> TeamA", "Tag", iClient, sForsakenTeam[ClientTeam]);
+			ServerCommand("sm_swapto force 2 #%d", GetClientUserId(iClient));
 		}
 		case TeamB:
 		{
 			if (GetClientTeamEx(iClient) == L4DTeam_Infected)
-				return;
+
 
 			if (GetTeamHumanCount(L4DTeam_Infected) == GetTeamMaxHumans(L4DTeam_Infected))
+			{
+				if(g_cvarDebugOT.BoolValue)
+					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamB Full)", "Tag", iClient, sForsakenTeam[ClientTeam]);
 				ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
-			ServerCommand("sm_swapto 3 #%d", GetClientUserId(iClient));
+				return;
+			}
+
+			if(g_cvarDebugOT.BoolValue)
+				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> TeamB", "Tag", iClient, sForsakenTeam[ClientTeam]);
+			ServerCommand("sm_swapto force 3 #%d", GetClientUserId(iClient));
 		}
 	}
 }
@@ -218,6 +239,9 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
 			return bAreTeamsFlipped ? TeamB : TeamA;
 		else if (StrEqual(sSteamID, g_Players[TeamB][iID].steamid, false))
 			return bAreTeamsFlipped ? TeamA : TeamB;
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 	return Team0;
 }
@@ -229,6 +253,18 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
  */
 public void KillTimerManager()
 {
+	if (g_hTimerKillBot != null)
+	{
+		delete g_hTimerKillBot;
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Prevent Kill bot{default}", "Tag");
+	}
+	else
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Prevent Kill bot not found{default}", "Tag");
+	}
+
 	if (g_hTimerManager != null)
 	{
 		delete g_hTimerManager;
@@ -238,6 +274,6 @@ public void KillTimerManager()
 	else
 	{
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Organizing Teams not found{default}", "Tag");
 	}
 }

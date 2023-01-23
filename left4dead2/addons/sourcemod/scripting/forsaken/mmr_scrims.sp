@@ -3,94 +3,152 @@
 #endif
 #define _mmr_scrims_included
 
-public void ScrimMatch()
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+
+public void OCA_Scrims(int iClient)
+{
+	if (g_TypeMatch == scrims)
+		IndexClientAuthorized(iClient);
+}
+
+public void ORLC_Scrims()
 {
 	if (g_TypeMatch != scrims)
-		return;
-
-	CreateTimer(3.0, Timer_TeamsMatchData);
+		IndexClientAll();
 }
 
-/**
- * @brief Gets the match data from forsaken.smx.
- *
- * @param timer		Timer handle.
- * @return			Stop the timer.
- */
-public Action Timer_TeamsMatchData(Handle timer)
-{
-	if (g_cvarDebug.BoolValue)
-		CPrintToChatAll("TeamsMatchData");
-
-	// g_TeamTA.id = 1;	// inventar forma de recuperar el ID de los equipos
-	// g_TeamTA.id = 2;	// inventar forma de recuperar el ID de los equipos
-
-	g_TeamInfo[TeamA].id = 1;
-	g_TeamInfo[TeamB].id = 2;
-
-	DBInfoTeams(TeamA);
-	DBInfoTeams(TeamB);
-
-	return Plugin_Stop;
-}
-
-public void DBInfoTeams(ForsakenTeam Team)
-{
-	DBResultSet DBResul;
-
-	char
-		sQuery[256],
-		error[255];
-
-	Format(sQuery, sizeof(sQuery), "SELECT `Name`, `Rating`, `Deviation`, `GamesPlayed`, `LastGame`, `Wins` FROM `teams_mmr` WHERE `SteamID64` = 'ID'",
-		   (Team == TeamA) ? g_TeamInfo[TeamA].id : g_TeamInfo[TeamB].id);
-
-	if ((DBResul = SQL_Query(g_dbForsaken, sQuery)) == null)
-	{
-		SQL_GetError(g_dbForsaken, error, sizeof(error));
-		LogError("FetchUsers() query failed: %s", sQuery);
-		LogError("Query error: %s", error);
-		return;
-	}
-
-	while (DBResul.FetchRow())
-	{
-		if (Team == TeamA)
-		{
-			DBResul.FetchString(0, g_TeamInfo[TeamA].name, MAX_NAME_LENGTH);
-			g_TeamInfo[TeamA].rating	  = DBResul.FetchFloat(1);
-			g_TeamInfo[TeamA].deviation	  = DBResul.FetchFloat(2);
-			g_TeamInfo[TeamA].gamesplayed = DBResul.FetchInt(3);
-			g_TeamInfo[TeamA].lastgame	  = DBResul.FetchInt(4);
-			g_TeamInfo[TeamA].wins		  = DBResul.FetchInt(5);
-		}
-		else if (Team == TeamB)
-		{
-			DBResul.FetchString(0, g_TeamInfo[TeamB].name, MAX_NAME_LENGTH);
-			g_TeamInfo[TeamB].rating	  = DBResul.FetchFloat(1);
-			g_TeamInfo[TeamB].deviation	  = DBResul.FetchFloat(2);
-			g_TeamInfo[TeamB].gamesplayed = DBResul.FetchInt(3);
-			g_TeamInfo[TeamB].lastgame	  = DBResul.FetchInt(4);
-			g_TeamInfo[TeamB].wins		  = DBResul.FetchInt(5);
-		}
-	}
-}
+/****************************************************************
+			C A L L B A C K   F U N C T I O N S
+****************************************************************/
 
 public void RoundEnd_Teams()
 {
-	if (L4D_GetTeamScore(view_as<int>(TeamA)) > L4D_GetTeamScore(view_as<int>(TeamB)))
+	if (InSecondHalfOfRound())
+		ProcesScrims();
+}
+
+void ProcesScrims()
+{
+	if (g_iTeamScore[TeamA] > g_iTeamScore[TeamB])
 	{
-		if (g_cvarDebug.BoolValue)
-			fkn_log("TeamA Win, TA:%d TB:%d", L4D_GetTeamScore(view_as<int>(TeamA)), L4D_GetTeamScore(view_as<int>(TeamB)));
+		if (AreTeamsFlipped())
+		{
+			fkn_log(true, "TeamA Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingTeams(TeamA, Result_Win);
+			ProcessRatingTeams(TeamB, Result_Loss);
+		}
+		else
+		{
+			fkn_log(true, "TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingTeams(TeamA, Result_Loss);
+			ProcessRatingTeams(TeamB, Result_Win);
+		}
 	}
-	else if (L4D_GetTeamScore(view_as<int>(TeamA)) < L4D_GetTeamScore(view_as<int>(TeamB)))
+	else if (g_iTeamScore[TeamA] < g_iTeamScore[TeamB])
 	{
-		if (g_cvarDebug.BoolValue)
-			fkn_log("TeamB Win, TA:%d TB:%d", L4D_GetTeamScore(view_as<int>(TeamA)), L4D_GetTeamScore(view_as<int>(TeamB)));
+		if (AreTeamsFlipped())
+		{
+			fkn_log(true, "TeamA Loss, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingTeams(TeamA, Result_Loss);
+			ProcessRatingTeams(TeamB, Result_Win);
+		}
+		else
+		{
+			fkn_log(true, "TeamB Win, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+			ProcessRatingTeams(TeamA, Result_Win);
+			ProcessRatingTeams(TeamB, Result_Loss);
+		}
 	}
+	else if (g_iTeamScore[TeamA] == g_iTeamScore[TeamB])
+	{
+		fkn_log(true, "Team Draw, TA:%d TB:%d", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
+		ProcessRatingTeams(TeamA, Result_Draw);
+		ProcessRatingTeams(TeamB, Result_Draw);
+	}
+	g_iTeamScore[TeamA] = 0;
+	g_iTeamScore[TeamB] = 0;
+}
+
+void ProcessRatingTeams(ForsakenTeam team, MatchResults Result)
+{
+	ForsakenTeam opponent = GetOpponent(team);
+
+	int 
+		iID = 0,
+		jID = 0;
+
+	float
+		fSum_d,
+		fGlicko_d,
+		fFinalRD,
+		fSum_FinalRating,
+		fFinalRating;
+
+	fSum_d += Glicko_sum_d(g_TeamsInfo[team][iID], g_TeamsInfo[opponent][jID]);
+	fSum_FinalRating += Glicko_sum_FinalRating(g_TeamsInfo[team][iID], g_TeamsInfo[opponent][jID], Result);
+
+	fGlicko_d	 = Glicko_d(fSum_d);
+	fFinalRD	 = (Glicko_FinalRD(g_TeamsInfo[team][iID], fGlicko_d) - g_TeamsInfo[team][iID].deviation);
+	fFinalRating = (Glicko_FinalRating(g_TeamsInfo[team][iID], fGlicko_d, fSum_FinalRating) - g_TeamsInfo[team][iID].rating);
+
+	if (Result == Result_Win)
+		g_TeamsInfo[team][iID].wins++;
+
+	g_TeamsInfo[team][iID].gamesplayed++;
+
+	if (EVALUATION_PERIOD < g_TeamsInfo[team][iID].gamesplayed)
+		g_TeamsInfo[team][iID].deviation += fFinalRD;
+	g_TeamsInfo[team][iID].rating += fFinalRating;
+
+	if (EVALUATION_PERIOD < g_TeamsInfo[team][iID].gamesplayed)
+		PrintFinalScoreTeam(team, iID);
 	else
+		PrintFinalScoreTeamEV(team, iID);
+
+	char sQuery[512];
+	g_dbForsaken.Format(sQuery, sizeof(sQuery),
+		"UPDATE `teams_mmr` \
+		SET `Name` = %s, \
+			`Rating` = %f, \
+			`Deviation` = %f, \
+			`GamesPlayed` = %d, \
+			`LastGame` = %d, \
+			`Wins` = %d \
+		WHERE `TeamsID` LIKE '%s'",
+		g_TeamsInfo[team][iID].name,
+		g_TeamsInfo[team][iID].rating,
+		g_TeamsInfo[team][iID].deviation,
+		g_TeamsInfo[team][iID].gamesplayed,
+		GetTime(),
+		g_TeamsInfo[team][iID].wins,
+		g_TeamsInfo[team][iID].client);
+
+	g_dbForsaken.Query(OnScrimsCallback, sQuery);
+}
+
+void OnScrimsCallback(Database db, DBResultSet results, const char[] error, any data)
+{
+	if (results == null)
 	{
-		if (g_cvarDebug.BoolValue)
-			fkn_log("Draw, TA:%d TB:%d", L4D_GetTeamScore(view_as<int>(TeamA)), L4D_GetTeamScore(view_as<int>(TeamB)));
+		fkn_log(false, "Error: %s", error);
+		return;
+	}
+}
+
+void PrintFinalScoreTeam(ForsakenTeam team, int iID)
+{
+	for(int i = 0; i <= MAX_INDEX_PLAYER; iID++)
+	{
+		CPrintToChat(g_Players[team][i].client, "%t %t", "Tag", "FinalScorePersonal", g_TeamsInfo[team][iID].rating, g_TeamsInfo[team][iID].deviation);
+	}
+}
+
+void PrintFinalScoreTeamEV(ForsakenTeam team, int iID)
+{
+	for(int i = 0; i <= MAX_INDEX_PLAYER; i++)
+	{
+		CPrintToChat(g_Players[team][i].client, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - g_TeamsInfo[team][iID].gamesplayed));
 	}
 }

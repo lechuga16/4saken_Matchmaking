@@ -45,7 +45,7 @@ public void OnPluginStart_Waiting()
  */
 public void ORUI_Waiting()
 {
-	if (!IsGameCompetitive(g_TypeMatch))
+	if (g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
 
 	KillTimerWaitPlayers();
@@ -139,6 +139,9 @@ public Action Timer_CheckListPlayers(Handle timer)
 				g_RageQuit[TeamA][iID].ispresent = true;
 			else if (StrEqual(sSteamid, g_Players[TeamB][iID].steamid, false))
 				g_RageQuit[TeamB][iID].ispresent = true;
+
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
 		}
 	}
 	return Plugin_Continue;
@@ -160,25 +163,28 @@ public void MissingPlayers()
 		printBufferTA[512],
 		printBufferTB[512];
 
-	Format(tmpBufferTA, sizeof(tmpBufferTA), "%t %t{olive}", "Tag", "WaitingTeamA");
+	Format(tmpBufferTA, sizeof(tmpBufferTA), "%t %t", "Tag", (g_TypeMatch == duel) ? "WaitingPlayerA" : "WaitingTeamA");
 	StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 
-	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t{olive}", "Tag", "WaitingTeamB");
+	Format(tmpBufferTB, sizeof(tmpBufferTB), "%t %t", "Tag", (g_TypeMatch == duel) ? "WaitingPlayerB" : "WaitingTeamB");
 	StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
 		if (!g_RageQuit[TeamA][iID].ispresent)
 		{
-			Format(tmpBufferTA, sizeof(tmpBufferTA), "%s ", g_Players[TeamA][iID].name);
+			Format(tmpBufferTA, sizeof(tmpBufferTA), "{olive}%s{default} ", g_Players[TeamA][iID].name);
 			StrCat(printBufferTA, sizeof(printBufferTA), tmpBufferTA);
 		}
 
 		if (!g_RageQuit[TeamB][iID].ispresent)
 		{
-			Format(tmpBufferTB, sizeof(tmpBufferTB), "%s ", g_Players[TeamB][iID].name);
+			Format(tmpBufferTB, sizeof(tmpBufferTB), "{olive}%s ", g_Players[TeamB][iID].name);
 			StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 		}
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 
 	if (!CheckMissingPlayers(TeamA))
@@ -202,6 +208,9 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 		{
 			if (!g_RageQuit[TeamA][iID].ispresent)
 				return false;
+
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
 		}
 	}
 	else if (Team == TeamB)
@@ -210,6 +219,9 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 		{
 			if (!g_RageQuit[TeamB][iID].ispresent)
 				return false;
+
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
 		}
 	}
 
@@ -248,6 +260,9 @@ public void BanDesertionPlayers()
 				default: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx3.IntValue, "%t", "BanDesertion");
 			}
 		}
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 }
 
@@ -269,7 +284,7 @@ public void KillTimerWaitPlayers()
 	else
 	{
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait not found{default}", "Tag");
 	}
 }
 
@@ -291,7 +306,7 @@ public void KillTimerWaitPlayersAnnouncer()
 	else
 	{
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait Announcer not found{default}", "Tag");
 	}
 }
 
@@ -313,7 +328,7 @@ public void KillTimerCheckPlayers()
 	else
 	{
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Check List not found{default}", "Tag");
 	}
 }
 

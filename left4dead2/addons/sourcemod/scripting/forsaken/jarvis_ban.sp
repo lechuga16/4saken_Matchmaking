@@ -73,7 +73,7 @@ public void GotDatabase(Database db, const char[] error, any data)
 	if (db == null)
 	{
 		ThrowError("Error while connecting to database: %s", error);
-		fkn_log("Connected to database successfully (%s).", error);
+		fkn_log(false, "Connected to database successfully (%s).", error);
 	}
 
 	g_DBSourceBans = db;
@@ -109,7 +109,7 @@ stock void ReadConfigSourcebans()
 	{
 		char Error[PLATFORM_MAX_PATH + 64];
 		FormatEx(Error, sizeof(Error), "%s FATAL *** ERROR *** can not find %s", JVPrefix, ConfigFile);
-		fkn_log("FATAL *** ERROR *** can not find %s", ConfigFile);
+		fkn_log(false, "FATAL *** ERROR *** can not find %s", ConfigFile);
 		SetFailState(Error);
 	}
 }
@@ -230,14 +230,14 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	}
 	else
 	{
-		fkn_log("CreateOffLineBan: Team is invalid");
+		fkn_log(false, "CreateOffLineBan: Team is invalid");
 		CPrintToChatAll("%t %T", "Tag", "BanFail", LANG_SERVER, "ForsakenTeam is invalid");
 		return false;
 	}
 
 	if (StrEqual("", sAuth, false))
 	{
-		fkn_log("CreateOffLineBan: SteamID is invalid");
+		fkn_log(false, "CreateOffLineBan: SteamID is invalid");
 		CPrintToChatAll("%t %T", "Tag", "BanFail", LANG_SERVER, "SteamID is invalid");
 		return false;
 	}
@@ -246,13 +246,13 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	{
 		int iSteamID64[2];
 		if ((StringToInt64(sAuth, iSteamID64)) == 0)
-			fkn_log("SteamId StringToInt failed");
+			fkn_log(false, "SteamId StringToInt failed");
 		GetSteam2FromAccountId(sAuth, sizeof(sAuth), iSteamID64[0]);
 	}
 
 	if (StrEqual("", sName, false))
 	{
-		fkn_log("CreateOffLineBan: %s sName is invalid", sAuth);
+		fkn_log(false, "CreateOffLineBan: %s sName is invalid", sAuth);
 		sName = "Unknown";
 	}
 
@@ -311,14 +311,14 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 	if (dataPack == INVALID_HANDLE)
 	{
 		CPrintToChatAll("%t %T", "Tag", "BanFail", LANG_SERVER, error);
-		fkn_log("Failed to ban player: %s", error);
+		fkn_log(false, "Failed to ban player: %s", error);
 		return;
 	}
 
 	if (results == null)
 	{
 		CPrintToChatAll("%t %T", "Tag", "BanFailQuery", LANG_SERVER, error);
-		fkn_log("Verify Insert Query Failed: %s", error);
+		fkn_log(false, "Verify Insert Query Failed: %s", error);
 		return;
 	}
 
@@ -335,7 +335,7 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 	CPrintToChatAll("%t %t", "Tag", "PrintBanSuccess", sName, iTime, sReason);
 
 	if (g_cvarDebug.BoolValue)
-		fkn_log("%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);
+		fkn_log(false, "%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);
 }
 
 public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
@@ -347,7 +347,7 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 
 	sSteamID64 = g_Players[Team][iTarget].steamid;
 	if ((StringToInt64(sSteamID64, iSteamID64)) == 0)
-		fkn_log("%s StringToInt failed", JVPrefix);
+		fkn_log(false, "%s StringToInt failed", JVPrefix);
 
 	GetSteam2FromAccountId(sSteamID2, sizeof(sSteamID2), iSteamID64[0]);
 
@@ -373,8 +373,8 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
 	{
 		SQL_GetError(g_DBSourceBans, error, sizeof(error));
-		fkn_log("FetchUsers() query failed: %s", sQuery);
-		fkn_log("Query error: %s", error);
+		fkn_log(false, "FetchUsers() query failed: %s", sQuery);
+		fkn_log(false, "Query error: %s", error);
 		return 0;
 	}
 
@@ -384,7 +384,7 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 	}
 
 	if (g_cvarDebug.BoolValue)
-		fkn_log("Query: %s", sQuery);
+		fkn_log(false, "Query: %s", sQuery);
 
 	return iBans;
 }

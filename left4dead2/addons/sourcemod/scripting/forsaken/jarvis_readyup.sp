@@ -52,8 +52,7 @@ public Action Timer_ReadyUpWait(Handle timer)
 				default: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx3.IntValue, sReason);
 			}
 
-			if (g_cvarDebug.BoolValue)
-				fkn_log("Player not Ready: Client: %N | TeamA | Ban: %d", iClientTA, g_cvarBanReadyup.IntValue);
+			fkn_log(true, "Player not Ready: Client: %N | TeamA | Ban: %d", iClientTA, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
 				IsBanned = !IsBanned;
 		}
@@ -66,11 +65,13 @@ public Action Timer_ReadyUpWait(Handle timer)
 				default: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyupx3.IntValue, sReason);
 			}
 
-			if (g_cvarDebug.BoolValue)
-				fkn_log("Player not Ready: Client: %N | TeamB | Ban: %d", iClientTB, g_cvarBanReadyup.IntValue);
+			fkn_log(true, "Player not Ready: Client: %N | TeamB | Ban: %d", iClientTB, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
 				IsBanned = !IsBanned;
 		}
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 
 	if (IsBanned)
@@ -85,11 +86,11 @@ public void KillTimerWaitReadyup()
 	{
 		delete g_hTimerWaitReadyup;
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup Wait{default}", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup{default}", "Tag");
 	}
 	else
 	{
 		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Timer not found{default}", "Tag");
+			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup not found{default}", "Tag");
 	}
 }

@@ -26,6 +26,10 @@
 #include <forsaken_left4dhooks>
 #include <forsaken_l4d2util>
 
+/*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
 #define URL_STATUS		   "forsaken-blk.herokuapp.com/queue/matchstatus"
 #define URL_STATUSV2	   "forsaken-blk.herokuapp.com/queue/matchstatusV2"
 #define URL_FORSAKEN_MATCH "forsaken-blk.herokuapp.com/queue/get-match-info"
@@ -40,6 +44,10 @@
 #define CONSOLE			   0
 #define UNIXTIME_4WEEKS	   2419200
 #define EVALUATION_PERIOD  8
+
+ConVar
+	g_cvarDebug,
+	g_cvarEnable;
 
 // ==================================================
 // ENUMS
@@ -78,24 +86,37 @@ enum struct PlayerInfo
 	int	  gamesplayed;					 // Number of games played
 	int	  lastgame;						 // Last Score Update
 	int	  wins;							 // Number of games won
+	int	  teamid;						 // Team ID
 }
 
-stock PlayerInfo  g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
-stock PlayerBasic g_PlayersBasic[ForsakenTeam][MAX_PLAYER_TEAM];
+/**
+ * 	Contains values to tell if a player is in the game or has raged.
+ */
+enum struct PlayerRageQuit
+{
+	char   steamid[MAX_AUTHID_LENGTH];	  // Player SteamID
+	bool   ispresent;					  // Is the player in the game?
+	Handle timer;						  // Timer to check if the player has ragequitting.
+}
+
+stock PlayerRageQuit	g_RageQuit[ForsakenTeam][MAX_PLAYER_TEAM];
+stock PlayerInfo  		g_Players[ForsakenTeam][MAX_PLAYER_TEAM];
+stock PlayerBasic		g_PlayersBasic[ForsakenTeam][MAX_PLAYER_TEAM];
 
 /**
  * Types of match.
  */
 enum TypeMatch
 {
-	invalid		   = 0,
-	scout		   = 1,
-	adept		   = 2,
-	veteran		   = 3,
-	unranked	   = 4,
-	scrims		   = 5,
+	invalid		= 0,
+	scout		= 1,
+	adept		= 2,
+	veteran		= 3,
+	unranked	= 4,
+	scrims		= 5,
+	duel		= 6,
 
-	TypeMatch_Size = 6
+	TypeMatch_Size = 7
 };
 
 /**
@@ -160,7 +181,34 @@ stock const char sTypeMatch[TypeMatch_Size][] = {
 	"Adept",
 	"Veteran",
 	"Unranked",
-	"Scrims"
+	"Scrims",
+	"Duel"
+};
+
+/**
+ * Array that names the types of game modes
+ */
+stock const char sTypeCFG[TypeMatch_Size][] = {
+	"",
+	"zonemod",
+	"zonemod",
+	"zonemod",
+	"",
+	"zonemod",
+	"zh1v1"
+};
+
+/**
+ * Array that names the types of game modes
+ */
+stock const char sCFGName[TypeMatch_Size][] = {
+	"Invalid",
+	"ZoneMod",
+	"ZoneMod",
+	"ZoneMod",
+	"Invalid",
+	"ZoneMod",
+	"[Zone]Hunters"
 };
 
 /**
@@ -200,7 +248,199 @@ stock const char sTypeBans[Bancode_Size][] = {
 };
 
 // ==================================================
-// FUNCTIONS
+// Forsaken Functions
+// ==================================================
+
+stock void fkn_log(bool OnlyDebug = false, const char[] sMessage, any...)
+{
+	if(OnlyDebug && !g_cvarDebug.BoolValue)
+		return;
+	
+	static int check = -1;
+	static char
+		sFormat[512],
+		sFilename[64],
+		sLogPath[PLATFORM_MAX_PATH];
+
+	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), DIR_FORSAKENLOG);
+	VFormat(sFormat, sizeof(sFormat), sMessage, 3);
+
+	GetPluginFilename(null, sFilename, sizeof(sFilename));
+	if ((check = FindCharInString(sFilename, '/', true)) != -1 || (check = FindCharInString(sFilename, '\\', true)) != -1)
+		Format(sFilename, sizeof(sFilename), "%s", sFilename[check + 1]);
+
+	ReplaceString(sFilename, sizeof(sFilename), ".smx", "", false);
+	LogToFileEx(sLogPath, "[%s] %s", sFilename, sFormat);
+}
+
+stock JSON_Object JsonObjectMatch(char[] sDirectory)
+{
+	char sPatch[64];
+	BuildPath(Path_SM, sPatch, sizeof(sPatch), sDirectory);
+	return json_read_from_file(sPatch);
+}
+
+stock int fkn_QueueID()
+{
+	int			iQueueID = 0;
+	JSON_Object joMatch	 = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log(false, "Error: fkn_QueueID() - (joMatch == null)");
+		return iQueueID;
+	}
+
+	iQueueID = joMatch.GetInt("queueid");
+	json_cleanup_and_delete(joMatch);
+	return iQueueID;
+}
+
+stock TypeMatch fkn_TypeMatch()
+{
+	TypeMatch	Type	= invalid;
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log(false, "Error: fkn_TypeMatch() - (joMatch == null)");
+		return Type;
+	}
+
+	Type = view_as<TypeMatch>(joMatch.GetInt("region"));
+	json_cleanup_and_delete(joMatch);
+	return Type;
+}
+
+stock bool fkn_MapName(char[] sBuffer, int iMaxlength)
+{
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log(false, "Error: fkn_MapName() - (joMatch == null)");
+		return false;
+	}
+
+	joMatch.GetString("map", sBuffer, iMaxlength);
+	json_cleanup_and_delete(joMatch);
+	return true;
+}
+
+stock bool fkn_GetIPv4(char[] sBuffer, int iMaxlength)
+{
+	JSON_Object joIPv4 = JsonObjectMatch(DIR_IPV4);
+
+	if (joIPv4 == null)
+	{
+		fkn_log(false, "Error: fkn_GetIPv4 - (joIPv4 == null)");
+		return false;
+	}
+
+	joIPv4.GetString("ip", sBuffer, iMaxlength);
+	json_cleanup_and_delete(joIPv4);
+	return true;
+}
+
+/**
+ * Load player information from downloaded cache.
+ * 
+ * @param Type				Match Type.
+ * @param bPlayersBasic		Replace the g_Players structure with g_PlayersBasic.
+ * @param bRagequiters		add the g_RageQuit structure to the iteration.
+ * @return					True if the cache was loaded, false otherwise.
+ */
+stock bool fkn_Players(TypeMatch Type, bool bPlayersBasic = false, bool bRagequiters = false)
+{
+	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
+
+	if (joMatch == null)
+	{
+		fkn_log(false, "Error: fkn_Players - (joMatch == null)");
+		return false;
+	}
+
+	JSON_Array jaTA = view_as<JSON_Array>(joMatch.GetObject("teamA"));
+	JSON_Array jaTB = view_as<JSON_Array>(joMatch.GetObject("teamB"));
+
+	if (jaTA == null)
+	{
+		fkn_log(false, "Error: fkn_Players - (jaTA == null)");
+		return false;
+	}
+	else if (jaTB == null)
+	{
+		fkn_log(false, "Error: fkn_Players - (jaTB == null)");
+		return false;
+	}
+
+	if(Type == duel)
+	{
+		JSON_Object joPlayerTA = jaTA.GetObject(0);
+		JSON_Object joPlayerTB = jaTB.GetObject(0);
+		
+		if(bPlayersBasic)
+		{
+			joPlayerTA.GetString("steamid", g_PlayersBasic[TeamA][0].steamid, MAX_AUTHID_LENGTH);
+			joPlayerTB.GetString("steamid", g_PlayersBasic[TeamB][0].steamid, MAX_AUTHID_LENGTH);
+
+			joPlayerTA.GetString("personaname", g_PlayersBasic[TeamA][0].name, MAX_NAME_LENGTH);
+			joPlayerTB.GetString("personaname", g_PlayersBasic[TeamB][0].name, MAX_NAME_LENGTH);
+		}
+		else
+		{
+			joPlayerTA.GetString("steamid", g_Players[TeamA][0].steamid, MAX_AUTHID_LENGTH);
+			joPlayerTB.GetString("steamid", g_Players[TeamB][0].steamid, MAX_AUTHID_LENGTH);
+
+			joPlayerTA.GetString("personaname", g_Players[TeamA][0].name, MAX_NAME_LENGTH);
+			joPlayerTB.GetString("personaname", g_Players[TeamB][0].name, MAX_NAME_LENGTH);
+		}
+
+		if(bRagequiters)
+		{
+			joPlayerTA.GetString("steamid", g_RageQuit[TeamA][0].steamid, MAX_AUTHID_LENGTH);
+			joPlayerTB.GetString("steamid", g_RageQuit[TeamB][0].steamid, MAX_AUTHID_LENGTH);
+		}
+	}
+	else
+	{
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+		{
+			JSON_Object joPlayerTA = jaTA.GetObject(iID);
+			JSON_Object joPlayerTB = jaTB.GetObject(iID);
+
+			if(bPlayersBasic)
+			{
+				joPlayerTA.GetString("steamid", g_PlayersBasic[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+				joPlayerTB.GetString("steamid", g_PlayersBasic[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
+
+				joPlayerTA.GetString("personaname", g_PlayersBasic[TeamA][iID].name, MAX_NAME_LENGTH);
+				joPlayerTB.GetString("personaname", g_PlayersBasic[TeamB][iID].name, MAX_NAME_LENGTH);
+			}
+			else
+			{
+				joPlayerTA.GetString("steamid", g_Players[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+				joPlayerTB.GetString("steamid", g_Players[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
+
+				joPlayerTA.GetString("personaname", g_Players[TeamA][iID].name, MAX_NAME_LENGTH);
+				joPlayerTB.GetString("personaname", g_Players[TeamB][iID].name, MAX_NAME_LENGTH);
+			}
+			
+			if(bRagequiters)
+			{
+				joPlayerTA.GetString("steamid", g_RageQuit[TeamA][iID].steamid, MAX_AUTHID_LENGTH);
+				joPlayerTB.GetString("steamid", g_RageQuit[TeamB][iID].steamid, MAX_AUTHID_LENGTH);
+			}
+		}
+	}
+
+
+	json_cleanup_and_delete(joMatch);
+	return true;
+}
+
+// ==================================================
+// General Functions
 // ==================================================
 
 stock bool IsHuman(int iClient)
@@ -269,9 +509,8 @@ stock void LoadTranslation(const char[] translation)
 	Format(sName, sizeof(sName), "translations/%s.txt", translation);
 	BuildPath(Path_SM, sPath, sizeof(sPath), sName);
 	if (!FileExists(sPath))
-	{
 		SetFailState("Missing translation file %s.txt", translation);
-	}
+
 	LoadTranslations(translation);
 }
 
@@ -418,176 +657,4 @@ stock bool AreTeamsFlipped()
 stock int LogicTeamsFlipped()
 {
 	return GameRules_GetProp("m_bAreTeamsFlipped") ? 2 : 1;
-}
-
-// ==================================================
-// forsaken's functions
-// ==================================================
-
-stock void fkn_log(const char[] sMessage, any...)
-{
-	static int check = -1;
-	static char
-		sFormat[512],
-		sFilename[64],
-		sLogPath[PLATFORM_MAX_PATH];
-
-	BuildPath(Path_SM, sLogPath, sizeof(sLogPath), DIR_FORSAKENLOG);
-	VFormat(sFormat, sizeof(sFormat), sMessage, 2);
-
-	GetPluginFilename(null, sFilename, sizeof(sFilename));
-	if ((check = FindCharInString(sFilename, '/', true)) != -1 || (check = FindCharInString(sFilename, '\\', true)) != -1)
-		Format(sFilename, sizeof(sFilename), "%s", sFilename[check + 1]);
-
-	ReplaceString(sFilename, sizeof(sFilename), ".smx", "", false);
-	LogToFileEx(sLogPath, "[%s] %s", sFilename, sFormat);
-}
-
-stock JSON_Object JsonObjectMatch(char[] sDirectory)
-{
-	char sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), sDirectory);
-	return json_read_from_file(sPatch);
-}
-
-stock int fkn_QueueID()
-{
-	int			iQueueID = 0;
-	JSON_Object joMatch	 = JsonObjectMatch(DIR_CACHEMATCH);
-
-	if (joMatch == null)
-	{
-		fkn_log("Error: fkn_QueueID() - (joMatch == null)");
-		return iQueueID;
-	}
-
-	iQueueID = joMatch.GetInt("queueid");
-	json_cleanup_and_delete(joMatch);
-	return iQueueID;
-}
-
-stock TypeMatch fkn_TypeMatch()
-{
-	TypeMatch	Type	= invalid;
-	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
-
-	if (joMatch == null)
-	{
-		fkn_log("Error: fkn_TypeMatch() - (joMatch == null)");
-		return Type;
-	}
-
-	Type = view_as<TypeMatch>(joMatch.GetInt("region"));
-	json_cleanup_and_delete(joMatch);
-	return Type;
-}
-
-stock bool fkn_MapName(char[] sBuffer, int iMaxlength)
-{
-	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
-
-	if (joMatch == null)
-	{
-		fkn_log("Error: fkn_MapName() - (joMatch == null)");
-		return false;
-	}
-
-	joMatch.GetString("map", sBuffer, iMaxlength);
-	json_cleanup_and_delete(joMatch);
-	return true;
-}
-
-stock bool fkn_GetIPv4(char[] sBuffer, int iMaxlength)
-{
-	JSON_Object joIPv4 = JsonObjectMatch(DIR_IPV4);
-
-	if (joIPv4 == null)
-	{
-		fkn_log("Error: fkn_GetIPv4 - (joIPv4 == null)");
-		return false;
-	}
-
-	joIPv4.GetString("ip", sBuffer, iMaxlength);
-	json_cleanup_and_delete(joIPv4);
-	return true;
-}
-
-stock bool fkn_Players()
-{
-	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
-
-	if (joMatch == null)
-	{
-		fkn_log("Error: fkn_Players() - (joMatch == null)");
-		return false;
-	}
-
-	JSON_Array jaTA = view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	JSON_Array jaTB = view_as<JSON_Array>(joMatch.GetObject("teamB"));
-
-	if (jaTA == null)
-	{
-		fkn_log("Error: fkn_Players() - (jaTA == null)");
-		return false;
-	}
-	else if (jaTB == null)
-	{
-		fkn_log("Error: fkn_Players() - (jaTB == null)");
-		return false;
-	}
-
-	for (int i = 0; i <= 3; i++)
-	{
-		JSON_Object joPlayerTA = jaTA.GetObject(i);
-		JSON_Object joPlayerTB = jaTB.GetObject(i);
-
-		joPlayerTA.GetString("steamid", g_Players[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		joPlayerTB.GetString("steamid", g_Players[TeamB][i].steamid, MAX_AUTHID_LENGTH);
-
-		joPlayerTA.GetString("personaname", g_Players[TeamA][i].name, MAX_NAME_LENGTH);
-		joPlayerTB.GetString("personaname", g_Players[TeamB][i].name, MAX_NAME_LENGTH);
-	}
-
-	json_cleanup_and_delete(joMatch);
-	return true;
-}
-
-stock bool fkn_PlayersBasic()
-{
-	JSON_Object joMatch = JsonObjectMatch(DIR_CACHEMATCH);
-
-	if (joMatch == null)
-	{
-		fkn_log("Error: fkn_Players() - (joMatch == null)");
-		return false;
-	}
-
-	JSON_Array jaTA = view_as<JSON_Array>(joMatch.GetObject("teamA"));
-	JSON_Array jaTB = view_as<JSON_Array>(joMatch.GetObject("teamB"));
-
-	if (jaTA == null)
-	{
-		fkn_log("Error: fkn_Players() - (jaTA == null)");
-		return false;
-	}
-	else if (jaTB == null)
-	{
-		fkn_log("Error: fkn_Players() - (jaTB == null)");
-		return false;
-	}
-
-	for (int i = 0; i <= 3; i++)
-	{
-		JSON_Object joPlayerTA = jaTA.GetObject(i);
-		JSON_Object joPlayerTB = jaTB.GetObject(i);
-
-		joPlayerTA.GetString("steamid", g_PlayersBasic[TeamA][i].steamid, MAX_AUTHID_LENGTH);
-		joPlayerTB.GetString("steamid", g_PlayersBasic[TeamB][i].steamid, MAX_AUTHID_LENGTH);
-
-		joPlayerTA.GetString("personaname", g_PlayersBasic[TeamA][i].name, MAX_NAME_LENGTH);
-		joPlayerTB.GetString("personaname", g_PlayersBasic[TeamB][i].name, MAX_NAME_LENGTH);
-	}
-
-	json_cleanup_and_delete(joMatch);
-	return true;
 }

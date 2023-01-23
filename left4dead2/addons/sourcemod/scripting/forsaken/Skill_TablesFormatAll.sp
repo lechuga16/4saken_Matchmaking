@@ -199,9 +199,7 @@ public void OnChargerLevelHurt(int survivor, int charger, int damage)
 	if (IsFakeClient(survivor) || IsFakeClient(charger))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | Charger-Level Hurt | Survivor:%N Charger:%N Damage:%d", survivor, charger, damage);
-
+	fkn_log(true, "Skill detected | Charger-Level Hurt | Survivor:%N Charger:%N Damage:%d", survivor, charger, damage);
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -224,9 +222,7 @@ public void OnWitchCrown(int survivor, int damage)
 	if (IsFakeClient(survivor))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d", survivor, damage);
-
+	fkn_log(true, "Skill detected | Witch-Crown | Survivor:%N Damage:%d", survivor, damage);
 	char
 		sSteamID[64],
 		sMapName[32];
@@ -247,9 +243,7 @@ public void OnWitchCrownHurt(int survivor, int damage, int chipdamage)
 	if (IsFakeClient(survivor))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | Witch-Crown | Survivor:%N Damage:%d Chip:%d", survivor, damage, chipdamage);
-
+	fkn_log(true, "Skill detected | Witch-Crown | Survivor:%N Damage:%d Chip:%d", survivor, damage, chipdamage);
 	char
 		sSteamID[64],
 		sMapName[32];
@@ -270,9 +264,7 @@ public void OnSmokerSelfClear(int survivor, int smoker, bool withShove)
 	if (IsFakeClient(survivor) || IsFakeClient(smoker))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | SmokerSelfClear | Survivor:%N Smoker:%N Shove:%d", survivor, smoker, view_as<int>(withShove));
-
+	fkn_log(true, "Skill detected | SmokerSelfClear | Survivor:%N Smoker:%N Shove:%d", survivor, smoker, view_as<int>(withShove));
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -295,9 +287,7 @@ public void OnJockeyHighPounce(int survivor, int jockey, float height, bool repo
 	if (IsFakeClient(survivor) || IsFakeClient(jockey))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | JockeyHighPounce | Survivor:%N Jockey:%N Height:%.1f ReportedHigh:%d", survivor, jockey, height, view_as<int>(reportedHigh));
-
+	fkn_log(true, "Skill detected | JockeyHighPounce | Survivor:%N Jockey:%N Height:%.1f ReportedHigh:%d", survivor, jockey, height, view_as<int>(reportedHigh));
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -320,9 +310,7 @@ public void OnDeathCharge(int charger, int survivor, float height, float distanc
 	if (IsFakeClient(survivor) || IsFakeClient(charger))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | DeathCharger | Survivor:%N Charger:%N Height:%.1f Distance:%.1f Carried:%d", survivor, charger, height, distance, view_as<int>(wasCarried));
-
+	fkn_log(true, "Skill detected | DeathCharger | Survivor:%N Charger:%N Height:%.1f Distance:%.1f Carried:%d", survivor, charger, height, distance, view_as<int>(wasCarried));
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -345,9 +333,8 @@ public void OnBoomerVomitLanded(int boomer, int amount)
 	if (IsFakeClient(boomer))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | BoomerVomitLanded | Boomer:%N Amount:%d ", boomer, amount);
 
+	fkn_log(true, "Skill detected | BoomerVomitLanded | Boomer:%N Amount:%d ", boomer, amount);
 	char
 		sSteamID[64],
 		sMapName[32];
@@ -368,9 +355,7 @@ public void OnSpecialShoved(int survivor, int infected, int zombieClass)
 	if (IsFakeClient(survivor) || IsFakeClient(infected))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | SpecialShoved | Survivor:%N Infected:%N ZombieClass:%s", survivor, infected, L4D2ZombieClassname[zombieClass]);
-
+	fkn_log(true, "Skill detected | SpecialShoved | Survivor:%N Infected:%N ZombieClass:%s", survivor, infected, L4D2ZombieClassname[zombieClass]);
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -393,9 +378,7 @@ public void OnBunnyHopStreak(int survivor, int streak, float maxVelocity)
 	if (IsFakeClient(survivor))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | BunnyHopStreak | Survivor:%N Streak:%d MaxVelocity:%.1f", survivor, streak, maxVelocity);
-
+	fkn_log(true, "Skill detected | BunnyHopStreak | Survivor:%N Streak:%d MaxVelocity:%.1f", survivor, streak, maxVelocity);
 	char
 		sSteamID[64],
 		sMapName[32];
@@ -419,9 +402,7 @@ public void OnCarAlarmTriggered(int survivor, int infected, CarAlarmTriggerReaso
 	if (IsFakeClient(survivor) || IsFakeClient(infected))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | CarAlarmTriggered | Survivor:%N Infected:%N CarAlarmTriggerReason:%s", survivor, infected, sCarAlarmTriggerReason[reason]);
-
+	fkn_log(true, "Skill detected | CarAlarmTriggered | Survivor:%N Infected:%N CarAlarmTriggerReason:%s", survivor, infected, sCarAlarmTriggerReason[reason]);
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -444,9 +425,7 @@ public void OnBoomerPop(int survivor, int boomer, int shoveCount, float timeAliv
 	if (IsFakeClient(survivor) || IsFakeClient(boomer))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | BoomerPop | Survivor:%N Boomer:%N ShoveCount:%d TimeAlive:%.1f", survivor, boomer, shoveCount, timeAlive);
-
+	fkn_log(true, "Skill detected | BoomerPop | Survivor:%N Boomer:%N ShoveCount:%d TimeAlive:%.1f", survivor, boomer, shoveCount, timeAlive);
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -469,9 +448,8 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 	if (IsFakeClient(clearer) || IsFakeClient(pinner) || IsFakeClient(pinvictim))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | SpecialClear | Clearer:%N Pinner:%N PinVictim:%N ZombieClass:%s TimeA:%.1f TimeB:%.1f WithShove:%d", clearer, pinner, pinvictim, L4D2ZombieClassname[zombieClass], timeA, timeB, withShove, view_as<int>(withShove));
 
+	fkn_log(true, "Skill detected | SpecialClear | Clearer:%N Pinner:%N PinVictim:%N ZombieClass:%s TimeA:%.1f TimeB:%.1f WithShove:%d", clearer, pinner, pinvictim, L4D2ZombieClassname[zombieClass], timeA, timeB, withShove, view_as<int>(withShove));
 	char
 		sSteamID[64],
 		sSteamID2[64],
@@ -507,9 +485,7 @@ public void OnHunterHighPounce(int hunter, int survivor, int actualDamage, float
 	if (IsFakeClient(survivor) || IsFakeClient(hunter))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | HunterHighPounce | Survivor:%N Hunter:%N ActualDamage:%d CalculatedDamage:%.1f Height:%.1f ReportedHigh:%d", survivor, hunter, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh));
-
+	fkn_log(true, "Skill detected | HunterHighPounce | Survivor:%N Hunter:%N ActualDamage:%d CalculatedDamage:%.1f Height:%.1f ReportedHigh:%d", survivor, hunter, actualDamage, calculatedDamage, height, view_as<int>(reportedHigh));
 	char
 		sSteamID[64],
 		sSteamID2[64],

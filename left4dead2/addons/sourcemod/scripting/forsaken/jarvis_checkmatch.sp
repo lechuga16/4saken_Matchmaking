@@ -13,7 +13,7 @@
  */
 public void ORUI_CheckMatch()
 {
-	if (!IsGameCompetitive(g_TypeMatch) || !L4D_IsFirstMapInScenario())
+	if (g_TypeMatch == invalid || g_TypeMatch == unranked || !L4D_IsFirstMapInScenario())
 		return;
 
 	CreateTimer(40.0, Timer_ReadCFG);
@@ -32,35 +32,34 @@ public void ORUI_CheckMatch()
 public Action Timer_ReadCFG(Handle hTimer)
 {
 	char
-		sCfgConvar[128],
 		sCfgName[128],
 		sCurrentMap[32];
+
 	ConVar
 		l4d_ready_cfg_name;
 
-	g_cvarConfigCfg.GetString(sCfgConvar, sizeof(sCfgConvar));
 	l4d_ready_cfg_name = FindConVar("l4d_ready_cfg_name");
 
 	if (l4d_ready_cfg_name == null)
 	{
-		fkn_log("ConVar l4d_ready_cfg_name not found");
+		fkn_log(false, "ConVar l4d_ready_cfg_name not found");
 		return Plugin_Stop;
 	}
 
 	l4d_ready_cfg_name.GetString(sCfgName, sizeof(sCfgName));
 
-	if (FindString(sCfgName, sCfgConvar, false))
+	if (FindString(sCfgName, sCFGName[g_TypeMatch], false))
 	{
 		if (g_cvarDebug.BoolValue)
 		{
-			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCfgConvar);
-			fkn_log("The current cfg (%s) corresponds to %s", sCfgName, sCfgConvar);
+			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCFGName[g_TypeMatch]);
+			fkn_log(false, "The current cfg (%s) corresponds to %s", sCfgName, sCFGName[g_TypeMatch]);
 		}
 	}
 	else
 	{
-		CPrintToChatAll("%t %t", "Tag", "ConfigChange", sCfgName, sCfgConvar);
-		fkn_log("The current cfg (%s) does not correspond to %s", sCfgName, sCfgConvar);
+		CPrintToChatAll("%t %t", "Tag", "ConfigChange", sCfgName, sCFGName[g_TypeMatch]);
+		fkn_log(false, "The current cfg (%s) does not correspond to %s", sCfgName, sCFGName[g_TypeMatch]);
 		CreateTimer(5.0, Timer_ForceMatch);
 	}
 
@@ -79,16 +78,12 @@ public Action Timer_ReadCFG(Handle hTimer)
 	GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
 	if (StrEqual(g_sMapName, sCurrentMap, false))
 	{
-		if (g_cvarDebug.BoolValue)
-		{
-			CPrintToChatAll("%t %t", "Tag", "MapConfirm", g_sMapName, sCurrentMap);
-			fkn_log("The current map (%s) corresponds to %s", g_sMapName, sCurrentMap);
-		}
+		fkn_log(true, "The current map (%s) corresponds to %s", g_sMapName, sCurrentMap);
 	}
 	else
 	{
 		CPrintToChatAll("%t %t", "Tag", "MapChange", g_sMapName, sCurrentMap);
-		fkn_log("The current map (%s) does not correspond to %s", g_sMapName, sCurrentMap);
+		fkn_log(false, "The current map (%s) does not correspond to %s", g_sMapName, sCurrentMap);
 
 		if (IsInReady())
 		{

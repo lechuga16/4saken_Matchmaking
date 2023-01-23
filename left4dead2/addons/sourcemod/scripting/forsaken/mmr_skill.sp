@@ -3,6 +3,10 @@
 #endif
 #define _mmr_skill_included
 
+/*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
 native int	 SURVMVP_GetMVP();
 native int	 SURVMVP_GetMVPCI();
 native float SURVMVP_GetMVPDmgPercent(int client);
@@ -20,6 +24,22 @@ public void __pl_survivor_mvp_SetNTVOptional()
 	MarkNativeAsOptional("SURVMVP_GetMVPCIPercent");
 }
 
+/*****************************************************************
+			F O R W A R D   P U B L I C S
+*****************************************************************/
+
+public void OMS_skill()
+{
+	if (g_TypeMatch == unranked || g_TypeMatch == invalid)
+		return;
+
+	CleanSkills();
+}
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
 public int CheckMVPList(bool bIsMVP)
 {
 	if (ClientMVP(bIsMVP) == CONSOLE)
@@ -31,7 +51,7 @@ public int CheckMVPList(bool bIsMVP)
 		return MVPListed(TeamB, bIsMVP);
 }
 
-public int MVPListed(ForsakenTeam team, bool bIsMVP)
+int MVPListed(ForsakenTeam team, bool bIsMVP)
 {
 	for (int i = 0; i <= MAX_INDEX_PLAYER; i++)
 	{
@@ -53,10 +73,26 @@ public float ClientDMGPercent(bool bIsMVP)
 		return SURVMVP_GetMVPCIPercent(ClientMVP(bIsMVP));
 }
 
-public int ClientMVP(bool bIsMVP)
+int ClientMVP(bool bIsMVP)
 {
 	if (bIsMVP)
 		return SURVMVP_GetMVP();
 	else
 		return SURVMVP_GetMVPCI();
+}
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
+void CleanSkills()
+{
+	if (!L4D_IsFirstMapInScenario())
+		return;
+
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{
+		g_Players[TeamA][iID].skill = 0.0;
+		g_Players[TeamB][iID].skill = 0.0;
+	}
 }

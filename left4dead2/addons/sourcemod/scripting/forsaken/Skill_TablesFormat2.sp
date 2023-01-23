@@ -44,8 +44,7 @@ public void OnSkeetHurt(int survivor, int hunter, int damage, bool isOverkill)
 	if (IsFakeClient(survivor) || IsFakeClient(hunter))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | Skeet-Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
+	fkn_log(true, "Skill detected | Skeet-Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
 
 	char
 		sSteamID[64],
@@ -67,8 +66,7 @@ public void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverki
 	if (IsFakeClient(survivor) || IsFakeClient(hunter))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | Skeet-Melee Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
+	fkn_log(true, "Skill detected | Skeet-Melee Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
 
 	char
 		sSteamID[64],
@@ -90,8 +88,7 @@ public void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverk
 	if (IsFakeClient(survivor) || IsFakeClient(hunter))
 		return;
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log("Skill detected | Skeet-Sniper Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
+	fkn_log(true, "Skill detected | Skeet-Sniper Hurt | Survivor:%N Hunter:%N Damage:%d Overkill:%d", survivor, hunter, damage, view_as<int>(isOverkill));
 
 	char
 		sSteamID[64],

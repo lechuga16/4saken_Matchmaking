@@ -33,12 +33,15 @@ public void OnCA_RageQuit(int iClient, const char[] sAuth)
 			g_Players[TeamA][iID].client = iClient;
 		else if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
 			g_Players[TeamB][iID].client = iClient;
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 
 	if (IsRageQuiters(iClient, sAuth))
 	{
 		RemoveRageQuiters(iClient, sAuth);
-		fkn_log("ClientConnected: %N is ragequiter", iClient);
+		fkn_log(false, "ClientConnected: %N is ragequiter", iClient);
 	}
 }
 
@@ -66,8 +69,7 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 
 			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
 
-			if (g_cvarDebug.BoolValue)
-				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
+			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
 
 		if (StrEqual(sSteamId, g_Players[TeamB][iID].steamid, false))
@@ -84,9 +86,11 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 
 			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
 
-			if (g_cvarDebug.BoolValue)
-				fkn_log("Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
+			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
 		}
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 }
 
@@ -116,6 +120,9 @@ public bool IsRageQuiters(int iClient, const char[] sAuth)
 			if (g_RageQuit[TeamB][iID].timer != null)
 				return true;
 		}
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 	return false;
 }
@@ -136,7 +143,7 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 			delete g_RageQuit[TeamA][iID].timer;
 			g_RageQuit[TeamA][iID].timer = null;
 			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid);
-			fkn_log("ClientConnected: %N no longer ragequiter", iClient);
+			fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
 		}
 
 		if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
@@ -144,8 +151,11 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 			delete g_RageQuit[TeamB][iID].timer;
 			g_RageQuit[TeamB][iID].timer = null;
 			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamB][iID].name, g_Players[TeamB][iID].steamid);
-			fkn_log("ClientConnected: %N no longer ragequiter", iClient);
+			fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
 		}
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
 	}
 }
 

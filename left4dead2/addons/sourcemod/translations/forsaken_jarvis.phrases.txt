@@ -25,6 +25,14 @@
     {
         "en"        "Type Lobby: {olive}%s{default}."
     }
+    "PlayerA"
+    {
+        "en"        "{blue}Player{default}: "
+    }
+    "PlayerB"
+    {
+        "en"        "{red}Player{default}: "
+    }
     "TeamA"
     {
         "en"        "{blue}Team A{default}:\n"
@@ -52,10 +60,6 @@
     "ConfigChange"
     {
         "en"        "The current cfg ({green}%s{default}) does not correspond to {olive}%s{default}."
-    }
-    "MapConfirm"
-    {
-        "en"        "The current map ({green}%s{default}) corresponds to {olive}%s{default}."
     }
     "MapChange"
     {
@@ -100,10 +104,6 @@
     {
         "en"        "Not enough players to start the match  ({green}%d{default}/{green}%d{default})."
     }
-    "StartMatch"
-    {
-        "en"        "Starting cfg ({olive}%s{default}) and changing map to ({olive}%s{default})."
-    }
     // jarvis_ban.sp
     "BanFail"
     {
@@ -125,6 +125,14 @@
     "NotAllConnected"
     {
         "en"        "{red}Not all players{default} are connected."
+    }
+    "WaitingPlayerA"
+    {
+        "en"        "Waiting for {blue}Player{default}: "
+    }
+    "WaitingPlayerB"
+    {
+        "en"        "Waiting for {red}Player{default}: "
     }
     "WaitingTeamA"
     {

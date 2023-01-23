@@ -21,28 +21,6 @@
 
 #define PLUGIN_VERSION "1.0"
 
-/**
- * Team profile.
- *
- */
-enum struct TeamsInfo
-{
-	int	  id;						// Team ID
-	char  name[MAX_NAME_LENGTH];	// Team name
-	float rating;					// Glicko Score
-	float deviation;				// Glicko deviation
-	int	  gamesplayed;				// Number of games played
-	int	  lastgame;					// Last Score Update
-	int	  wins;						// Number of games won
-}
-
-ConVar
-	g_cvarDebug,
-	g_cvarEnable;
-
-Database  g_dbForsaken;
-TypeMatch g_TypeMatch;
-TeamsInfo g_TeamInfo[ForsakenTeam];		 // Information to calculate mmr of a team
 int		  g_iTeamScore[ForsakenTeam];	 // Team score
 char
 	g_sMapName[32],
@@ -59,7 +37,7 @@ bool
 #include "forsaken/mmr_prematch.sp"
 #include "forsaken/mmr_pug.sp"
 #include "forsaken/mmr_scrims.sp"
-//#include "forsaken/mmr_1v1.sp"
+#include "forsaken/mmr_duel.sp"
 #include "forsaken/mmr_skill.sp"
 
 /*****************************************************************
@@ -102,6 +80,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_mmr", CMD_MMR, "Show player mmr");
 	RegAdminCmd("sm_mmr_stats", CMD_Stats, ADMFLAG_GENERIC, "Show player stats");
 	RegAdminCmd("sm_mmr_all", CMD_All, ADMFLAG_ROOT, "Show player stats");
+	RegAdminCmd("sm_mmr_teams", CMD_Teams, ADMFLAG_ROOT, "Show teams stats");
 
 	HookEvent("round_end", Event_RoundEnd);
 	SQLConnect();
@@ -113,10 +92,12 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (!IsHuman(iClient))
+	if (!IsHuman(iClient) || g_bPreMatch)
 		return;
 
-	IndexPug(iClient);
+	OCA_Pug(iClient);
+	OCA_Scrims(iClient);
+	OCA_Duel(iClient);
 }
 
 public void OnCacheDownload()
@@ -124,8 +105,10 @@ public void OnCacheDownload()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	if (!g_bPreMatch)
-		OCD_Prematch();
+	if (g_bPreMatch)
+		return;
+
+	OCD_Prematch();
 }
 
 public void OnMapStart()
@@ -134,19 +117,10 @@ public void OnMapStart()
 		return;
 
 	if (!g_bPreMatch)
-	{
-		ScrimMatch();
-		CleanSkills();
-	}
+		OMS_skill();
 
 	if (LGO_IsMatchModeLoaded())
 		g_bPreMatch = false;
-}
-
-public void OnReadyUpInitiatePre()
-{
-	if (!g_cvarEnable.BoolValue)
-		return;
 }
 
 public void OnRoundLiveCountdown()
@@ -154,10 +128,15 @@ public void OnRoundLiveCountdown()
 	if (!g_bRound_End)
 		g_bRound_End = !g_bRound_End;
 
-	ClienIndexList();
+	if (g_bPreMatch)
+		return;
+
+	ORLC_Pug();
+	ORLC_Scrims();
+	ORLC_Duel();
 }
 
-public Action CMD_MMR(int iClient, int iArgs)
+Action CMD_MMR(int iClient, int iArgs)
 {
 	char TargetString[128];
 	GetCmdArg(1, TargetString, sizeof(TargetString));
@@ -223,7 +202,7 @@ public Action CMD_MMR(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public Action CMD_Stats(int iClient, int iArgs)
+Action CMD_Stats(int iClient, int iArgs)
 {
 	char TargetString[128];
 	GetCmdArg(1, TargetString, sizeof(TargetString));
@@ -280,7 +259,7 @@ public Action CMD_Stats(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-public Action CMD_All(int iClient, int iArgs)
+Action CMD_All(int iClient, int iArgs)
 {
 	CReplyToCommand(iClient, "%t TeamA %s:%.0f|%s:%.0f|%s:%.0f|%s:%.0f ", "Tag",
 					g_Players[TeamA][0].name, g_Players[TeamA][0].rating,
@@ -297,6 +276,27 @@ public Action CMD_All(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
+Action CMD_Teams(int iClient, int iArgs)
+{
+	CReplyToCommand(iClient, "Rating: %f | Deviation: %f | GamesPlayed: %d | LastGame: %d | Wins: %d | Name: %s", 
+		g_TeamsInfo[TeamA][0].rating, 
+		g_TeamsInfo[TeamA][0].deviation, 
+		g_TeamsInfo[TeamA][0].gamesplayed, 
+		g_TeamsInfo[TeamA][0].lastgame, 
+		g_TeamsInfo[TeamA][0].wins,
+		g_TeamsInfo[TeamA][0].name);
+
+	CReplyToCommand(iClient, "Rating: %f | Deviation: %f | GamesPlayed: %d | LastGame: %d | Wins: %d | Name: %s", 
+		g_TeamsInfo[TeamB][0].rating, 
+		g_TeamsInfo[TeamB][0].deviation, 
+		g_TeamsInfo[TeamB][0].gamesplayed, 
+		g_TeamsInfo[TeamB][0].lastgame, 
+		g_TeamsInfo[TeamB][0].wins,
+		g_TeamsInfo[TeamB][0].name);
+
+	return Plugin_Handled;
+}
+
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
@@ -307,6 +307,29 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 
 	g_bRound_End = !g_bRound_End;
 
+	LogicTeamScore();
+
+	if (g_TypeMatch == scout || g_TypeMatch == adept || g_TypeMatch == veteran)
+		RoundEnd_Pugs();
+	else if (g_TypeMatch == scrims)
+		RoundEnd_Teams();
+	else if (g_TypeMatch == duel)
+		RoundEnd_Duel();
+}
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
+stock int DaysLastGame(PlayerInfo Player)
+{
+	if (Player.lastgame == 0)
+		return 0;
+	return FromUnixTime(GetTime() - Player.lastgame, Day);
+}
+
+void LogicTeamScore()
+{
 	if (!InSecondHalfOfRound())	   // Firs Half of Round
 	{
 		if (!AreTeamsFlipped())	   // Teams are not flipped
@@ -321,64 +344,60 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 		else
 			g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
 	}
-
-	// CPrintToChatAll("%t %t", "Tag", "Round", g_iTeamScore[TeamA], g_iTeamScore[TeamB]);
-	ProcessBonus(TeamA);
-	ProcessBonus(TeamB);
-
-	if (!InSecondHalfOfRound())
-		return;
-
-	if (g_TypeMatch == scrims)
-	{
-		RoundEnd_Teams();
-		return;
-	}
-
-	if (g_TypeMatch == scout || g_TypeMatch == adept || g_TypeMatch == veteran)
-	{
-		RoundEnd_Pugs();
-		return;
-	}
 }
 
-/*****************************************************************
-			P L U G I N   F U N C T I O N S
-*****************************************************************/
-public void SQLConnect()
+public ForsakenTeam GetOpponent(ForsakenTeam team)
 {
-	if (!g_cvarEnable.BoolValue)
-		return;
-
-	if (!SQL_CheckConfig("4saken"))
-		fkn_log("The 4saken configuration is not found in databases.cfg");
-	else
-		Database.Connect(SQL4saken, "4saken");
+	return (team == TeamA) ? TeamB : TeamA;
 }
 
-public void SQL4saken(Database db, const char[] error, any data)
+public void IndexClientAuthorized(int iClient)
 {
-	if (db == null)
-		ThrowError("Error while connecting to database: %s", error);
-	else
-		g_dbForsaken = db;
-}
-
-stock int DaysLastGame(PlayerInfo Player)
-{
-	if (Player.lastgame == 0)
-		return 0;
-	return FromUnixTime(GetTime() - Player.lastgame, Day);
-}
-
-public void CleanSkills()
-{
-	if (!L4D_IsFirstMapInScenario())
+	char sStemaID[32];
+	if (!GetClientAuthId(iClient, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
 		return;
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		g_Players[TeamA][iID].skill = 0.0;
-		g_Players[TeamB][iID].skill = 0.0;
+		if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
+		{
+			g_Players[TeamA][iID].client = iClient;
+			continue;
+		}
+
+		if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
+		{
+			g_Players[TeamB][iID].client = iClient;
+			continue;
+		}
+	}
+}
+
+public void IndexClientAll()
+{
+	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
+	{
+		if (!IsHuman(i))
+			continue;
+
+		char sStemaID[32];
+		if (!GetClientAuthId(i, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
+			continue;
+
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+		{
+			if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
+			{
+				g_Players[TeamA][iID].client = i;
+				continue;
+			}
+
+			if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
+			{
+
+				g_Players[TeamB][iID].client = i;
+				continue;
+			}
+		}
 	}
 }

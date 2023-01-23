@@ -15,8 +15,6 @@
 #define PLUGIN_VERSION "0.1"
 
 ConVar
-	g_cvarDebug,
-	g_cvarEnable,
 	g_cvarSkeet,
 	g_cvarSkeetMelee,
 	g_cvarSkeetGL,
