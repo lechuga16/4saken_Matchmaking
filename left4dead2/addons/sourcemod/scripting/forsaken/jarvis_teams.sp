@@ -157,7 +157,7 @@ public void CheckTeam(int iClient)
 		case TeamB:
 		{
 			if (GetClientTeamEx(iClient) == L4DTeam_Infected)
-
+				return;
 
 			if (GetTeamHumanCount(L4DTeam_Infected) == GetTeamMaxHumans(L4DTeam_Infected))
 			{

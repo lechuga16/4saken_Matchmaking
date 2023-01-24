@@ -153,7 +153,7 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 
 public void OnCacheDownload()
 {
-	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
+	if (!g_cvarEnable.BoolValue)
 		return;
 		
 	OCD_prematch();

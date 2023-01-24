@@ -31,30 +31,64 @@ Database  g_DBSourceBans = null;
 *****************************************************************/
 public void OnPluginStart_Bans()
 {
+	LoadTranslation("common.phrases")
 	Database.Connect(GotDatabase, "sourcebans");
+	RegAdminCmd("sm_jarvis_countbans", Cmd_CountBans, ADMFLAG_ROOT, "Count bans");
 }
 
-/*****************************************************************
-			N A T I V E S
-*****************************************************************/
-
-// OffLineBan(int iTarget, int Team, int iTime, const char[] sReason, any ...)
-any Native_ForsakenBan(Handle plugin, int numParams)
+public Action Cmd_CountBans(int iClient, int iArgs)
 {
-	int
-		iTarget = GetNativeCell(1),
-		Team	= GetNativeCell(2),
-		iTime	= GetNativeCell(3);
+	if(iArgs < 1 )
+	{
+		CReplyToCommand(iClient, "Usage: sm_jarvis_countbans <1:RQ|2:Desertion|3:Readyup> <#userid|name>");
+		return Plugin_Handled;
+	}
 
-	char sReason[PLATFORM_MAX_PATH];
-	FormatNativeString(0, 4, 5, sizeof(sReason), _, sReason);
-	CreateOffLineBan(iTarget, view_as<ForsakenTeam>(Team), iTime, sReason);
-	return 0;
+	if(iClient == CONSOLE)
+	{
+		CReplyToCommand(iClient, "%s The console cannot be banned!", JVPrefix);
+		return Plugin_Handled;
+	}
+
+	int iCmdArg1 = GetCmdArgInt(1);
+
+	if(iCmdArg1 < 1 || iCmdArg1 > 3)
+	{
+		CReplyToCommand(iClient, "Usage: <1:RQ|2:Desertion|3:Readyup>");
+		return Plugin_Handled;
+	}
+
+	char sCmdArg2[16];
+	GetCmdArg(2, sCmdArg2, sizeof(sCmdArg2));
+
+	int iCountBans = ClientBansAccount(iClient, sTypeBans[view_as<TypeBans>(iCmdArg1)]);
+
+	int[] iTargetList = new int[MaxClients+1];
+	char sTargetName[MAX_TARGET_LENGTH];
+	bool tn_is_ml;
+	int iTargetCount = ProcessTargetString(sCmdArg2, iClient, iTargetList, MaxClients+1, COMMAND_FILTER_NO_BOTS, sTargetName, sizeof(sTargetName), tn_is_ml);
+
+	if (iTargetCount == 0)
+	{
+		if(iCountBans == 0)
+			CReplyToCommand(iClient, "%t %t", "Tag", "CountBans0", iClient);
+		else
+			CReplyToCommand(iClient, "%t %t", "Tag", "CountOwnBans", (iCountBans > 1) ? "s": "", iCountBans);
+	}
+	else
+	{
+		for (int i = 1; i < iTargetCount; i++)
+		{
+			if(iCountBans == 0)
+				CReplyToCommand(iClient, "%t %t", "Tag", "CountBans0", iTargetList[i]);
+			else
+				CReplyToCommand(iClient, "%t %t", "Tag", "CountBans", iTargetList[i], (iCountBans > 1) ? "s": "", iCountBans);
+		}
+	}
+
+	CReplyToCommand(iClient, "iCmdArg1: %d | sCmdArg2:%s | sTypeBans:%s", iCmdArg1, sCmdArg2, sTypeBans[view_as<TypeBans>(iCmdArg1)]);
+	return Plugin_Handled;
 }
-
-/*****************************************************************
-			F O R W A R D   P U B L I C S
-*****************************************************************/
 
 /**
  * @brief Represents a set of results returned from executing a query.
@@ -78,6 +112,24 @@ public void GotDatabase(Database db, const char[] error, any data)
 
 	g_DBSourceBans = db;
 	SQL_SetCharset(g_DBSourceBans, "utf8mb4");
+}
+
+/*****************************************************************
+			N A T I V E S
+*****************************************************************/
+
+// OffLineBan(int iTarget, int Team, int iTime, const char[] sReason, any ...)
+any Native_ForsakenBan(Handle plugin, int numParams)
+{
+	int
+		iTarget = GetNativeCell(1),
+		Team	= GetNativeCell(2),
+		iTime	= GetNativeCell(3);
+
+	char sReason[PLATFORM_MAX_PATH];
+	FormatNativeString(0, 4, 5, sizeof(sReason), _, sReason);
+	CreateOffLineBan(iTarget, view_as<ForsakenTeam>(Team), iTime, sReason);
+	return 0;
 }
 
 /*****************************************************************
@@ -361,14 +413,14 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 		iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
 
 	Format(sQuery, sizeof(sQuery),
-		   "SELECT COUNT(*) \
+		"SELECT COUNT(*) \
 		FROM `sb_bans` \
 		WHERE `authid` LIKE '%s' \
 			AND `reason` LIKE '%s' \
-			AND `created` > '%d' \
-		GROUP BY `authid` \
-		HAVING COUNT(*) > '1';",
-		   sSteamID2, sBanCode, iTimeLimit);
+			AND `created` > '%d';",
+		sSteamID2, sBanCode, iTimeLimit);
+
+	fkn_log(true, "sQuery: %s", sQuery);
 
 	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
 	{
@@ -383,8 +435,48 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 		iBans = rsSourceBans.FetchInt(0);
 	}
 
-	if (g_cvarDebug.BoolValue)
-		fkn_log(false, "Query: %s", sQuery);
+	return iBans;
+}
 
+public int ClientBansAccount(int iClient, char[] sBanCode)
+{
+	DBResultSet rsSourceBans;
+	char
+		sQuery[256],
+		error[255],
+		sSteamID2[MAX_AUTHID_LENGTH];
+
+	int
+		iBans,
+		iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
+
+	if(!GetClientAuthId(iClient, AuthId_Steam2, sSteamID2, MAX_AUTHID_LENGTH))
+	{
+		CReplyToCommand(iClient, "%t Error to identify the SteamID2", "Tag");
+		return 0;
+	}
+	
+	Format(sQuery, sizeof(sQuery),
+		"SELECT COUNT(*) \
+		FROM `sb_bans` \
+		WHERE `authid` LIKE '%s' \
+			AND `reason` LIKE '%s' \
+			AND `created` > '%d';",
+		   sSteamID2, sBanCode, iTimeLimit);
+
+	fkn_log(true, "sQuery: %s", sQuery);
+
+	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
+	{
+		SQL_GetError(g_DBSourceBans, error, sizeof(error));
+		fkn_log(false, "FetchUsers() query failed: %s", sQuery);
+		fkn_log(false, "Query error: %s", error);
+		return 0;
+	}
+
+	while (rsSourceBans.FetchRow())
+	{
+		iBans = rsSourceBans.FetchInt(0);
+	}
 	return iBans;
 }

@@ -105,6 +105,18 @@
         "en"        "Not enough players to start the match  ({green}%d{default}/{green}%d{default})."
     }
     // jarvis_ban.sp
+    "CountOwnBans"
+    {
+        "en"        "Found ({green}%d{default}) ban%s."
+    }
+    "CountBans0"
+    {
+        "es"        "{olive}%N{default} has no bans."
+    }
+    "CountBans"
+    {
+        "en"        "Encountered ({green}%d{default}) ban%s for {olive}%N{default}."
+    }
     "BanFail"
     {
         "en"        "Failed to ban player, ({red}%s{default})."
@@ -149,7 +161,11 @@
     // jarvis_ragequit.sp
     "RageQuit"
     {
-        "en"        "{olive}%s{default} ({green}%s{default}) {red}left the game{default}, timeout is {green}%d{default} seconds."
+        "en"        "{olive}%s{default} ({green}%s{default}) {red}left the game{default}, timeout is ({green}%d{default}) minutes."
+    }
+    "RageQuitAnnouncer"
+    {
+        "en"        "({red}%d{default}) minutes left to wait for the player."
     }
     "BanReasonRQ" 
     {

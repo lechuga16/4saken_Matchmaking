@@ -21,55 +21,9 @@ char
 public void OnPluginStart_Reserved()
 {
 	g_cvarEnable = CreateConVar("sm_jarvis_reserved", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	RegConsoleCmd("sm_svreserved", Cmd_Reserved, "Check if the server is reserved");
 
 	g_iPort = FindConVar("hostport").IntValue;
 	g_sIp	= fkn_GetIP();
-}
-
-public Action Cmd_Reserved(int iClient, int iArgs)
-{
-	if (iArgs != 0)
-	{
-		CReplyToCommand(iClient, "Usage: sm_svreserved");
-		return Plugin_Handled;
-	}
-
-	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUSV2, g_sIp, g_iPort);
-	System2HTTPRequest httpRequest = new System2HTTPRequest(CMD_HttpReserved, g_sURL);
-	httpRequest.SetHeader("Content-Type", "application/json");
-	httpRequest.Any	= iClient;
-	httpRequest.GET();
-	delete httpRequest;
-
-	return Plugin_Continue;
-}
-
-public void CMD_HttpReserved(bool success, const char[] error, System2HTTPRequest request, System2HTTPResponse response, HTTPRequestMethod method)
-{
-	char
-		sUrl[256],
-		sContent[128];
-
-	request.GetURL(sUrl, sizeof(sUrl));
-
-	if (!success)
-	{
-		fkn_log(false, "ERROR: Couldn't retrieve URL %s. Error: %s", sUrl, error);
-		return;
-	}
-
-	response.GetContent(sContent, sizeof(sContent));
-	JSON_Object joInfo = json_decode(sContent);
-
-	if (joInfo == null)
-	{
-		fkn_log(false, "Error: HttpReserve() - (joInfo == null)");
-		return;
-	}
-
-	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
-	CReplyToCommand(request.Any, "%t %t", "Tag", "CmdReserved", g_bReserve ? "Reserved" : "Unreserved");
 }
 
 /*****************************************************************
@@ -83,13 +37,11 @@ public void CMD_HttpReserved(bool success, const char[] error, System2HTTPReques
  */
 public void OCPIS_Reserved()
 {
-	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUSV2, g_sIp, g_iPort);
-	if (g_cvarDebug.BoolValue)
-		fkn_log(false, "URL: %s", g_sURL);
+	Format(g_sURL, sizeof(g_sURL), "%s?ip=%s&port=%d", URL_STATUS, g_sIp, g_iPort);
+	fkn_log(true, "URL: %s", g_sURL);
 
 	System2HTTPRequest httpRequest = new System2HTTPRequest(HttpReserved, g_sURL);
 	httpRequest.SetHeader("Content-Type", "application/json");
-	httpRequest.Timeout = 5;
 	if (g_cvarDebug.BoolValue)
 		httpRequest.SetProgressCallback(HttpProgressReserved);
 	httpRequest.GET();
@@ -117,7 +69,8 @@ public void HttpReserved(bool success, const char[] error, System2HTTPRequest re
 	}
 
 	response.GetContent(sContent, sizeof(sContent));
-
+	g_bReserve = view_as<bool>(StringToInt(sContent));
+	/*
 	if (g_cvarDebug.BoolValue)
 		fkn_log(false, "GET request: %s", sContent);
 
@@ -130,19 +83,19 @@ public void HttpReserved(bool success, const char[] error, System2HTTPRequest re
 	}
 
 	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
-	
+	joInfo.GetString("map", g_sMapName, sizeof(g_sMapName));
+	json_cleanup_and_delete(joInfo);
+	*/
+
 	if (g_bReserve)
 	{
-		joInfo.GetString("map", g_sMapName, sizeof(g_sMapName));
-		// g_TypeMatch = view_as<MatchType>(joInfo.GetInt("type"));
-		g_TypeMatch = duel;
-		json_cleanup_and_delete(joInfo);
+		ServerCommand("sm_fkn_downloadCache");
 		MatchInfo_PreMatch();
 	}
+
 	else
 	{
-		if (g_cvarDebug.BoolValue)
-			fkn_log(false, "%N was kicked, server without unreserved.", request.Any);
+		fkn_log(true, "%N was kicked, server without unreserved.", request.Any);
 		KickAllClient();
 	}
 }

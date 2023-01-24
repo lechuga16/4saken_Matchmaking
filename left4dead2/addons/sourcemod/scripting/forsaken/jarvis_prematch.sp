@@ -159,24 +159,20 @@ public Action Cmd_RefreshListPlayers(int iClient, int iArgs)
 
 public void MatchInfo_PreMatch()
 {
-	ConVar match_restart;
-	char   sMatch_Map[32];
-	match_restart = FindConVar("confogl_match_map");
-	match_restart.GetString(sMatch_Map, sizeof(sMatch_Map));
+	if(g_TypeMatch == duel)
+		ServerCommand("sv_maxplayers 6");
+
+	CreateTimer(5.0, Timer_MatchInfo);
+}
+
+Action Timer_MatchInfo(Handle hTimer)
+{
 
 	if(g_cvarChangeMap.BoolValue)
 		ServerCommand("confogl_match_map %s", g_sMapName);
 
 	fkn_log(true, "Map: %s", g_sMapName);
 
-	if(g_TypeMatch == duel)
-		ServerCommand("sv_maxplayers 6");
-
-	CreateTimer(5.0, Timer_MatchInfo, _, TIMER_FLAG_NO_MAPCHANGE);
-}
-
-Action Timer_MatchInfo(Handle hTimer)
-{
 	ServerCommand("sm_forcematch %s", sTypeCFG[g_TypeMatch]);
 	return Plugin_Stop;
 }

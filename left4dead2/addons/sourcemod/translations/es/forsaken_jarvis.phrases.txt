@@ -96,13 +96,25 @@
         "es"        "No hay suficientes jugadores para iniciar la partida ({green}%d{default}/{green}%d{default})."
     }
     // jarvis_ban.sp
+    "CountOwnBans"
+    {
+        "es"        "Se han encontrado ({green}%d{default}) bloqueo%s."
+    }
+    "CountBans0"
+    {
+        "es"        "{olive}%N{default} no tiene bloqueos."
+    }
+    "CountBans"
+    {
+        "es"        "Se han encontrado ({green}%d{default}) bloqueo%s de {olive}%N{default}."
+    }
     "BanFail"
     {
         "es"        "No se logro sancionar al jugador, ({red}%s{default})."
     }
     "PrintBanSuccess"
     {
-        "es"        "{olive}%s{default} fue {red}baneado{default} por {green}%d{default} minutos. Razon: {green}%s{default}."
+        "es"        "{olive}%s{default} fue {red}baneado{default} por {green}%d{default} minutos. Razon: {green}%N{default}."
     }
     "BanFailQuery"
     {
@@ -140,7 +152,11 @@
     // jarvis_ragequit.sp
     "RageQuit"
     {
-        "es"        "{olive}%s{default} ({green}%s{default}) {red}dejó el juego{default}, el tiempo de espera es de {green}%d{default} segundos."
+        "es"        "{olive}%s{default} ({green}%s{default}) {red}dejó el juego{default}, ({green}%d{default}) minutos de espera."
+    }
+    "RageQuitAnnouncer"
+    {
+        "es"        "quedan ({red}%d{default}) minutos para esperar al jugador."
     }
     "BanReasonRQ" 
     {

@@ -161,11 +161,12 @@ enum UnixTime
 
 enum TypeBans
 {
-	Bancode01	 = 0,
-	Bancode02	 = 1,
-	Bancode03	 = 2,
+	Bancode00	 = 0,
+	Bancode01	 = 1,
+	Bancode02	 = 2,
+	Bancode03	 = 3,
 
-	Bancode_Size = 3
+	Bancode_Size = 4
 };
 
 // ==================================================
@@ -242,9 +243,10 @@ stock const char sMatchClosing[MatchClosing_Size][] = {
 };
 
 stock const char sTypeBans[Bancode_Size][] = {
-	"BanCode:01",
-	"BanCode:02",
-	"BanCode:03"
+	"%BanCode:00%",
+	"%BanCode:01%",
+	"%BanCode:02%",
+	"%BanCode:03%"
 };
 
 // ==================================================

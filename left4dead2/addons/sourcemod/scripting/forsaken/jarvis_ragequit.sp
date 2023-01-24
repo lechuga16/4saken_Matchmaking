@@ -8,7 +8,6 @@
 *****************************************************************/
 
 ConVar
-	g_cvarTimerRageQuit,
 	g_cvarBanRageQuit,
 	g_cvarBanRageQuitx2,
 	g_cvarBanRageQuitx3;
@@ -19,7 +18,6 @@ ConVar
 
 public void OnPluginStart_RageQuit()
 {
-	g_cvarTimerRageQuit = CreateConVar("sm_jarvis_timeragequit", "300.0", "The time to check if the player ragequit", FCVAR_NONE, true, 0.0);
 	g_cvarBanRageQuit	= CreateConVar("sm_jarvis_banragequit", "2880", "The time to ban the player (in minutes, 0 = permanent) for ragequit", FCVAR_NONE, true, 0.0);
 	g_cvarBanRageQuitx2 = CreateConVar("sm_jarvis_banragequitx2", "5760", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the second time", FCVAR_NONE, true, 0.0);
 	g_cvarBanRageQuitx3 = CreateConVar("sm_jarvis_banragequitx3", "10080", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the third time", FCVAR_NONE, true, 0.0);
@@ -63,13 +61,13 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 				continue;
 
 			DataPack hdataPack;
-			g_RageQuit[TeamA][iID].timer = CreateDataTimer(g_cvarTimerRageQuit.FloatValue, Timer_RageQuit, hdataPack);
+			g_RageQuit[TeamA][iID].timer = CreateDataTimer(60.0, Timer_RageQuit, hdataPack);
 			hdataPack.WriteCell(iID);
 			hdataPack.WriteCell(TeamA);
 
-			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
+			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamA][iID].name, sSteamId, 5);
 
-			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamA][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
+			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d minutes. Reason: %s", g_Players[TeamA][iID].name, sSteamId, 5, sReason);
 		}
 
 		if (StrEqual(sSteamId, g_Players[TeamB][iID].steamid, false))
@@ -80,13 +78,13 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 				continue;
 
 			DataPack hdataPack;
-			g_RageQuit[TeamB][iID].timer = CreateDataTimer(g_cvarTimerRageQuit.FloatValue, Timer_RageQuit, hdataPack);
+			g_RageQuit[TeamB][iID].timer = CreateDataTimer(60.0, Timer_RageQuit, hdataPack);
 			hdataPack.WriteCell(iID);
 			hdataPack.WriteCell(TeamB);
 
-			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue);
+			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamB][iID].name, sSteamId, 5);
 
-			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d seconds. Reason: %s", g_Players[TeamB][iID].name, sSteamId, g_cvarTimerRageQuit.IntValue, sReason);
+			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d minutes. Reason: %s", g_Players[TeamB][iID].name, sSteamId, 5, sReason);
 		}
 
 		if(iID == 0 && g_TypeMatch == duel)
@@ -166,7 +164,29 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
  * @param iClient		Client index.
  * @return				Stop the timer.
  **/
-public Action Timer_RageQuit(Handle iTimer, DataPack hPack)
+Action Timer_RageQuit(Handle iTimer, DataPack hPack)
+{
+	static int 
+		iTimerCycle = 0,
+		iTimerInvert = 5;
+
+	switch (iTimerCycle)
+	{
+		case 2: CPrintToChatAll("%t %t", "Tag", "RageQuitAnnouncer", iTimerInvert);
+		case 3: CPrintToChatAll("%t %t", "Tag", "RageQuitAnnouncer", iTimerInvert);
+		case 4: CPrintToChatAll("%t %t", "Tag", "RageQuitAnnouncer", iTimerInvert);
+		case 5: BanRageQuit(hPack);
+	}
+
+	if(iTimerCycle  == 5)
+		return Plugin_Stop;
+
+	iTimerInvert--;
+	iTimerCycle++;
+	return Plugin_Continue;
+}
+
+void BanRageQuit(DataPack hPack)
 {
 	hPack.Reset();
 	int			 iID  = hPack.ReadCell();
@@ -180,5 +200,4 @@ public Action Timer_RageQuit(Handle iTimer, DataPack hPack)
 	}
 
 	ForceEndGame(ragequit);
-	return Plugin_Stop;
 }

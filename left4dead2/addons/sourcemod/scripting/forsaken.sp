@@ -20,7 +20,7 @@
 
 char
 	g_sURL[256],
-	g_sIPv4[32],
+	g_sIPv4[64],
 	g_sPatchIP[64],
 	g_sMapName[32] = "c5m1_waterfront_sndscape";
 
@@ -28,9 +28,7 @@ int
 	g_iQueueID = 0,
 	g_iPort;
 
-bool 
-	g_bGetMatch = true,
-	g_bGetIPv4 = true;
+bool g_bGetIPv4 = true;
 
 GlobalForward  g_gfCacheDownload;
 
@@ -90,52 +88,6 @@ public void OnPluginEnd()
 
 	DeleteCache();
 	DeleteIPV4();
-}
-
-public void OnMapStart()
-{
-	if (!g_cvarEnable.BoolValue)
-		return;
-
-/*	if (g_bGetMatch)
-	{
-		CreateTimer(2.0, Timer_GetMatch);
-		g_bGetMatch = !g_bGetMatch;
-		GetMatch();
-	}*/
-}
-
-public void OnMapEnd()
-{
-	if (!g_cvarEnable.BoolValue || !LGO_IsMatchModeLoaded())
-		return;
-
-	// DeleteCache();
-	// DeleteIPV4();
-}
-
-public void OnClientPutInServer(int iClient)
-{
-	if (!g_cvarEnable.BoolValue || LGO_IsMatchModeLoaded())
-		return;
-
-	if (IsFakeClient(iClient))
-		return;
-
-/*	if (g_bGetMatch)
-	{
-		CreateTimer(2.0, Timer_GetMatch, iClient);
-		g_bGetMatch = !g_bGetMatch;
-		GetMatch();
-	}
-	else
-		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);*/
-}
-
-Action Timer_GetMatch(Handle timer)
-{
-	g_bGetMatch = !g_bGetMatch;
-	return Plugin_Stop;
 }
 
 public Action Cmd_ShowIP(int iClient, int iArgs)
@@ -205,15 +157,8 @@ public Action Cmd_UpdateCache(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	if (g_bGetMatch)
-	{
-		CreateTimer(2.0, Timer_GetMatch, iClient);
-		g_bGetMatch = !g_bGetMatch;
-		CReplyToCommand(iClient, "%s Cache match updated", PREFIX);
-		GetMatch();
-	}
-	else
-		CReplyToCommand(iClient, "%s Cache match is already updating", PREFIX);
+	CReplyToCommand(iClient, "%s Cache match updated", PREFIX);
+	GetMatch();
 
 	return Plugin_Handled;
 }
@@ -333,18 +278,10 @@ void HttpMatchInfo(bool success, const char[] error, System2HTTPRequest request,
 		return;
 	}
 
-	CreateTimer(1.0, Timer_StartForward);
-}
-
-Action Timer_StartForward(Handle timer)
-{
 	Call_StartForward(g_gfCacheDownload);
 	if (Call_Finish() != 0)
 		fkn_log(false, "forsaken_web: error in forward Call_Finish");
-
-	return Plugin_Stop;
 }
-
 /**
  * @brief Create an http request and retrieve the IPv4 of the server.
  *
@@ -389,8 +326,5 @@ void HttpIPv4(bool success, const char[] error, System2HTTPRequest request, Syst
 		return;
 	}
 
-	char sPatch[64];
-	BuildPath(Path_SM, sPatch, sizeof(sPatch), DIR_IPV4);
-	JSON_Object joIPv4	= json_read_from_file(sPatch);
-	joIPv4.GetString("ip", g_sIPv4, sizeof(g_sIPv4));
+	g_sIPv4 = fkn_GetIP();
 }
