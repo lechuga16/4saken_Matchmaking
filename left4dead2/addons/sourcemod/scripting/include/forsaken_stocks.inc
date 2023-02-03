@@ -45,7 +45,7 @@
 #define UNIXTIME_4WEEKS	   2419200
 #define EVALUATION_PERIOD  8
 
-ConVar
+stock ConVar
 	g_cvarDebug,
 	g_cvarEnable;
 
@@ -136,13 +136,14 @@ enum ForsakenTeam
  */
 enum MatchClosing
 {
-	endgame			  = 0,
-	ragequit		  = 1,
-	desertion		  = 2,
-	admin			  = 3,
-	unknown			  = 4,
+	endgame			  	= 0,
+	ragequit		  	= 1,
+	desertion		 	 = 2,
+	readyup				= 3,
+	admin			  	= 4,
+	unknown			  	= 5,
 
-	MatchClosing_Size = 5
+	MatchClosing_Size 	= 6
 };
 
 /**
@@ -238,6 +239,7 @@ stock const char sMatchClosing[MatchClosing_Size][] = {
 	"EndGame",
 	"RageQuit",
 	"Desertion",
+	"ReadyUp",
 	"Admin",
 	"Unknown"
 };
@@ -528,11 +530,11 @@ stock bool InSecondHalfOfRound()
 }
 
 /**
- * Convert any SteamId format to SteamID64
+ * Convert any SteamID2 format to SteamID64
  *
  * @param sCommunityID		SteamID64
  * @param iSize				Max size of sCommunityID
- * @param sSteamID			SteamID
+ * @param sSteamID			SteamID2
  */
 stock void SteamIDToCommunityID(char[] sCommunityID, int iSize, const char[] sSteamID)
 {
@@ -612,36 +614,6 @@ stock int FromUnixTime(int iUnixTime, UnixTime type)
 }
 
 /**
- * Given a target string, like "Hydrogen", "#32", "@me", "@all", this function will populate an array of client indices
- * that match the target string.
- *
- * @param Admin                 Client index of the admin who triggered the command.
- * @param TargettedString        The string containing the target(s), such as "Hydrogen", "#32", "@me", "@all". https://wiki.alliedmods.net/Admin_Commands_(SourceMod)
- * @param FilterFlag            Filter flag rules such as COMMAND_FILTER_NO_IMMUNITY. Find them here: https://sm.alliedmods.net/api/index.php?fastload=file&id=45&
- * @param ApplicableClients        Integer array initialized to all 0s. When this function finds matches, client indices will be stored in this array.
- * @param maxlen                Maximum length of the integer array.
- *
- * @return                         The number of matching clients found (or 0 if no matching clients have been found).
- *                                 You should use this number to iterate across the ApplicableClients array in the parent function.
- */
-stock int GetApplicableClients(int Admin, const char[] TargettedString, int FilterFlag, int[] ApplicableClients, int maxlen)
-{
-	// Initialization:
-	char TargetName[MAX_TARGET_LENGTH];
-	bool tn_is_ml;
-
-	// Process it:
-	int	 TargetCount = ProcessTargetString(TargettedString, Admin, ApplicableClients, maxlen, FilterFlag, TargetName, sizeof(TargetName), tn_is_ml);
-
-	// No targets? Bail out.
-	if (TargetCount <= 0)
-		return 0;
-
-	// Otherwise, success!
-	return TargetCount;
-}
-
-/**
  * Returns if the current game is competitive
  *
  * @return				True if the game is competitive, false otherwise.
@@ -659,4 +631,18 @@ stock bool AreTeamsFlipped()
 stock int LogicTeamsFlipped()
 {
 	return GameRules_GetProp("m_bAreTeamsFlipped") ? 2 : 1;
+}
+
+/**
+ * Tests whether a string is found inside another string.
+ *
+ * @param str           String to search in.
+ * @param substr        Substring to find inside the original string.
+ * @param caseSensitive If true (default), search is case sensitive.
+ *                      If false, search is case insensitive.
+ * @return              true if it contains the character, false otherwise.
+ */
+stock bool IsStrContains(const char[] str, const char[] substr, bool caseSensitive=true)
+{
+	return (StrContains(str, substr, caseSensitive) > 0);
 }

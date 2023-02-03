@@ -61,7 +61,7 @@ public Action Cmd_MissingPlayers(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_missingplayers");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_missingplayers");
 		return Plugin_Handled;
 	}
 
@@ -245,9 +245,9 @@ public void BanDesertionPlayers()
 		{
 			switch (BansAccount(iID, TeamA, "%BanCode:02%"))
 			{
-				case 0: CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, "%t", "BanDesertion");
-				case 1: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx2.IntValue, "%t", "BanDesertion");
-				default: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx3.IntValue, "%t", "BanDesertion");
+				case 0: CreateOffLineBan(iID, TeamA, g_cvarBanDesertion.IntValue, "%t", "BanReasonDesertion");
+				case 1: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx2.IntValue, "%t", "BanReasonDesertion");
+				default: CreateOffLineBan(iID, TeamA, g_cvarBanDesertionx3.IntValue, "%t", "BanReasonDesertion");
 			}
 		}
 
@@ -255,9 +255,9 @@ public void BanDesertionPlayers()
 		{
 			switch (BansAccount(iID, TeamB, "%BanCode:02%"))
 			{
-				case 0: CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, "%t", "BanDesertion");
-				case 1: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx2.IntValue, "%t", "BanDesertion");
-				default: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx3.IntValue, "%t", "BanDesertion");
+				case 0: CreateOffLineBan(iID, TeamB, g_cvarBanDesertion.IntValue, "%t", "BanReasonDesertion");
+				case 1: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx2.IntValue, "%t", "BanReasonDesertion");
+				default: CreateOffLineBan(iID, TeamB, g_cvarBanDesertionx3.IntValue, "%t", "BanReasonDesertion");
 			}
 		}
 

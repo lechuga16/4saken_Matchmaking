@@ -25,6 +25,7 @@
 #define JVPrefix	   "[J.A.R.V.I.S]"
 
 ConVar g_cvarDebugOT;
+bool g_bRound_End = true;	// True if endgame event triggered (used to avoid multiple triggers, l4d2 stuff).
 
 /*****************************************************************
 			L I B R A R Y   I N C L U D E S
@@ -88,6 +89,7 @@ public void OnPluginStart()
 	OnPluginStart_BlockVote();
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
+	HookEvent("round_end", Event_RoundEnd);
 	AutoExecConfig(true, "forsaken_jarvis");
 }
 
@@ -96,8 +98,8 @@ public void OnMapStart()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	OMS_prematch();
-	ORUI_Teams();
+	OMS_Prematch();
+	// ORUI_Teams();
 }
 
 public void OnMapEnd()
@@ -105,7 +107,7 @@ public void OnMapEnd()
 	if (!g_cvarEnable.BoolValue)
 		return;
 
-	KillTimerManager();
+	OME_Teams();
 }
 
 public void OnReadyUpInitiate()
@@ -114,6 +116,7 @@ public void OnReadyUpInitiate()
 		return;
 	
 	ORUI_Waiting();
+	ORUI_Teams();
 	//ORUI_CheckMatch();
 	ORUI_Readyup();
 }
@@ -125,6 +128,7 @@ public void OnRoundIsLive()
 
 	if (g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
+
 
 	KillTimerWaitPlayers();
 	KillTimerWaitPlayersAnnouncer();
@@ -148,7 +152,9 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	if (!g_cvarEnable.BoolValue || !IsGameCompetitive(g_TypeMatch) || IsFakeClient(iClient))
 		return;
 
-	OnCA_RageQuit(iClient, sAuth);
+	char  sAuth64[MAX_AUTHID_LENGTH];
+	SteamIDToCommunityID(sAuth64, MAX_AUTHID_LENGTH, sAuth);
+	OnCA_RageQuit(iClient, sAuth64);
 }
 
 public void OnCacheDownload()
@@ -179,4 +185,17 @@ public void Event_PlayerDisconnect(Handle hEvent, char[] sEventName, bool bDontB
 		return;
 
 	PlayerDisconnect_ragequit(hEvent, sSteamId);
+}
+
+public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
+{
+	if (!g_cvarEnable.BoolValue || g_bPreMatch || !g_bRound_End)
+		return;
+
+	g_bRound_End = !g_bRound_End;
+
+	if (!InSecondHalfOfRound())
+		return;
+
+	KillTimerManager();
 }

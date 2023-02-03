@@ -105,11 +105,7 @@
         "en"        "Not enough players to start the match  ({green}%d{default}/{green}%d{default})."
     }
     // jarvis_ban.sp
-    "CountOwnBans"
-    {
-        "en"        "Found ({green}%d{default}) ban%s."
-    }
-    "CountBans0"
+    "NoBans"
     {
         "es"        "{olive}%N{default} has no bans."
     }
@@ -128,6 +124,10 @@
     "BanFailQuery"
     {
         "en"        "Failed to ban player, ({red}%s{default})."
+    }
+    "BanReasonTest" 
+    {
+        "en"        "[BanCode:00] Test ban"
     }
     // jarvis_waiting.sp
     "AllConnected"
@@ -154,7 +154,7 @@
     {
         "en"        "Waiting for {red}Team B{default}:\n"
     }
-    "BanDesertion"
+    "BanReasonDesertion"
     {
         "en"        "[BanCode:02] Desertion before starting the game"
     }

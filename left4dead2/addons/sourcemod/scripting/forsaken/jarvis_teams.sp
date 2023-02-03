@@ -7,13 +7,13 @@
 			G L O B A L   V A R S
 *****************************************************************/
 
-ConVar
+Handle
+	g_hTimerSurvivorFix = null,
+	g_hTimerManager = null;
+
+ConVar 
 	survivor_limit,
 	z_max_player_zombies;
-
-Handle 
-	g_hTimerKillBot = null,
-	g_hTimerManager = null;
 
 /*****************************************************************
 			F O R W A R D   P U B L I C S
@@ -22,8 +22,7 @@ Handle
 public void OnPluginStart_Teams()
 {
 	RegAdminCmd("sm_jarvis_killtimer", Cmd_KillTimer, ADMFLAG_GENERIC, "Kills the timer for organizing teams.");
-
-	survivor_limit		 = FindConVar("survivor_limit");
+	survivor_limit = FindConVar("survivor_limit");
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
 }
 
@@ -38,15 +37,20 @@ public void ORUI_Teams()
 	if (InSecondHalfOfRound() || g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
 
-	KillTimerManager();
-	g_hTimerKillBot = CreateTimer(15.0, Timer_PreventKillBot);
+	g_hTimerManager = CreateTimer(2.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
+	g_hTimerSurvivorFix = CreateTimer(1.0, Timer_SurvivorFix);
+}
+
+public void OME_Teams()
+{
+	delete g_hTimerSurvivorFix;
 }
 
 public Action Cmd_KillTimer(int iClient, int iArgs)
 {
 	if (iArgs != 1)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_killtimer <manager|waitplayers|waitreadyup>");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_killtimer <manager|waitplayers|waitreadyup>");
 		return Plugin_Handled;
 	}
 
@@ -81,19 +85,6 @@ public Action Cmd_KillTimer(int iClient, int iArgs)
 *****************************************************************/
 
 /**
- * Create a timer that organizes the teams.
- * 		Only works if confogl is started.
- *
- * @param hTimer	Timer handle.
- * @return			Stop the timer.
- */
-public Action Timer_PreventKillBot(Handle hTimer)
-{
-	g_hTimerManager = CreateTimer(2.0, Timer_OrganizeTeams, _, TIMER_REPEAT);
-	return Plugin_Stop;
-}
-
-/**
  * Organize the teams.
  * 		Only works if confogl is started.
  *
@@ -106,10 +97,16 @@ public Action Timer_OrganizeTeams(Handle hTimer)
 	{
 		if (IsClientInGame(index) && IsClientConnected(index) && !IsFakeClient(index) && !IsClientSourceTV(index))
 			CheckTeam(index);
-
 	}
 
 	return Plugin_Continue;
+}
+
+public Action Timer_SurvivorFix(Handle hTimer)
+{
+	FixBotCount();
+	g_hTimerSurvivorFix = null;
+	return Plugin_Stop;
 }
 
 /*****************************************************************
@@ -134,8 +131,8 @@ public void CheckTeam(int iClient)
 				return;
 
 			if(g_cvarDebugOT.BoolValue)
-				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0", "Tag", iClient, sForsakenTeam[ClientTeam]);
-			ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
+				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> %s", "Tag", iClient, sL4DTeam[GetClientTeamEx(iClient)], sL4DTeam[ClientTeam]);
+			ServerCommand("sm_swapto force 1 #%d", GetClientUserId(iClient));
 		}
 		case TeamA:
 		{
@@ -145,13 +142,13 @@ public void CheckTeam(int iClient)
 			if (GetTeamHumanCount(L4DTeam_Survivor) == GetTeamMaxHumans(L4DTeam_Survivor))
 			{
 				if(g_cvarDebugOT.BoolValue)
-					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamA Full)", "Tag", iClient, sForsakenTeam[ClientTeam]);
+					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamA Full)", "Tag", iClient, sL4DTeam[ClientTeam]);
 				ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
 				return;
 			}
 
 			if(g_cvarDebugOT.BoolValue)
-				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> TeamA", "Tag", iClient, sForsakenTeam[ClientTeam]);
+				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> %s", "Tag", iClient, sL4DTeam[GetClientTeamEx(iClient)], sL4DTeam[ClientTeam]);
 			ServerCommand("sm_swapto force 2 #%d", GetClientUserId(iClient));
 		}
 		case TeamB:
@@ -162,51 +159,16 @@ public void CheckTeam(int iClient)
 			if (GetTeamHumanCount(L4DTeam_Infected) == GetTeamMaxHumans(L4DTeam_Infected))
 			{
 				if(g_cvarDebugOT.BoolValue)
-					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamB Full)", "Tag", iClient, sForsakenTeam[ClientTeam]);
+					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamB Full)", "Tag", iClient, sL4DTeam[ClientTeam]);
 				ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
 				return;
 			}
 
 			if(g_cvarDebugOT.BoolValue)
-				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> TeamB", "Tag", iClient, sForsakenTeam[ClientTeam]);
+				CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> %s", "Tag", iClient, sL4DTeam[GetClientTeamEx(iClient)], sForsakenTeam[ClientTeam]);
 			ServerCommand("sm_swapto force 3 #%d", GetClientUserId(iClient));
 		}
 	}
-}
-
-/**
- * Returns the number of humans for a team.
- *
- * @param team			L4DTeam Team.
- * @return				Number of humans.
- */
-stock int GetTeamHumanCount(L4DTeam team)
-{
-	int humans = 0;
-
-	for (int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && !IsFakeClient(client) && GetClientTeamEx(client) == team)
-			humans++;
-	}
-
-	return humans;
-}
-
-/**
- * Returns the maximum number of humans for a team.
- *
- * @param team			Team.
- * @return				Maximum number of humans.
- */
-stock int GetTeamMaxHumans(L4DTeam team)
-{
-	if (team == L4DTeam_Survivor)
-		return survivor_limit.IntValue;
-	else if (team == L4DTeam_Infected)
-		return z_max_player_zombies.IntValue;
-
-	return MaxClients;
 }
 
 /**
@@ -253,18 +215,6 @@ stock ForsakenTeam IsForsakenTeam(int iClient)
  */
 public void KillTimerManager()
 {
-	if (g_hTimerKillBot != null)
-	{
-		delete g_hTimerKillBot;
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Prevent Kill bot{default}", "Tag");
-	}
-	else
-	{
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Prevent Kill bot not found{default}", "Tag");
-	}
-
 	if (g_hTimerManager != null)
 	{
 		delete g_hTimerManager;
@@ -276,4 +226,85 @@ public void KillTimerManager()
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Organizing Teams not found{default}", "Tag");
 	}
+}
+
+stock void FixBotCount()
+{
+	int survivor_count = 0;
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if(IsClientInGame(client) && GetClientTeamEx(client) == L4DTeam_Survivor)
+		{
+			survivor_count++;
+		}
+	}
+	int limit = GetConVarInt(survivor_limit);
+	if (survivor_count < limit)
+	{
+		int bot;
+		for (; survivor_count < limit; survivor_count++)
+		{
+			bot = CreateFakeClient("k9Q6CK42");
+			if (bot != 0)
+			{
+				ChangeClientTeam(bot, view_as<int>(L4DTeam_Survivor));
+				RequestFrame(OnFrame_KickBot, GetClientUserId(bot));
+			}
+		}
+	}
+	else if (survivor_count > limit)
+	{
+		for (int client = 1; client <= MaxClients && survivor_count > limit; client++)
+		{
+			if(IsClientInGame(client) && GetClientTeamEx(client) == L4DTeam_Survivor)
+			{
+				if (IsFakeClient(client))
+				{
+					survivor_count--;
+					KickClient(client);
+				}
+			}
+		}
+	}
+}
+
+public void OnFrame_KickBot(int userid)
+{
+	int client = GetClientOfUserId(userid);
+	if (client > 0) KickClient(client);
+}
+
+/**
+ * Returns the number of humans for a team.
+ *
+ * @param team			L4DTeam Team.
+ * @return				Number of humans.
+ */
+stock int GetTeamHumanCount(L4DTeam team)
+{
+	int humans = 0;
+
+	for (int client = 1; client <= MaxClients; client++)
+	{
+		if (IsClientInGame(client) && !IsFakeClient(client) && GetClientTeamEx(client) == team)
+			humans++;
+	}
+
+	return humans;
+}
+
+/**
+ * Returns the maximum number of humans for a team.
+ *
+ * @param team			Team.
+ * @return				Maximum number of humans.
+ */
+stock int GetTeamMaxHumans(L4DTeam team)
+{
+	if (team == L4DTeam_Survivor)
+		return survivor_limit.IntValue;
+	else if (team == L4DTeam_Infected)
+		return z_max_player_zombies.IntValue;
+
+	return MaxClients;
 }

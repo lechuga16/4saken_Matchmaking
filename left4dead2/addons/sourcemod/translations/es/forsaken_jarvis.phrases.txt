@@ -96,11 +96,7 @@
         "es"        "No hay suficientes jugadores para iniciar la partida ({green}%d{default}/{green}%d{default})."
     }
     // jarvis_ban.sp
-    "CountOwnBans"
-    {
-        "es"        "Se han encontrado ({green}%d{default}) bloqueo%s."
-    }
-    "CountBans0"
+    "NoBans"
     {
         "es"        "{olive}%N{default} no tiene bloqueos."
     }
@@ -114,11 +110,15 @@
     }
     "PrintBanSuccess"
     {
-        "es"        "{olive}%s{default} fue {red}baneado{default} por {green}%d{default} minutos. Razon: {green}%N{default}."
+        "es"        "{olive}%s{default} fue {red}baneado{default} por {green}%d{default} minutos. Razon: {green}%s{default}."
     }
     "BanFailQuery"
     {
         "es"        "No se logro sancionar al jugador, ({red}%s{default})."
+    }
+    "BanReasonTest" 
+    {
+        "es"        "[BanCode:00] Bloqueo de prueba"
     }
     // jarvis_waiting.sp
     "AllConnected"
@@ -145,7 +145,7 @@
     {
         "es"        "Esperando {red}Equipo B{default}:\n"
     }
-    "BanDesertion"
+    "BanReasonDesertion"
     {
         "es"        "[BanCode:02] Deserción antes del iniciar la partida"
     }
@@ -160,7 +160,7 @@
     }
     "BanReasonRQ" 
     {
-        "es"        "[BanCode:01] Abandono de partida."
+        "es"        "[BanCode:01] Abandono de partida"
     }
     "PlayerReturned"
     {

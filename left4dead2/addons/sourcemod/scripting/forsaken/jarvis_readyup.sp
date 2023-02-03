@@ -36,36 +36,33 @@ public Action Timer_ReadyUpWait(Handle timer)
 	bool IsBanned = false;
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		int
-			iClientTA = g_Players[TeamA][iID].client,
-			iClientTB = g_Players[TeamB][iID].client;
-
 		char sReason[128];
 		Format(sReason, sizeof(sReason), "%s %t", JVPrefix, "BanReadyUp");
 
-		if (iClientTA != CONSOLE && !IsReady(iClientTA))
+		if (g_Players[TeamA][iID].client != CONSOLE && !IsReady(g_Players[TeamA][iID].client))
 		{
 			switch (BansAccount(iID, TeamA, "%BanCode:03%"))
 			{
-				case 0: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyup.IntValue, sReason);
-				case 1: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx2.IntValue, sReason);
-				default: SBPP_BanPlayer(CONSOLE, iClientTA, g_cvarBanReadyupx3.IntValue, sReason);
+				case 0: SBPP_BanPlayer(CONSOLE, g_Players[TeamA][iID].client, g_cvarBanReadyup.IntValue, sReason);
+				case 1: SBPP_BanPlayer(CONSOLE, g_Players[TeamA][iID].client, g_cvarBanReadyupx2.IntValue, sReason);
+				default: SBPP_BanPlayer(CONSOLE, g_Players[TeamA][iID].client, g_cvarBanReadyupx3.IntValue, sReason);
 			}
 
-			fkn_log(true, "Player not Ready: Client: %N | TeamA | Ban: %d", iClientTA, g_cvarBanReadyup.IntValue);
+			fkn_log(true, "Player not Ready: Client: %N | TeamA | Ban: %d", g_Players[TeamA][iID].client, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
 				IsBanned = !IsBanned;
 		}
-		else if (iClientTB != CONSOLE && !IsReady(iClientTB))
+
+		if (g_Players[TeamB][iID].client != CONSOLE && !IsReady(g_Players[TeamB][iID].client))
 		{
 			switch (BansAccount(iID, TeamB, "%BanCode:03%"))
 			{
-				case 0: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyup.IntValue, sReason);
-				case 1: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyupx2.IntValue, sReason);
-				default: SBPP_BanPlayer(CONSOLE, iClientTB, g_cvarBanReadyupx3.IntValue, sReason);
+				case 0: SBPP_BanPlayer(CONSOLE, g_Players[TeamB][iID].client, g_cvarBanReadyup.IntValue, sReason);
+				case 1: SBPP_BanPlayer(CONSOLE, g_Players[TeamB][iID].client, g_cvarBanReadyupx2.IntValue, sReason);
+				default: SBPP_BanPlayer(CONSOLE, g_Players[TeamB][iID].client, g_cvarBanReadyupx3.IntValue, sReason);
 			}
 
-			fkn_log(true, "Player not Ready: Client: %N | TeamB | Ban: %d", iClientTB, g_cvarBanReadyup.IntValue);
+			fkn_log(true, "Player not Ready: Client: %N | TeamB | Ban: %d", g_Players[TeamB][iID].client, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
 				IsBanned = !IsBanned;
 		}
@@ -75,7 +72,7 @@ public Action Timer_ReadyUpWait(Handle timer)
 	}
 
 	if (IsBanned)
-		ForceEndGame(ragequit);
+		ForceEndGame(readyup);
 
 	return Plugin_Stop;
 }

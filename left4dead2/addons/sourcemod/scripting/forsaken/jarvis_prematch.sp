@@ -24,7 +24,7 @@ public void OnPluginStart_prematch()
 	RegConsoleCmd("sm_jarvis_clientid", Cmd_ClientID, "Print the client id of the player");
 }
 
-public void OMS_prematch()
+public void OMS_Prematch()
 {
 	if (g_bPreMatch)
 		ReadConfigSourcebans();
@@ -35,9 +35,9 @@ public void OMS_prematch()
 
 public void OCD_prematch()
 {
-	fkn_log(true, "g_sMapName: %s | g_TypeMatch: %s", g_sMapName, g_TypeMatch);
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 	g_TypeMatch = fkn_TypeMatch();
+	fkn_log(true, "g_sMapName: %s | g_TypeMatch: %s", g_sMapName, sTypeMatch[g_TypeMatch]);
 	fkn_Players(g_TypeMatch, false, true);
 	ClienIndexList();
 }
@@ -46,7 +46,7 @@ public Action Cmd_ListPlayers(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_listplayers");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_listplayers");
 		return Plugin_Handled;
 	}
 
@@ -92,7 +92,7 @@ public Action Cmd_MatchInfo(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_matchinfo");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_info");
 		return Plugin_Handled;
 	}
 
@@ -106,20 +106,20 @@ public Action Cmd_ClientID(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_clientid");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_clientid");
 		return Plugin_Handled;
 	}
 
 	char
-		sTmpBufferTA[32],
-		sTmpBufferTB[32],
-		sPrintBufferTA[128],
-		sPrintBufferTB[128];
+		sTmpBufferTA[64],
+		sTmpBufferTB[64],
+		sPrintBufferTA[256],
+		sPrintBufferTB[256];
 
-	Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%t Team A", "Tag");
+	Format(sTmpBufferTA, sizeof(sTmpBufferTA), "%t Team A\n", "Tag");
 	StrCat(sPrintBufferTA, sizeof(sPrintBufferTA), sTmpBufferTA);
 
-	Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%t Team B", "Tag");
+	Format(sTmpBufferTB, sizeof(sTmpBufferTB), "%t Team B\n", "Tag");
 	StrCat(sPrintBufferTB, sizeof(sPrintBufferTB), sTmpBufferTB);
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
@@ -143,7 +143,7 @@ public Action Cmd_RefreshListPlayers(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_refreshlistplayers");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_refreshlistplayers");
 		return Plugin_Handled;
 	}
 

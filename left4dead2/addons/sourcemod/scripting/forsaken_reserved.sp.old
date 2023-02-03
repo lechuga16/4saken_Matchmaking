@@ -79,7 +79,7 @@ public Action Cmd_Reserved(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_reserved");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_reserved");
 		return Plugin_Handled;
 	}
 

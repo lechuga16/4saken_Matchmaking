@@ -103,7 +103,7 @@ public Action Cmd_Forsaken(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: {blue}sm_native_forsaken{default}");
+		CReplyToCommand(iClient, "[4saken] Usage: {blue}sm_native_forsaken{default}");
 		return Plugin_Continue;
 	}
 	TypeMatch Type = fkn_TypeMatch();
@@ -165,7 +165,7 @@ public Action Cmd_Endgame(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: {blue}sm_native_endgame{default}");
+		CReplyToCommand(iClient, "[4saken] Usage: {blue}sm_native_endgame{default}");
 		return Plugin_Continue;
 	}
 
@@ -215,7 +215,7 @@ public Action Cmd_MMR(int iClient, int iArgs)
 		fWins	   = rsForsaken.FetchInt(2);
 	}
 
-	fkn_log("%s has an Rating:%.1f, Deviation:%.1f ,Wins:%d", sSteamID, fRating, fDeviation, fWins);
+	fkn_log(false, "%s has an Rating:%.1f, Deviation:%.1f ,Wins:%d", sSteamID, fRating, fDeviation, fWins);
 	CPrintToChatAll("%s %s has an Rating:{olive}%.1f{default}, Deviation:{olive}%.1f{default}, Wins:{olive}%d{default}", PREFIX, sSteamID, fRating, fDeviation, fWins);
 	return Plugin_Continue;
 }
@@ -224,7 +224,7 @@ public Action Cmd_MVP(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: {blue}sm_native_mvp{default}");
+		CReplyToCommand(iClient, "[4saken] Usage: {blue}sm_native_mvp{default}");
 		return Plugin_Continue;
 	}
 
@@ -240,7 +240,7 @@ public Action Cmd_Steamid(int iClient, int iArgs)
 {
 	if (iArgs != 1)
 	{
-		CReplyToCommand(iClient, "%s Usage: {blue}sm_native_steamid{default} <SteamID64>", PREFIX);
+		CReplyToCommand(iClient, "%s [4saken] Usage: {blue}sm_native_steamid{default} <SteamID64>", PREFIX);
 		return Plugin_Handled;
 	}
 
@@ -266,7 +266,7 @@ public Action Cmd_jarvis(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: {blue}sm_native_jarvis{default}");
+		CReplyToCommand(iClient, "[4saken] Usage: {blue}sm_native_jarvis{default}");
 		return Plugin_Handled;
 	}
 
@@ -278,7 +278,7 @@ public Action Cmd_CheckBans(int iClient, int iArgs)
 {
 	if (iArgs != 1)
 	{
-		CReplyToCommand(iClient, "Usage: checkbans <SteamID64>");
+		CReplyToCommand(iClient, "[4saken] Usage: checkbans <SteamID64>");
 		return Plugin_Handled;
 	}
 
@@ -315,8 +315,8 @@ public Action Cmd_CheckBans(int iClient, int iArgs)
 	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
 	{
 		SQL_GetError(g_DBSourceBans, error, sizeof(error));
-		fkn_log("FetchUsers() query failed: %s", sQuery);
-		fkn_log("Query error: %s", error);
+		fkn_log(false ,"FetchUsers() query failed: %s", sQuery);
+		fkn_log(false ,"Query error: %s", error);
 		return Plugin_Continue;
 	}
 
@@ -326,7 +326,7 @@ public Action Cmd_CheckBans(int iClient, int iArgs)
 	}
 
 	CReplyToCommand(iClient, "%s SteamID2:%s | Bans:%d | BanCode:%s | TimeLimit:%d", PREFIX, sSteamID2, iBans, sBanCode, iTimeLimit);
-	fkn_log("Query: %s", sQuery);
+	fkn_log(false ,"Query: %s", sQuery);
 	return Plugin_Handled;
 }
 
@@ -334,7 +334,7 @@ public Action Cmd_Teamflipped(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: {blue}sm_native_teamflipped{default}");
+		CReplyToCommand(iClient, "[4saken] Usage: {blue}sm_native_teamflipped{default}");
 		return Plugin_Handled;
 	}
 
@@ -357,12 +357,12 @@ public Action Cmd_End(int iClient, int iArgs)
 public void SQLConnect()
 {
 	if (!SQL_CheckConfig("4saken"))
-		fkn_log("The 4saken configuration is not found in databases.cfg");
+		fkn_log(false ,"The 4saken configuration is not found in databases.cfg");
 	else
 		Database.Connect(SQL4saken, "4saken");
 
 	if (!SQL_CheckConfig("sourcebans"))
-		fkn_log("The sourcebans configuration is not found in databases.cfg");
+		fkn_log(false ,"The sourcebans configuration is not found in databases.cfg");
 	else
 		Database.Connect(GotDatabase, "sourcebans");
 }
@@ -380,7 +380,7 @@ public void SQL4saken(Database db, const char[] error, any data)
 	if (db == null)
 	{
 		ThrowError("Error while connecting to database: %s", error);
-		fkn_log("Error while connecting to database: %s", error);
+		fkn_log(false ,"Error while connecting to database: %s", error);
 	}
 	else
 	{
@@ -402,7 +402,7 @@ public void GotDatabase(Database db, const char[] error, any data)
 	if (db == null)
 	{
 		ThrowError("Error while connecting to database: %s", error);
-		fkn_log("Error while connecting to database: %s", error);
+		fkn_log(false, "Error while connecting to database: %s", error);
 	}
 	else
 	{

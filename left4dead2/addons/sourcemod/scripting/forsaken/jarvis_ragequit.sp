@@ -23,23 +23,42 @@ public void OnPluginStart_RageQuit()
 	g_cvarBanRageQuitx3 = CreateConVar("sm_jarvis_banragequitx3", "10080", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the third time", FCVAR_NONE, true, 0.0);
 }
 
-public void OnCA_RageQuit(int iClient, const char[] sAuth)
+public void OnCA_RageQuit(int iClient, const char[] sAuth64)
 {
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
+		if (StrEqual(sAuth64, g_Players[TeamA][iID].steamid, false))
+		{
 			g_Players[TeamA][iID].client = iClient;
-		else if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
+
+			DataPack pack = new DataPack();
+			pack.WriteCell(TeamA);
+			pack.WriteCell(iID);
+
+			if (IsRageQuiters(iClient, pack))
+			{
+				RemoveRageQuiters(iClient, pack);
+				fkn_log(false, "ClientConnected: %N is ragequiter", iClient);
+			}
+		}
+
+		else if (StrEqual(sAuth64, g_Players[TeamB][iID].steamid, false))
+		{
 			g_Players[TeamB][iID].client = iClient;
+
+			DataPack pack = new DataPack();
+			pack.WriteCell(TeamB);
+			pack.WriteCell(iID);
+
+			if (IsRageQuiters(iClient, pack))
+			{
+				RemoveRageQuiters(iClient, pack);
+				fkn_log(false, "ClientConnected: %N is ragequiter", iClient);
+			}
+		}
 
 		if(iID == 0 && g_TypeMatch == duel)
 			break;
-	}
-
-	if (IsRageQuiters(iClient, sAuth))
-	{
-		RemoveRageQuiters(iClient, sAuth);
-		fkn_log(false, "ClientConnected: %N is ragequiter", iClient);
 	}
 }
 
@@ -103,8 +122,17 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
  * @param sAuth			SteamID of the player.
  * @return				True if the player has left the game, false otherwise.
  **/
-public bool IsRageQuiters(int iClient, const char[] sAuth)
+public bool IsRageQuiters(int iClient, DataPack pack)
 {
+	pack.Reset();
+	int 
+		iID = pack.ReadCell(),
+		Team = pack.ReadCell();
+
+	if (g_RageQuit[Team][iID].timer != null)
+		return true;
+
+	/*
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
 		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
@@ -121,7 +149,7 @@ public bool IsRageQuiters(int iClient, const char[] sAuth)
 
 		if(iID == 0 && g_TypeMatch == duel)
 			break;
-	}
+	} */
 	return false;
 }
 
@@ -132,11 +160,22 @@ public bool IsRageQuiters(int iClient, const char[] sAuth)
  * @param sAuth			SteamID of the player.
  * @noreturn
  **/
-public void RemoveRageQuiters(int iClient, const char[] sAuth)
+public void RemoveRageQuiters(int iClient, DataPack pack)
 {
+	pack.Reset();
+	int 
+		iID = pack.ReadCell(),
+		Team = pack.ReadCell();
+
+	delete g_RageQuit[Team][iID].timer;
+	g_RageQuit[Team][iID].timer = null;
+	CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[Team][iID].name, g_Players[Team][iID].steamid);
+	fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
+
+	/*
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
+		if (StrEqual(sAuth64, g_Players[TeamA][iID].steamid, false))
 		{
 			delete g_RageQuit[TeamA][iID].timer;
 			g_RageQuit[TeamA][iID].timer = null;
@@ -144,7 +183,7 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 			fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
 		}
 
-		if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
+		if (StrEqual(sAuth64, g_Players[TeamB][iID].steamid, false))
 		{
 			delete g_RageQuit[TeamB][iID].timer;
 			g_RageQuit[TeamB][iID].timer = null;
@@ -154,7 +193,7 @@ public void RemoveRageQuiters(int iClient, const char[] sAuth)
 
 		if(iID == 0 && g_TypeMatch == duel)
 			break;
-	}
+	} */
 }
 
 /**

@@ -78,6 +78,13 @@ void ProcesPug()
 
 void ProcessRatingPug(ForsakenTeam team, MatchResults Result)
 {
+	Database hForsaken = Connect(); 
+	if (hForsaken == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
+		return;
+	}
+
 	ForsakenTeam opponent = GetOpponent(team);
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
@@ -88,11 +95,6 @@ void ProcessRatingPug(ForsakenTeam team, MatchResults Result)
 			fFinalRD,
 			fSum_FinalRating,
 			fFinalRating;
-
-		int iClient = g_Players[team][iID].client;
-
-		if (iClient == CONSOLE)
-			continue;
 
 		for (int jID = 0; jID <= MAX_INDEX_PLAYER; jID++)
 		{
@@ -112,20 +114,19 @@ void ProcessRatingPug(ForsakenTeam team, MatchResults Result)
 
 		if (Result == Result_Win)
 			g_Players[team][iID].wins++;
+		g_Players[team][iID].gamesplayed++;
 
-		int iGamesPlayed = g_Players[team][iID].gamesplayed++;
-
-		if (EVALUATION_PERIOD < iGamesPlayed)
+		if (EVALUATION_PERIOD < g_Players[team][iID].gamesplayed)
 			g_Players[team][iID].deviation += fFinalRD;
 		g_Players[team][iID].rating += fFinalRating;
 
-		if (EVALUATION_PERIOD < iGamesPlayed)
-			CPrintToChat(iClient, "%t %t", "Tag", "FinalScorePersonal", g_Players[team][iID].rating, g_Players[team][iID].deviation);
-		else
-			CPrintToChat(iClient, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - iGamesPlayed));
+		if (EVALUATION_PERIOD < g_Players[team][iID].gamesplayed && IsValidClient(g_Players[team][iID].client))
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScorePersonal", g_Players[team][iID].rating, g_Players[team][iID].deviation);
+		else if (IsValidClient(g_Players[team][iID].client))
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - g_Players[team][iID].gamesplayed));
 
 		char sQuery[512];
-		g_dbForsaken.Format(sQuery, sizeof(sQuery),
+		hForsaken.Format(sQuery, sizeof(sQuery),
 			"UPDATE `users_mmr` AS m \
 			INNER JOIN `users_general` AS g \
 			ON `g`.`Pug_MMRID` = `m`.`Pug_MMRID` \
@@ -145,7 +146,7 @@ void ProcessRatingPug(ForsakenTeam team, MatchResults Result)
 
 		fkn_log(true, "sQuery: %s", sQuery);
 
-		g_dbForsaken.Query(OnPugCallback, sQuery);
+		hForsaken.Query(OnPugCallback, sQuery);
 	}
 }
 

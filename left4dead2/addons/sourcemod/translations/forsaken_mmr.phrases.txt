@@ -16,6 +16,14 @@
 	{
 		"en"		"({blue}%s{default}:{blue}%s{default})\nRating:{green}%.2f{default} RD:{green}%.2f{default} Bonus:{green}%.2f{default} Win:{green}%d{default}"
 	}
+	"NoPlayer"
+	{
+		"en"		"Your data is not loaded, you are not playing."
+	}
+	"TeamInfo"
+	{
+		"en"		"{olive}Team{default}: {green}%s{default}\{olive}Rating{default}: {green}%.2f{default} | {olive}RD{default}: {green}%.2f{default}"
+	}
 	"NoBonus"
 	{
 		"es"		"The bonus is {red}not available{default} while you are in {olive}evaluation{default}."

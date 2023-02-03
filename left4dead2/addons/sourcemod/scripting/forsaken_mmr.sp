@@ -77,13 +77,13 @@ public void OnPluginStart()
 	g_cvarDebug	 = CreateConVar("sm_mmr_debug", "0", "Debug messages.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_cvarEnable = CreateConVar("sm_mmr_enable", "1", "Activate mmr registration", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 
-	RegConsoleCmd("sm_mmr", CMD_MMR, "Show player mmr");
-	RegAdminCmd("sm_mmr_stats", CMD_Stats, ADMFLAG_GENERIC, "Show player stats");
-	RegAdminCmd("sm_mmr_all", CMD_All, ADMFLAG_ROOT, "Show player stats");
-	RegAdminCmd("sm_mmr_teams", CMD_Teams, ADMFLAG_ROOT, "Show teams stats");
+	RegConsoleCmd("sm_mmr", CMD_MMR, "show ranking of a player");
+	RegConsoleCmd("sm_mmr_team", CMD_Team, "show team ranking");
+	RegAdminCmd("sm_mmr_stats", CMD_Stats, ADMFLAG_GENERIC, "show detailed ranking of a player");
+	RegAdminCmd("sm_mmr_allplayers", CMD_All, ADMFLAG_GENERIC, "show ranking of all players");
+	RegAdminCmd("sm_mmr_win", CMD_Win, ADMFLAG_ROOT);
 
 	HookEvent("round_end", Event_RoundEnd);
-	SQLConnect();
 	AutoExecConfig(true, "forsaken_mmr");
 }
 
@@ -138,48 +138,57 @@ public void OnRoundLiveCountdown()
 
 Action CMD_MMR(int iClient, int iArgs)
 {
-	char TargetString[128];
-	GetCmdArg(1, TargetString, sizeof(TargetString));
-
-	int Clients[MAXPLAYERS];
-	int ValidClients = GetApplicableClients(iClient, TargetString, COMMAND_FILTER_NO_BOTS, Clients, MAXPLAYERS);
-
-	if (!ValidClients)
+	if(iArgs > 1)
 	{
-		char sSteamID[MAX_AUTHID_LENGTH];
-		GetClientAuthId(iClient, AuthId_SteamID64, sSteamID, MAX_AUTHID_LENGTH);
-
-		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-		{
-			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
-			{
-				if (g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
-					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
-				else
-					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamA][iID].gamesplayed, EVALUATION_PERIOD);
-				return Plugin_Handled;
-			}
-
-			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
-			{
-				if (g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
-					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
-				else
-					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
-				return Plugin_Handled;
-			}
-		}
+		CReplyToCommand(iClient, "[4saken] Usage: sm_mmr <#userid|name>");
 		return Plugin_Handled;
 	}
 
-	for (int i = 0; i < ValidClients; i++)
+	char sCmdArg[16];
+	GetCmdArg(1, sCmdArg, sizeof(sCmdArg));
+
+	int[] iTargetList = new int[MaxClients+1];
+	int iTargetCount;
+	char sTargetName[MAX_TARGET_LENGTH];
+	bool tn_is_ml;
+
+	if ((iTargetCount = ProcessTargetString(sCmdArg, iClient, iTargetList, MaxClients+1, COMMAND_FILTER_NO_BOTS, sTargetName, sizeof(sTargetName), tn_is_ml)) > 0)
 	{
-		char sSteamID[MAX_AUTHID_LENGTH];
-		GetClientAuthId(Clients[i], AuthId_SteamID64, sSteamID, MAX_AUTHID_LENGTH);
+		for (int i = 0; i < iTargetCount; i++)
+		{
+			for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+			{
+				if (g_Players[TeamA][iID].client == iTargetList[i])
+				{
+					if (g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
+						CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
+					else
+						CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamA][iID].gamesplayed, EVALUATION_PERIOD);
+					return Plugin_Handled;
+				}
+
+				if (g_Players[TeamB][iID].client == iTargetList[i])
+				{
+					if (g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
+						CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
+					else
+						CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
+					return Plugin_Handled;
+				}
+
+				if(iID == 0 && g_TypeMatch == duel)
+					break;
+			}
+		}
+	}
+	else
+	{
+		if(iClient == CONSOLE)
+			return Plugin_Handled;
 
 		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 		{
-			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
+			if (g_Players[TeamA][iID].client == iClient)
 			{
 				if (g_Players[TeamA][iID].gamesplayed > EVALUATION_PERIOD)
 					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation);
@@ -188,7 +197,7 @@ Action CMD_MMR(int iClient, int iArgs)
 				return Plugin_Handled;
 			}
 
-			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
+			if (g_Players[TeamB][iID].client == iClient)
 			{
 				if (g_Players[TeamB][iID].gamesplayed > EVALUATION_PERIOD)
 					CReplyToCommand(iClient, "%t %t", "Tag", "MMR", g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation);
@@ -196,6 +205,9 @@ Action CMD_MMR(int iClient, int iArgs)
 					CReplyToCommand(iClient, "%t %t", "Tag", "NoMMR", g_Players[TeamB][iID].gamesplayed, EVALUATION_PERIOD);
 				return Plugin_Handled;
 			}
+
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
 		}
 	}
 
@@ -204,55 +216,64 @@ Action CMD_MMR(int iClient, int iArgs)
 
 Action CMD_Stats(int iClient, int iArgs)
 {
-	char TargetString[128];
-	GetCmdArg(1, TargetString, sizeof(TargetString));
-
-	int Clients[MAXPLAYERS];
-	int ValidClients = GetApplicableClients(iClient, TargetString, COMMAND_FILTER_NO_BOTS, Clients, MAXPLAYERS);
-
-	if (!ValidClients)
+	if(iArgs > 1)
 	{
-		if (CONSOLE != iClient)
-			return Plugin_Handled;
-
-		char sSteamID[MAX_AUTHID_LENGTH];
-		GetClientAuthId(iClient, AuthId_SteamID64, sSteamID, MAX_AUTHID_LENGTH);
-
-		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-		{
-			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
-			{
-				CReplyToCommand(iClient, "%t %t", "Tag", "Stats", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid, g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation, g_Players[TeamA][iID].skill, g_Players[TeamA][iID].wins);
-				return Plugin_Handled;
-			}
-
-			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
-			{
-				CReplyToCommand(iClient, "%t %t", "Tag", "Stats", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid, g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation, g_Players[TeamB][iID].skill, g_Players[TeamB][iID].wins);
-				return Plugin_Handled;
-			}
-		}
+		CReplyToCommand(iClient, "[4saken] Usage: sm_mmr <#userid|name>");
 		return Plugin_Handled;
 	}
 
-	for (int i = 0; i < ValidClients; i++)
+	char sCmdArg[16];
+	GetCmdArg(1, sCmdArg, sizeof(sCmdArg));
+
+	int[] iTargetList = new int[MaxClients+1];
+	int iTargetCount;
+	char sTargetName[MAX_TARGET_LENGTH];
+	bool tn_is_ml;
+
+	if ((iTargetCount = ProcessTargetString(sCmdArg, iClient, iTargetList, MaxClients+1, COMMAND_FILTER_NO_BOTS, sTargetName, sizeof(sTargetName), tn_is_ml)) > 0)
 	{
-		char sSteamID[MAX_AUTHID_LENGTH];
-		GetClientAuthId(Clients[i], AuthId_SteamID64, sSteamID, MAX_AUTHID_LENGTH);
+		for (int i = 0; i < iTargetCount; i++)
+		{
+			for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+			{
+				if (g_Players[TeamA][iID].client == iTargetList[i])
+				{
+					CReplyToCommand(iClient, "%t %t", "Tag", "Stats", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid, g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation, g_Players[TeamA][iID].skill, g_Players[TeamA][iID].wins);
+					return Plugin_Handled;
+				}
+
+				if (g_Players[TeamB][iID].client == iTargetList[i])
+				{
+					CReplyToCommand(iClient, "%t %t", "Tag", "Stats", g_Players[TeamB][iID].name, g_Players[TeamB][iID].steamid, g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation, g_Players[TeamB][iID].skill, g_Players[TeamB][iID].wins);
+					return Plugin_Handled;
+				}
+			
+				if(iID == 0 && g_TypeMatch == duel)
+					break;
+			}
+		}
+	}
+	else
+	{
+		if(iClient == CONSOLE)
+			return Plugin_Handled;
 
 		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 		{
-			if (StrEqual(g_Players[TeamA][iID].steamid, sSteamID))
+			if (g_Players[TeamA][iID].client == iClient)
 			{
 				CReplyToCommand(iClient, "%t %t", "Tag", "Stats", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid, g_Players[TeamA][iID].rating, g_Players[TeamA][iID].deviation, g_Players[TeamA][iID].skill, g_Players[TeamA][iID].wins);
 				return Plugin_Handled;
 			}
 
-			if (StrEqual(g_Players[TeamB][iID].steamid, sSteamID))
+			if (g_Players[TeamA][iID].client == iClient)
 			{
 				CReplyToCommand(iClient, "%t %t", "Tag", "Stats", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid, g_Players[TeamB][iID].rating, g_Players[TeamB][iID].deviation, g_Players[TeamB][iID].skill, g_Players[TeamB][iID].wins);
 				return Plugin_Handled;
 			}
+
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
 		}
 	}
 
@@ -276,23 +297,61 @@ Action CMD_All(int iClient, int iArgs)
 	return Plugin_Handled;
 }
 
-Action CMD_Teams(int iClient, int iArgs)
+Action CMD_Team(int iClient, int iArgs)
 {
-	CReplyToCommand(iClient, "Rating: %f | Deviation: %f | GamesPlayed: %d | LastGame: %d | Wins: %d | Name: %s", 
-		g_TeamsInfo[TeamA][0].rating, 
-		g_TeamsInfo[TeamA][0].deviation, 
-		g_TeamsInfo[TeamA][0].gamesplayed, 
-		g_TeamsInfo[TeamA][0].lastgame, 
-		g_TeamsInfo[TeamA][0].wins,
-		g_TeamsInfo[TeamA][0].name);
+	if(L4D_GetClientTeam(iClient) == L4DTeam_Spectator)
+	{
+		CReplyToCommand(iClient, "%t %t", "Tag", "NoPlayer");
+		return Plugin_Handled;
+	}
 
-	CReplyToCommand(iClient, "Rating: %f | Deviation: %f | GamesPlayed: %d | LastGame: %d | Wins: %d | Name: %s", 
-		g_TeamsInfo[TeamB][0].rating, 
-		g_TeamsInfo[TeamB][0].deviation, 
-		g_TeamsInfo[TeamB][0].gamesplayed, 
-		g_TeamsInfo[TeamB][0].lastgame, 
-		g_TeamsInfo[TeamB][0].wins,
-		g_TeamsInfo[TeamB][0].name);
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{
+		if (g_Players[TeamA][iID].client == iClient)
+		{
+			CReplyToCommand(iClient, "%t %t", "Tag", "TeamInfo",
+				g_TeamsInfo[TeamA][iID].name,
+				g_TeamsInfo[TeamA][iID].rating, 
+				g_TeamsInfo[TeamA][iID].deviation, 
+				g_TeamsInfo[TeamA][iID].wins);
+		}
+		else if (g_Players[TeamB][iID].client == iClient)
+		{
+			CReplyToCommand(iClient, "%t %t", "Tag", "TeamInfo",
+				g_TeamsInfo[TeamB][iID].name,
+				g_TeamsInfo[TeamB][iID].rating, 
+				g_TeamsInfo[TeamB][iID].deviation,  
+				g_TeamsInfo[TeamB][iID].wins);
+		}
+	}
+	return Plugin_Handled;
+}
+
+Action CMD_Win(int iClient, int iArgs)
+{
+	if(iArgs > 1 )
+	{
+		CReplyToCommand(iClient, "[4saken] Usage: sm_mmr_win <1:TeamA Win | 2:TeamB Win | 3:Draw>");
+		return Plugin_Handled;
+	}
+
+	int iCmdArg1 = GetCmdArgInt(1);
+
+	if (iCmdArg1 == 1)
+	{
+		ProcessRatingDuel(TeamA, Result_Win);
+		ProcessRatingDuel(TeamB, Result_Loss);
+	}
+	else if (iCmdArg1 == 2)
+	{
+		ProcessRatingDuel(TeamA, Result_Loss);
+		ProcessRatingDuel(TeamB, Result_Win);
+	}
+	else if (iCmdArg1 == 3)
+	{
+		ProcessRatingDuel(TeamA, Result_Draw);
+		ProcessRatingDuel(TeamB, Result_Draw);
+	}
 
 	return Plugin_Handled;
 }
@@ -364,7 +423,6 @@ public void IndexClientAuthorized(int iClient)
 			g_Players[TeamA][iID].client = iClient;
 			continue;
 		}
-
 		if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
 		{
 			g_Players[TeamB][iID].client = iClient;
@@ -400,4 +458,18 @@ public void IndexClientAll()
 			}
 		}
 	}
+}
+
+Database Connect()
+{
+	char error[PLATFORM_MAX_PATH];
+	Database db;
+	
+	if (SQL_CheckConfig("4saken"))
+		db = SQL_Connect("4saken", true, error, sizeof(error));
+	
+	if (db == null)
+		fkn_log(false, "Could not connect to database: %s", error);
+	
+	return db;
 }

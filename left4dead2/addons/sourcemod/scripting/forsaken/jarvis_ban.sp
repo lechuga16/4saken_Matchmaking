@@ -24,94 +24,97 @@ enum State
 
 State	  ConfigState;
 SMCParser ConfigParser;
-Database  g_DBSourceBans = null;
 
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
 public void OnPluginStart_Bans()
 {
-	LoadTranslation("common.phrases")
-	Database.Connect(GotDatabase, "sourcebans");
-	RegAdminCmd("sm_jarvis_countbans", Cmd_CountBans, ADMFLAG_ROOT, "Count bans");
+	LoadTranslation("common.phrases");
+	RegAdminCmd("sm_jarvis_countbans", Cmd_CountBans, ADMFLAG_ROOT, "Count of bans according to client");
+	RegAdminCmd("sm_jarvis_bantest", Cmd_BanTest, ADMFLAG_ROOT, "Perform a test ban, the client must be on the matchmaking list");
 }
 
 public Action Cmd_CountBans(int iClient, int iArgs)
 {
-	if(iArgs < 1 )
+	if(iArgs < 1)
 	{
-		CReplyToCommand(iClient, "Usage: sm_jarvis_countbans <1:RQ|2:Desertion|3:Readyup> <#userid|name>");
-		return Plugin_Handled;
-	}
-
-	if(iClient == CONSOLE)
-	{
-		CReplyToCommand(iClient, "%s The console cannot be banned!", JVPrefix);
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_countbans <1:RQ|2:Desertion|3:Readyup> <#userid|name>");
 		return Plugin_Handled;
 	}
 
 	int iCmdArg1 = GetCmdArgInt(1);
-
 	if(iCmdArg1 < 1 || iCmdArg1 > 3)
 	{
-		CReplyToCommand(iClient, "Usage: <1:RQ|2:Desertion|3:Readyup>");
+		CReplyToCommand(iClient, "[4saken] Usage: <1:RQ|2:Desertion|3:Readyup>");
 		return Plugin_Handled;
 	}
 
 	char sCmdArg2[16];
 	GetCmdArg(2, sCmdArg2, sizeof(sCmdArg2));
-
-	int iCountBans = ClientBansAccount(iClient, sTypeBans[view_as<TypeBans>(iCmdArg1)]);
+	int iCountBans;
 
 	int[] iTargetList = new int[MaxClients+1];
+	int iTargetCount;
 	char sTargetName[MAX_TARGET_LENGTH];
 	bool tn_is_ml;
-	int iTargetCount = ProcessTargetString(sCmdArg2, iClient, iTargetList, MaxClients+1, COMMAND_FILTER_NO_BOTS, sTargetName, sizeof(sTargetName), tn_is_ml);
 
-	if (iTargetCount == 0)
+	if ((iTargetCount = ProcessTargetString(sCmdArg2, iClient, iTargetList, MaxClients+1, COMMAND_FILTER_CONNECTED|COMMAND_FILTER_NO_MULTI|COMMAND_FILTER_NO_BOTS, sTargetName, sizeof(sTargetName), tn_is_ml)) > 0)
 	{
-		if(iCountBans == 0)
-			CReplyToCommand(iClient, "%t %t", "Tag", "CountBans0", iClient);
-		else
-			CReplyToCommand(iClient, "%t %t", "Tag", "CountOwnBans", (iCountBans > 1) ? "s": "", iCountBans);
+		for (int i = 0; i < iTargetCount; i++)
+		{
+			iCountBans = ClientBansAccount(iTargetList[i], sTypeBans[view_as<TypeBans>(iCmdArg1)]);
+			if(iCountBans == 0)
+				CReplyToCommand(iClient, "%t %t", "Tag", "NoBans", iTargetList[i]);
+			else
+				CReplyToCommand(iClient, "%t %t", "Tag", "CountBans", iCountBans, (iCountBans > 1) ? "s": "", iTargetList[i]);
+		}
 	}
 	else
 	{
-		for (int i = 1; i < iTargetCount; i++)
-		{
-			if(iCountBans == 0)
-				CReplyToCommand(iClient, "%t %t", "Tag", "CountBans0", iTargetList[i]);
-			else
-				CReplyToCommand(iClient, "%t %t", "Tag", "CountBans", iTargetList[i], (iCountBans > 1) ? "s": "", iCountBans);
-		}
+		if(iClient == CONSOLE)
+			return Plugin_Handled;
+
+		iCountBans = ClientBansAccount(iClient, sTypeBans[view_as<TypeBans>(iCmdArg1)]);
+		if(iCountBans == 0)
+			CReplyToCommand(iClient, "%t %t", "Tag", "NoBans", iClient);
+		else
+			CReplyToCommand(iClient, "%t %t", "Tag", "CountBans", iCountBans, (iCountBans > 1) ? "s": "", iClient);
 	}
 
-	CReplyToCommand(iClient, "iCmdArg1: %d | sCmdArg2:%s | sTypeBans:%s", iCmdArg1, sCmdArg2, sTypeBans[view_as<TypeBans>(iCmdArg1)]);
 	return Plugin_Handled;
 }
 
-/**
- * @brief Represents a set of results returned from executing a query.
- * 		Only works if the cvar is enabled.
- *
- * @param db 			Database to query
- * @param error 		Error buffer
- * @param data			Data to pass to the callback
- * @noreturn
- */
-public void GotDatabase(Database db, const char[] error, any data)
+public Action Cmd_BanTest(int iClient, int iArgs)
 {
-	if (!g_cvarEnable.BoolValue)
-		return;
-
-	if (db == null)
+	if(iArgs != 1)
 	{
-		ThrowError("Error while connecting to database: %s", error);
-		fkn_log(false, "Connected to database successfully (%s).", error);
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_bantest <SteamID2|SteamID64>");
+		return Plugin_Handled;
 	}
 
-	g_DBSourceBans = db;
-	SQL_SetCharset(g_DBSourceBans, "utf8mb4");
+	char 
+		sCmdArg1[MAX_AUTHID_LENGTH],
+		sCommunityID[MAX_AUTHID_LENGTH];
+	GetCmdArg(1, sCmdArg1, MAX_AUTHID_LENGTH); 
+
+	if(StrContains(sCmdArg1, "STEAM_", false) != -1)
+		SteamIDToCommunityID(sCommunityID, MAX_AUTHID_LENGTH, sCmdArg1);
+	else	
+		strcopy(sCommunityID, sizeof(sCommunityID), sCmdArg1);
+
+	for(int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{
+		if(StrEqual(g_Players[TeamA][iID].steamid, sCommunityID, false))
+			CreateOffLineBan(iID, TeamA, 1, "%t", "BanReasonTest");
+		else if(StrEqual(g_Players[TeamB][iID].steamid, sCommunityID, false))
+			CreateOffLineBan(iID, TeamB, 1, "%t", "BanReasonTest");
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
+	}
+
+	return Plugin_Handled;
 }
 
 /*****************************************************************
@@ -254,6 +257,13 @@ public SMCResult ReadConfig_KeyValue(SMCParser smc, const char[] key, const char
  */
 public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const char[] sReason, any...)
 {
+	Database  hSourceBans = Connect(); 
+	if (hSourceBans == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
+		return false;
+	}
+
 	// server information
 	char
 		sAdminIp[24]   = "",
@@ -315,39 +325,20 @@ public bool CreateOffLineBan(int iTarget, ForsakenTeam Team, int iTime, const ch
 	dataPack.WriteString(sFormatReason);
 	dataPack.WriteString(sName);
 
-	if (g_DBSourceBans != INVALID_HANDLE)
-		UTIL_InsertBan(iTime, sName, sAuth, sIp, sFormatReason, sAdminAuth, sAdminIp, dataPack);
-	else
-		return false;
-
-	return true;
-}
-
-/**
- * @brief Inserts a ban into the database
- *
- * @param iTime			Ban time
- * @param sName			Ban name
- * @param sAuthid		Ban authid
- * @param sIp			Ban ip
- * @param sReason		Ban reason
- * @param sAdminAuth	Ban admin authid
- * @param sAdminIp		Ban admin ip
- * @param dataPack		Data pack
- */
-stock void UTIL_InsertBan(int iTime, const char[] sName, const char[] sAuthid, const char[] sIp, const char[] sReason, const char[] sAdminAuth, const char[] sAdminIp, DataPack dataPack)
-{
 	char
 		sQuery[1024],
 		sBufferReason[128];
 
-	FormatEx(sBufferReason, sizeof(sBufferReason), "%s %s.", JVPrefix, sReason);
+	Format(sBufferReason, sizeof(sBufferReason), "%s %s.", JVPrefix, sFormatReason);
 
-	FormatEx(sQuery, sizeof(sQuery), "INSERT INTO %s_bans \
+	hSourceBans.Format(sQuery, sizeof(sQuery), "INSERT INTO %s_bans \
  			(ip, authid, name, created, ends, length, reason, aid, adminIp, sid, country) VALUES \
  			('%s', '%s', '%s', UNIX_TIMESTAMP(), UNIX_TIMESTAMP() + %d, %d, '%s', IFNULL((SELECT aid FROM %s_admins WHERE authid = '%s' OR authid REGEXP '^STEAM_[0-9]: %s$'), '0'), '%s', %d, ' ')",
-			 DatabasePrefix, sIp, sAuthid, sName, (iTime * 60), (iTime * 60), sBufferReason, DatabasePrefix, sAdminAuth, sAdminAuth[8], sAdminIp, iServerID);
-	g_DBSourceBans.Query(VerifyInsert, sQuery, dataPack, DBPrio_High);
+			 DatabasePrefix, sIp, sAuth, sName, (iTime * 60), (iTime * 60), sBufferReason, DatabasePrefix, sAdminAuth, sAdminAuth[8], sAdminIp, iServerID);
+
+	hSourceBans.Query(VerifyInsert, sQuery, dataPack, DBPrio_High);
+
+	return true;
 }
 
 /**
@@ -384,14 +375,21 @@ public void VerifyInsert(Database db, DBResultSet results, const char[] error, D
 	dataPack.ReadString(sName, sizeof(sName));
 	delete dataPack;
 
-	CPrintToChatAll("%t %t", "Tag", "PrintBanSuccess", sName, iTime, sReason);
-
 	if (g_cvarDebug.BoolValue)
 		fkn_log(false, "%s was banned for %d minutes. Reason: %s", sName, iTime, sReason);
+
+	CPrintToChatAll("%t %t", "Tag", "PrintBanSuccess", sName, iTime, sReason);
 }
 
 public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 {
+	Database  hSourceBans = Connect(); 
+	if (hSourceBans == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
+		return 0;
+	}
+
 	int iSteamID64[2];
 	char
 		sSteamID64[MAX_AUTHID_LENGTH],
@@ -403,15 +401,8 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 
 	GetSteam2FromAccountId(sSteamID2, sizeof(sSteamID2), iSteamID64[0]);
 
-	DBResultSet rsSourceBans;
-	char
-		sQuery[256],
-		error[255];
-
-	int
-		iBans,
-		iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
-
+	int iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
+	char sQuery[PLATFORM_MAX_PATH];
 	Format(sQuery, sizeof(sQuery),
 		"SELECT COUNT(*) \
 		FROM `sb_bans` \
@@ -422,61 +413,85 @@ public int BansAccount(int iTarget, ForsakenTeam Team, char[] sBanCode)
 
 	fkn_log(true, "sQuery: %s", sQuery);
 
-	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
+	char error[PLATFORM_MAX_PATH];
+	DBResultSet rsSourceBans;
+	if ((rsSourceBans = SQL_Query(hSourceBans, sQuery)) == null)
 	{
-		SQL_GetError(g_DBSourceBans, error, sizeof(error));
+		SQL_GetError(hSourceBans, error, sizeof(error));
 		fkn_log(false, "FetchUsers() query failed: %s", sQuery);
 		fkn_log(false, "Query error: %s", error);
 		return 0;
 	}
 
+	int iBans;
 	while (rsSourceBans.FetchRow())
 	{
 		iBans = rsSourceBans.FetchInt(0);
 	}
 
+	delete rsSourceBans;
 	return iBans;
 }
 
 public int ClientBansAccount(int iClient, char[] sBanCode)
 {
-	DBResultSet rsSourceBans;
-	char
-		sQuery[256],
-		error[255],
-		sSteamID2[MAX_AUTHID_LENGTH];
+	Database  hSourceBans = Connect(); 
+	if (hSourceBans == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
+		return 0;
+	}
 
-	int
-		iBans,
-		iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
-
+	char sSteamID2[MAX_AUTHID_LENGTH];
 	if(!GetClientAuthId(iClient, AuthId_Steam2, sSteamID2, MAX_AUTHID_LENGTH))
 	{
 		CReplyToCommand(iClient, "%t Error to identify the SteamID2", "Tag");
 		return 0;
 	}
-	
+
+	char sQuery[PLATFORM_MAX_PATH];
+	int iTimeLimit = GetTime() - UNIXTIME_4WEEKS;
 	Format(sQuery, sizeof(sQuery),
 		"SELECT COUNT(*) \
 		FROM `sb_bans` \
 		WHERE `authid` LIKE '%s' \
 			AND `reason` LIKE '%s' \
 			AND `created` > '%d';",
-		   sSteamID2, sBanCode, iTimeLimit);
+		sSteamID2, sBanCode, iTimeLimit);
 
 	fkn_log(true, "sQuery: %s", sQuery);
 
-	if ((rsSourceBans = SQL_Query(g_DBSourceBans, sQuery)) == null)
+	char error[PLATFORM_MAX_PATH];
+	DBResultSet rsSourceBans;
+	if ((rsSourceBans = SQL_Query(hSourceBans, sQuery)) == null)
 	{
-		SQL_GetError(g_DBSourceBans, error, sizeof(error));
+		SQL_GetError(hSourceBans, error, sizeof(error));
 		fkn_log(false, "FetchUsers() query failed: %s", sQuery);
 		fkn_log(false, "Query error: %s", error);
 		return 0;
 	}
 
+	int iBans;
 	while (rsSourceBans.FetchRow())
 	{
 		iBans = rsSourceBans.FetchInt(0);
 	}
+
+	delete rsSourceBans;
 	return iBans;
+}
+
+Database Connect()
+{
+	char error[PLATFORM_MAX_PATH];
+	Database db;
+	
+	if (SQL_CheckConfig("sourcebans"))
+		db = SQL_Connect("sourcebans", true, error, sizeof(error));
+	
+	if (db == null)
+		fkn_log(false, "Could not connect to database: %s", error);
+
+	SQL_SetCharset(db, "utf8mb4");
+	return db;
 }

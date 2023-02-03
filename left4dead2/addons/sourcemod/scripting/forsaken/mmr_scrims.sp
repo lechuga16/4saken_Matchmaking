@@ -73,6 +73,13 @@ void ProcesScrims()
 
 void ProcessRatingTeams(ForsakenTeam team, MatchResults Result)
 {
+	Database hForsaken = Connect(); 
+	if (hForsaken == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
+		return;
+	}
+
 	ForsakenTeam opponent = GetOpponent(team);
 
 	int 
@@ -95,37 +102,40 @@ void ProcessRatingTeams(ForsakenTeam team, MatchResults Result)
 
 	if (Result == Result_Win)
 		g_TeamsInfo[team][iID].wins++;
-
 	g_TeamsInfo[team][iID].gamesplayed++;
 
 	if (EVALUATION_PERIOD < g_TeamsInfo[team][iID].gamesplayed)
 		g_TeamsInfo[team][iID].deviation += fFinalRD;
 	g_TeamsInfo[team][iID].rating += fFinalRating;
 
+	DataPack pack = new DataPack();
+	pack.WriteCell(23);
+
 	if (EVALUATION_PERIOD < g_TeamsInfo[team][iID].gamesplayed)
-		PrintFinalScoreTeam(team, iID);
+		PrintFinalScoreTeam(team);
 	else
-		PrintFinalScoreTeamEV(team, iID);
+		PrintFinalScoreTeamEV(team);
 
 	char sQuery[512];
-	g_dbForsaken.Format(sQuery, sizeof(sQuery),
-		"UPDATE `teams_mmr` \
-		SET `Name` = %s, \
-			`Rating` = %f, \
-			`Deviation` = %f, \
-			`GamesPlayed` = %d, \
-			`LastGame` = %d, \
-			`Wins` = %d \
-		WHERE `TeamsID` LIKE '%s'",
-		g_TeamsInfo[team][iID].name,
-		g_TeamsInfo[team][iID].rating,
-		g_TeamsInfo[team][iID].deviation,
-		g_TeamsInfo[team][iID].gamesplayed,
+	hForsaken.Format(sQuery, sizeof(sQuery),
+		"UPDATE `teams_mmr` AS m \
+		INNER JOIN `users_general` AS g \
+		ON `g`.`TeamsID` = `m`.`TeamsID` \
+		SET \
+			`m`.`Rating` = %f, \
+			`m`.`Deviation` = %f, \
+			`m`.`GamesPlayed` = %d, \
+			`m`.`LastGame` = %d, \
+			`m`.`Wins` = %d \
+		WHERE `g`.`SteamID64` LIKE '%s'",
+		g_Players[team][iID].rating,
+		g_Players[team][iID].deviation,
+		g_Players[team][iID].gamesplayed,
 		GetTime(),
-		g_TeamsInfo[team][iID].wins,
-		g_TeamsInfo[team][iID].client);
+		g_Players[team][iID].wins,
+		g_Players[team][iID].steamid);
 
-	g_dbForsaken.Query(OnScrimsCallback, sQuery);
+	hForsaken.Query(OnScrimsCallback, sQuery);
 }
 
 void OnScrimsCallback(Database db, DBResultSet results, const char[] error, any data)
@@ -137,18 +147,20 @@ void OnScrimsCallback(Database db, DBResultSet results, const char[] error, any 
 	}
 }
 
-void PrintFinalScoreTeam(ForsakenTeam team, int iID)
+void PrintFinalScoreTeam(ForsakenTeam team)
 {
-	for(int i = 0; i <= MAX_INDEX_PLAYER; iID++)
-	{
-		CPrintToChat(g_Players[team][i].client, "%t %t", "Tag", "FinalScorePersonal", g_TeamsInfo[team][iID].rating, g_TeamsInfo[team][iID].deviation);
+	for(int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{	
+		if (IsValidClient(g_Players[team][iID].client))
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScorePersonal", g_TeamsInfo[team][iID].rating, g_TeamsInfo[team][iID].deviation);
 	}
 }
 
-void PrintFinalScoreTeamEV(ForsakenTeam team, int iID)
+void PrintFinalScoreTeamEV(ForsakenTeam team)
 {
-	for(int i = 0; i <= MAX_INDEX_PLAYER; i++)
+	for(int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		CPrintToChat(g_Players[team][i].client, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - g_TeamsInfo[team][iID].gamesplayed));
+		if (IsValidClient(g_Players[team][iID].client))
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - g_TeamsInfo[team][iID].gamesplayed));
 	}
 }

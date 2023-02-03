@@ -9,7 +9,6 @@
 
 PlayerInfo g_TeamsInfo[ForsakenTeam][MAX_PLAYER_TEAM];	// Information to calculate mmr of a team
 
-Database  g_dbForsaken;
 TypeMatch g_TypeMatch;
 
 /*****************************************************************
@@ -27,15 +26,13 @@ public void OCD_Prematch()
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 	fkn_Players(g_TypeMatch);
 
-	if(IsGameCompetitive(g_TypeMatch) || g_TypeMatch == duel)
-		PlayersPugs();
-	else if(g_TypeMatch == scrims)
-		PlayersScrims();
-	else if(g_TypeMatch == invalid || g_TypeMatch == unranked)
+	if(IsGameCompetitive(g_TypeMatch) || g_TypeMatch == duel || g_TypeMatch == scrims)
+		GetPlayersInfo();
+	else
 		return;
 }
 
-void PlayersPugs()
+void GetPlayersInfo()
 {
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
@@ -47,32 +44,21 @@ void PlayersPugs()
 	}
 }
 
-void PlayersScrims()
-{
-	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-	{
-		DBInfoPlayers(iID, TeamA);
-		DBInfoPlayers(iID, TeamB);
-
-		DBInfoTeams(iID, TeamA);
-		DBInfoTeams(iID, TeamB);
-	}
-}
-
 void DBInfoPlayers(int Index, ForsakenTeam Team)
 {
-	if(g_dbForsaken == INVALID_HANDLE)
+	Database hForsaken = Connect(); 
+	if (hForsaken == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
 		return;
+	}
 	
 	char	sQuery[512];
-	
 	DataPack ClientInfo = new DataPack();
 	ClientInfo.WriteCell(Team);
 	ClientInfo.WriteCell(Index);
 
-	if(g_TypeMatch == duel)
-
-	g_dbForsaken.Format(sQuery, sizeof(sQuery), 
+	hForsaken.Format(sQuery, sizeof(sQuery), 
 		"SELECT `m`.`Rating`,\
 				`m`.`Deviation`,\
 				`m`.`GamesPlayed`,\
@@ -89,7 +75,7 @@ void DBInfoPlayers(int Index, ForsakenTeam Team)
 		g_Players[Team][Index].steamid);
 
 	fkn_log(true, "sQuery: %s", sQuery);
-	g_dbForsaken.Query(OnPlayersInfoCallback, sQuery, ClientInfo);
+	hForsaken.Query(OnPlayersInfoCallback, sQuery, ClientInfo);
 }
 
 void OnPlayersInfoCallback(Database db, DBResultSet results, const char[] error, any data)
@@ -105,15 +91,15 @@ void OnPlayersInfoCallback(Database db, DBResultSet results, const char[] error,
 	ForsakenTeam Team = ClientInfo.ReadCell();
 	int Index = ClientInfo.ReadCell();
 	CloseHandle(ClientInfo);
-	fkn_log(true, "Index: %d | %s", Index, Team == TeamA ? "TeamA" : "TeamB");
+	fkn_log(true, "Index Player: %d | Team Player:%s", Index, Team == TeamA ? "TeamA" : "TeamB");
 
 	if (results.FetchRow())
 	{
-		g_Players[Team][Index].rating	   = results.FetchFloat(0);
-		g_Players[Team][Index].deviation   = results.FetchFloat(1);
-		g_Players[Team][Index].gamesplayed = results.FetchInt(2);
-		g_Players[Team][Index].lastgame	   = results.FetchInt(3);
-		g_Players[Team][Index].wins		   = results.FetchInt(4);
+		g_Players[Team][Index].rating		= results.FetchFloat(0);
+		g_Players[Team][Index].deviation	= results.FetchFloat(1);
+		g_Players[Team][Index].gamesplayed	= results.FetchInt(2);
+		g_Players[Team][Index].lastgame		= results.FetchInt(3);
+		g_Players[Team][Index].wins			= results.FetchInt(4);
 		g_Players[Team][Index].teamid		= results.FetchInt(5);
 	}
 
@@ -124,32 +110,42 @@ void OnPlayersInfoCallback(Database db, DBResultSet results, const char[] error,
 		g_Players[Team][Index].lastgame, 
 		g_Players[Team][Index].wins,
 		g_Players[Team][Index].teamid);
-
+	
+	DBInfoTeams(Index, Team);
 }
 
 void DBInfoTeams(int Index, ForsakenTeam Team)
 {
-	if(g_dbForsaken == INVALID_HANDLE)
+	if(g_Players[Team][Index].teamid == 0)
+	{
+		fkn_log(true, "Team is invalid");
 		return;
-	
+	}
+	else if(g_Players[Team][Index].teamid == 1)
+	{
+		fkn_log(true, "Does not have an assigned team");
+		return;
+	}
+
+	Database hForsaken = Connect(); 
+
 	char	sQuery[512];
-	
 	DataPack ClientInfo = new DataPack();
 	ClientInfo.WriteCell(Team);
 	ClientInfo.WriteCell(Index);
 
-	g_dbForsaken.Format(sQuery, sizeof(sQuery), 
+	hForsaken.Format(sQuery, sizeof(sQuery), 
 		"SELECT `Rating`,\
 				`Deviation`,\
 				`GamesPlayed`,\
 				`LastGame`,\
-				`Wins` \
+				`Wins`, \
 				`Name` \
 		FROM `teams_mmr` \
-		WHERE `TeamsID` LIKE '%s';", g_Players[Team][Index].teamid);
-	
+		WHERE `TeamsID` LIKE '%d';", g_Players[Team][Index].teamid);
+
 	fkn_log(true, "sQuery: %s", sQuery);
-	g_dbForsaken.Query(OnTeamsInfoCallback, sQuery, ClientInfo);
+	hForsaken.Query(OnTeamsInfoCallback, sQuery, ClientInfo);
 }
 
 void OnTeamsInfoCallback(Database db, DBResultSet results, const char[] error, any data)
@@ -168,7 +164,7 @@ void OnTeamsInfoCallback(Database db, DBResultSet results, const char[] error, a
 
 	if (results.FetchRow())
 	{
-		g_TeamsInfo[Team][Index].rating		= results.FetchFloat(0);
+		g_TeamsInfo[Team][Index].rating			= results.FetchFloat(0);
 		g_TeamsInfo[Team][Index].deviation		= results.FetchFloat(1);
 		g_TeamsInfo[Team][Index].gamesplayed	= results.FetchInt(2);
 		g_TeamsInfo[Team][Index].lastgame		= results.FetchInt(3);
@@ -184,26 +180,4 @@ void OnTeamsInfoCallback(Database db, DBResultSet results, const char[] error, a
 		g_TeamsInfo[Team][Index].wins,
 		g_TeamsInfo[Team][Index].name);
 
-}
-
-/*****************************************************************
-			P L U G I N   F U N C T I O N S
-*****************************************************************/
-public void SQLConnect()
-{
-	if (!g_cvarEnable.BoolValue)
-		return;
-
-	if (!SQL_CheckConfig("4saken"))
-		fkn_log(false, "The 4saken configuration is not found in databases.cfg");
-	else
-		Database.Connect(SQL4saken, "4saken");
-}
-
-void SQL4saken(Database db, const char[] error, any data)
-{
-	if (db == null)
-		ThrowError("Error while connecting to database: %s", error);
-	else
-		g_dbForsaken = db;
 }

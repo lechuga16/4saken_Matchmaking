@@ -12,6 +12,14 @@
 	{
 		"es"		"({blue}%s{default}:{blue}%s{default})\nClasificación:{green}%.2f{default} Desviación:{green}%.2f{default} Bonificación:{green}%.2f{default} Victorias:{green}%d{default}"
 	}
+	"NoPlayer"
+	{
+		"es"		"Tus datos no estan cargados, no estas jugando."
+	}
+	"TeamInfo"
+	{
+		"es"		"{olive}Equipo{default}: {green}%s{default}\{olive}Clasificación{default}: {green}%.2f{default} | {olive}Desviación{default}: {green}%.2f{default}"
+	}
 	"NoBonus"
 	{
 		"es"		"La bonificación {red}no esta disponible{default} mientras estás en {olive}evaluacion{default}."

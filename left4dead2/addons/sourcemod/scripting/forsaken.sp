@@ -93,7 +93,7 @@ public void OnPluginEnd()
 public Action Cmd_ShowIP(int iClient, int iArgs)
 {
 	if (iArgs != 0)
-		CReplyToCommand(iClient, "Usage: sm_fkn_showip");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_fkn_showip");
 
 	char sIp[64];
 	sIp = fkn_GetIP();
@@ -107,7 +107,7 @@ public Action Cmd_PlayersInfo(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_fkn_playersinfo");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_fkn_playersinfo");
 		return Plugin_Handled;
 	}
 
@@ -153,7 +153,7 @@ public Action Cmd_UpdateCache(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_fkn_updatecache");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_fkn_updatecache");
 		return Plugin_Handled;
 	}
 

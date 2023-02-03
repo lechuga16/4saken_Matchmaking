@@ -7,6 +7,7 @@
 			G L O B A L   V A R S
 *****************************************************************/
 
+ConVar g_cvarReserved;
 int	 g_iPort;
 bool g_bReserve = false;
 TypeMatch g_TypeMatch;
@@ -20,7 +21,7 @@ char
 *****************************************************************/
 public void OnPluginStart_Reserved()
 {
-	g_cvarEnable = CreateConVar("sm_jarvis_reserved", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
+	g_cvarReserved = CreateConVar("sm_jarvis_reserved", "1", "Activate the reservation", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 
 	g_iPort = FindConVar("hostport").IntValue;
 	g_sIp	= fkn_GetIP();
@@ -69,49 +70,29 @@ public void HttpReserved(bool success, const char[] error, System2HTTPRequest re
 	}
 
 	response.GetContent(sContent, sizeof(sContent));
-	g_bReserve = view_as<bool>(StringToInt(sContent));
-	/*
-	if (g_cvarDebug.BoolValue)
-		fkn_log(false, "GET request: %s", sContent);
 
-	JSON_Object joInfo = json_decode(sContent);
-
-	if (joInfo == null)
+	if(g_cvarReserved.BoolValue)
+		g_bReserve = view_as<bool>(StringToInt(sContent));
+	else
 	{
-		fkn_log(false, "Error: HttpReserve() - (joInfo == null)");
-		return;
+		g_bReserve = true;
+		fkn_log(true, "Reservation disabled");
 	}
-
-	g_bReserve = view_as<bool>(joInfo.GetInt("status"));
-	joInfo.GetString("map", g_sMapName, sizeof(g_sMapName));
-	json_cleanup_and_delete(joInfo);
-	*/
 
 	if (g_bReserve)
 	{
 		ServerCommand("sm_fkn_downloadCache");
 		MatchInfo_PreMatch();
 	}
-
 	else
 	{
 		fkn_log(true, "%N was kicked, server without unreserved.", request.Any);
-		KickAllClient();
-	}
-}
+		for (int i = 1; i <= MaxClients; i++)
+		{
+			if (!IsHuman(i))
+				continue;
 
-/**
- * @brief Kick all clients from the server.
- *
- * @noreturn
- */
-public void KickAllClient()
-{
-	for (int i = 1; i <= MaxClients; i++)
-	{
-		if (!IsHuman(i))
-			continue;
-
-		KickClientEx(i, "%t", "KickMsg");
+			KickClientEx(i, "%t", "KickMsg");
+		}
 	}
 }

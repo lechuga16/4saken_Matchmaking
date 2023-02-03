@@ -73,6 +73,13 @@ void ProcesDuel()
 
 void ProcessRatingDuel(ForsakenTeam team, MatchResults Result)
 {
+	Database hForsaken = Connect(); 
+	if (hForsaken == null)
+	{
+		fkn_log(true, "Could not connect to database (null)");
+		return;
+	}
+	
 	ForsakenTeam opponent = GetOpponent(team);
 
 	int 
@@ -86,11 +93,6 @@ void ProcessRatingDuel(ForsakenTeam team, MatchResults Result)
 		fSum_FinalRating,
 		fFinalRating;
 
-	int iClient = g_Players[team][iID].client;
-
-	if (iClient == CONSOLE)
-		return;
-
 	fSum_d += Glicko_sum_d(g_Players[team][iID], g_Players[opponent][jID]);
 	fSum_FinalRating += Glicko_sum_FinalRating(g_Players[team][iID], g_Players[opponent][jID], Result);
 
@@ -100,36 +102,38 @@ void ProcessRatingDuel(ForsakenTeam team, MatchResults Result)
 
 	if (Result == Result_Win)
 		g_Players[team][iID].wins++;
+	g_Players[team][iID].gamesplayed++;
 
-	int iGamesPlayed = g_Players[team][iID].gamesplayed++;
-
-	if (EVALUATION_PERIOD < iGamesPlayed)
+	if (EVALUATION_PERIOD < g_Players[team][iID].gamesplayed)
 		g_Players[team][iID].deviation += fFinalRD;
 	g_Players[team][iID].rating += fFinalRating;
 
-	if (EVALUATION_PERIOD < iGamesPlayed)
-		CPrintToChat(iClient, "%t %t", "Tag", "FinalScorePersonal", g_Players[team][iID].rating, g_Players[team][iID].deviation);
-	else
-		CPrintToChat(iClient, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - iGamesPlayed));
+	if (EVALUATION_PERIOD < g_Players[team][iID].gamesplayed && IsValidClient(g_Players[team][iID].client))
+		CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScorePersonal", g_Players[team][iID].rating, g_Players[team][iID].deviation);
+	else if (IsValidClient(g_Players[team][iID].client))
+		CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - g_Players[team][iID].gamesplayed));
 
 	char sQuery[512];
-	g_dbForsaken.Format(sQuery, sizeof(sQuery),
-		"UPDATE `duel_mmr` \
-		SET `Rating` = %f, \
-			`Deviation` = %f, \
-			`GamesPlayed` = %d, \
-			`LastGame` = %d, \
-			`Wins` = %d \
-		WHERE `Duel_MMRID` LIKE '%d'",
+	hForsaken.Format(sQuery, sizeof(sQuery),
+		"UPDATE `duel_mmr` AS m \
+		INNER JOIN `users_general` AS g \
+		ON `g`.`Duel_MMRID` = `m`.`Duel_MMRID` \
+		SET \
+			`m`.`Rating` = %f, \
+			`m`.`Deviation` = %f, \
+			`m`.`GamesPlayed` = %d, \
+			`m`.`LastGame` = %d, \
+			`m`.`Wins` = %d \
+		WHERE `g`.`SteamID64` LIKE '%s'",
 		g_Players[team][iID].rating,
 		g_Players[team][iID].deviation,
 		g_Players[team][iID].gamesplayed,
 		GetTime(),
 		g_Players[team][iID].wins,
-		g_Players[team][iID].client);
+		g_Players[team][iID].steamid);
 
 	fkn_log(true, "Query: %s", sQuery);
-	g_dbForsaken.Query(OnDuelCallback, sQuery);
+	hForsaken.Query(OnDuelCallback, sQuery);
 }
 
 void OnDuelCallback(Database db, DBResultSet results, const char[] error, any data)

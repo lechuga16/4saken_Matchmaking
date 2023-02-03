@@ -136,7 +136,7 @@ public Action Cmd_Cancel(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_endgame_cancel");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_endgame_cancel");
 		return Plugin_Continue;
 	}
 
@@ -159,7 +159,7 @@ public Action Cmd_Score(int iClient, int iArgs)
 {
 	if (iArgs != 0)
 	{
-		CReplyToCommand(iClient, "Usage: sm_endgame_score");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_endgame_score");
 		return Plugin_Handled;
 	}
 
@@ -204,6 +204,7 @@ any Native_ForceEndGame(Handle plugin, int numParams)
 		return 0;
 	}
 
+	ChapterPoints(hMatchClosing);
 	StartEndGame();
 	return 0;
 }
@@ -361,7 +362,6 @@ public void ChapterPoints(MatchClosing hMatchClosing)
 public Action KickAll(Handle timer)
 {
 	ServerCommand("sm_kick @all %t", "KickAll");
-	// ServerCommand("_restart");
 	return Plugin_Stop;
 }
 
