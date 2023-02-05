@@ -9,8 +9,13 @@
 
 public void RoundEnd_Duel()
 {
-	if (InSecondHalfOfRound())
-		ProcesDuel();
+	if (g_TypeMatch != duel)
+		return;
+
+	if (!InSecondHalfOfRound())
+		return;
+
+	ProcesDuel();
 }
 
 void ProcesDuel()

@@ -160,6 +160,9 @@ enum UnixTime
 	UnixTime_Size = 5
 };
 
+/**
+ * codes for type of ban.
+ */
 enum TypeBans
 {
 	Bancode00	 = 0,
@@ -624,6 +627,11 @@ stock bool IsGameCompetitive(TypeMatch Match)
 		return false;
 
 	return true;
+}
+
+stock bool IsPug(TypeMatch Type)
+{
+	return(Type == scout || Type == adept || Type == veteran);
 }
 
 stock bool AreTeamsFlipped()

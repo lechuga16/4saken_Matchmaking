@@ -367,12 +367,9 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 
 	LogicTeamScore();
 
-	if (g_TypeMatch == scout || g_TypeMatch == adept || g_TypeMatch == veteran)
-		RoundEnd_Pugs();
-	else if (g_TypeMatch == scrims)
-		RoundEnd_Teams();
-	else if (g_TypeMatch == duel)
-		RoundEnd_Duel();
+	RoundEnd_Pugs();
+	RoundEnd_Scrims();
+	RoundEnd_Duel();
 }
 
 /*****************************************************************

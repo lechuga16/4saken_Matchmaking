@@ -34,7 +34,7 @@ public void OnPluginStart_Teams()
  */
 public void ORUI_Teams()
 {
-	if (InSecondHalfOfRound() || g_TypeMatch == invalid || g_TypeMatch == unranked)
+	if (!g_cvarEnable.BoolValue || InSecondHalfOfRound() || g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
 
 	g_hTimerManager = CreateTimer(2.0, Timer_OrganizeTeams, _, TIMER_REPEAT);

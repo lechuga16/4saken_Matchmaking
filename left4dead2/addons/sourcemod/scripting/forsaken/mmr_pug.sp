@@ -11,11 +11,16 @@
 
 public void RoundEnd_Pugs()
 {
+	if (!IsPug(g_TypeMatch))
+		return;
+
 	ProcessBonus(TeamA);
 	ProcessBonus(TeamB);
 
-	if (InSecondHalfOfRound())
-		ProcesPug();
+	if (!InSecondHalfOfRound())
+		return;
+
+	ProcesPug();
 }
 
 void ProcesPug()
@@ -157,22 +162,23 @@ public void ProcessBonus(ForsakenTeam team)
 
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
+		int 
+			iMVP = SURVMVP_GetMVP(),
+			iMVPCI = SURVMVP_GetMVPCI();
+
+		if (iMVP != g_Players[team][iID].client && iMVPCI != g_Players[team][iID].client)
+			return;
+
+		if (EVALUATION_PERIOD >= (g_Players[team][iID].gamesplayed + 1))
+		{
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "NoBonus");
+			continue;
+		}
+
 		float
 			fSum_d,
 			fGlicko_d,
 			fFinalRD;
-
-		int iClient = g_Players[team][iID].client;
-		int iGamesPlayed = g_Players[team][iID].gamesplayed++;
-		
-		if (iClient == CONSOLE)
-			continue;
-
-		if (EVALUATION_PERIOD >= iGamesPlayed)
-		{
-			CPrintToChat(iClient, "%t %t", "Tag", "NoBonus");
-			continue;
-		}
 
 		for (int j = 0; j <= MAX_INDEX_PLAYER; j++)
 		{
@@ -182,17 +188,15 @@ public void ProcessBonus(ForsakenTeam team)
 		fGlicko_d = Glicko_d(fSum_d);
 		fFinalRD  = (Glicko_FinalRD(g_Players[team][iID], fGlicko_d) - g_Players[team][iID].deviation) / CONSTANT_SCORE;
 
-		if (SURVMVP_GetMVP() == iClient)
+		if (iMVP == g_Players[team][iID].client)
 		{
-			float fBonus = fFinalRD * 0.3 * -1;
-			g_Players[team][iID].skill += fBonus;
-			CPrintToChat(iClient, "%t %t", "Tag", "BonusMVP", fBonus);
+			g_Players[team][iID].skill += (fFinalRD * 0.3 * -1);
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "BonusMVP", (fFinalRD * 0.3 * -1));
 		}
-		if (SURVMVP_GetMVPCI() == iClient)
+		if (iMVPCI == g_Players[team][iID].client)
 		{
-			float fBonus = fFinalRD * 0.3 * -1;
-			g_Players[team][iID].skill += fBonus;
-			CPrintToChat(iClient, "%t %t", "Tag", "BonusMVPCI", fBonus);
+			g_Players[team][iID].skill += (fFinalRD * 0.3 * -1);
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "BonusMVPCI", (fFinalRD * 0.3 * -1));
 		}
 	}
 }

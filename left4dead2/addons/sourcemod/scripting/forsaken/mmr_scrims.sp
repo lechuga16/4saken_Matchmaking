@@ -7,10 +7,15 @@
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
 
-public void RoundEnd_Teams()
+public void RoundEnd_Scrims()
 {
-	if (InSecondHalfOfRound())
-		ProcesScrims();
+	if (g_TypeMatch != scrims)
+		return;
+
+	if (!InSecondHalfOfRound())
+		return;
+
+	ProcesScrims();
 }
 
 void ProcesScrims()
