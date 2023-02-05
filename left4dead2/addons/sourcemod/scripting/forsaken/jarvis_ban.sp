@@ -89,25 +89,18 @@ public Action Cmd_BanTest(int iClient, int iArgs)
 {
 	if(iArgs != 1)
 	{
-		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_bantest <SteamID2|SteamID64>");
+		CReplyToCommand(iClient, "[4saken] Usage: sm_jarvis_bantest <SteamID64>");
 		return Plugin_Handled;
 	}
 
-	char 
-		sCmdArg1[MAX_AUTHID_LENGTH],
-		sCommunityID[MAX_AUTHID_LENGTH];
+	char sCmdArg1[MAX_AUTHID_LENGTH];
 	GetCmdArg(1, sCmdArg1, MAX_AUTHID_LENGTH); 
-
-	if(StrContains(sCmdArg1, "STEAM_", false) != -1)
-		SteamIDToCommunityID(sCommunityID, MAX_AUTHID_LENGTH, sCmdArg1);
-	else	
-		strcopy(sCommunityID, sizeof(sCommunityID), sCmdArg1);
 
 	for(int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
-		if(StrEqual(g_Players[TeamA][iID].steamid, sCommunityID, false))
+		if(StrEqual(g_Players[TeamA][iID].steamid, sCmdArg1, false))
 			CreateOffLineBan(iID, TeamA, 1, "%t", "BanReasonTest");
-		else if(StrEqual(g_Players[TeamB][iID].steamid, sCommunityID, false))
+		else if(StrEqual(g_Players[TeamB][iID].steamid, sCmdArg1, false))
 			CreateOffLineBan(iID, TeamB, 1, "%t", "BanReasonTest");
 
 		if(iID == 0 && g_TypeMatch == duel)

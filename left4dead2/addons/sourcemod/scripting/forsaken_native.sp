@@ -175,14 +175,9 @@ public Action Cmd_Endgame(int iClient, int iArgs)
 
 public Action Cmd_MMR(int iClient, int iArgs)
 {
-	char
-		sSteamID[32],
-		sCommunityID[32];
-
+	char sSteamID[32];
 	DBResultSet rsForsaken;
-
-	GetClientAuthId(iClient, AuthId_Engine, sSteamID, sizeof(sSteamID));
-	SteamIDToCommunityID(sCommunityID, sizeof(sCommunityID), sSteamID);
+	GetClientAuthId(iClient, AuthId_Steam2, sSteamID, sizeof(sSteamID));
 
 	char
 		sQuery[256],
@@ -193,7 +188,7 @@ public Action Cmd_MMR(int iClient, int iArgs)
 			FROM `users_mmr` AS m \
 			INNER JOIN `users_general` AS g \
 			ON `g`.`Pug_MMRID` = `m`.`Pug_MMRID` \
-			WHERE `g`.`SteamID64` = '%s';", sCommunityID);
+			WHERE `g`.`SteamID64` = '%s';", sSteamID);
 
 	if ((rsForsaken = SQL_Query(g_DBForsaken, sQuery)) == null)
 	{

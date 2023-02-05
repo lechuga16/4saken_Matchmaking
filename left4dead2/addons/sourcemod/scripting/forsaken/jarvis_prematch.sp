@@ -39,7 +39,7 @@ public void OCD_prematch()
 	g_TypeMatch = fkn_TypeMatch();
 	fkn_log(true, "g_sMapName: %s | g_TypeMatch: %s", g_sMapName, sTypeMatch[g_TypeMatch]);
 	fkn_Players(g_TypeMatch, false, true);
-	ClienIndexList();
+	IndexClients();
 }
 
 public Action Cmd_ListPlayers(int iClient, int iArgs)
@@ -148,7 +148,7 @@ public Action Cmd_RefreshListPlayers(int iClient, int iArgs)
 	}
 
 	fkn_Players(g_TypeMatch, false, true);
-	ClienIndexList();
+	IndexClients();
 	FakeClientCommand(iClient, "sm_jarvis_listplayers");
 	return Plugin_Handled;
 }
@@ -177,7 +177,7 @@ Action Timer_MatchInfo(Handle hTimer)
 	return Plugin_Stop;
 }
 
-void ClienIndexList()
+void IndexClients()
 {
 	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
 	{
@@ -191,22 +191,9 @@ void ClienIndexList()
 		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 		{
 			if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
-			{
-				if (g_Players[TeamA][iID].client != i)
-				{
-					g_Players[TeamA][iID].client = i;
-					continue;
-				}
-			}
-
-			if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
-			{
-				if (g_Players[TeamB][iID].client != i)
-				{
-					g_Players[TeamB][iID].client = i;
-					continue;
-				}
-			}
+				g_Players[TeamA][iID].client = i;
+			else if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
+				g_Players[TeamB][iID].client = i;
 			
 			if(iID == 0 && g_TypeMatch == duel)
 				break;

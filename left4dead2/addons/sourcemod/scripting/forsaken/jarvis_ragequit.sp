@@ -23,14 +23,12 @@ public void OnPluginStart_RageQuit()
 	g_cvarBanRageQuitx3 = CreateConVar("sm_jarvis_banragequitx3", "10080", "The time to ban the player (in minutes, 0 = permanent) for ragequit for the third time", FCVAR_NONE, true, 0.0);
 }
 
-public void OnCA_RageQuit(int iClient, const char[] sAuth64)
+public void ONCA_RageQuit(int iClient, const char[] sAuth64)
 {
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
 		if (StrEqual(sAuth64, g_Players[TeamA][iID].steamid, false))
 		{
-			g_Players[TeamA][iID].client = iClient;
-
 			DataPack pack = new DataPack();
 			pack.WriteCell(TeamA);
 			pack.WriteCell(iID);
@@ -41,11 +39,8 @@ public void OnCA_RageQuit(int iClient, const char[] sAuth64)
 				fkn_log(false, "ClientConnected: %N is ragequiter", iClient);
 			}
 		}
-
 		else if (StrEqual(sAuth64, g_Players[TeamB][iID].steamid, false))
 		{
-			g_Players[TeamB][iID].client = iClient;
-
 			DataPack pack = new DataPack();
 			pack.WriteCell(TeamB);
 			pack.WriteCell(iID);
@@ -67,6 +62,9 @@ public void OnCA_RageQuit(int iClient, const char[] sAuth64)
 ****************************************************************/
 public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 {
+	if (IsInReady())
+		return;
+
 	char sReason[128];
 	GetEventString(hEvent, "reason", sReason, sizeof(sReason));
 
@@ -76,16 +74,12 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 		{
 			g_RageQuit[TeamA][iID].ispresent = false;
 
-			if (IsInReady())
-				continue;
-
 			DataPack hdataPack;
 			g_RageQuit[TeamA][iID].timer = CreateDataTimer(60.0, Timer_RageQuit, hdataPack);
 			hdataPack.WriteCell(iID);
 			hdataPack.WriteCell(TeamA);
 
 			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamA][iID].name, sSteamId, 5);
-
 			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d minutes. Reason: %s", g_Players[TeamA][iID].name, sSteamId, 5, sReason);
 		}
 
@@ -93,16 +87,12 @@ public void PlayerDisconnect_ragequit(Handle hEvent, const char[] sSteamId)
 		{
 			g_RageQuit[TeamB][iID].ispresent = false;
 
-			if (IsInReady())
-				continue;
-
 			DataPack hdataPack;
 			g_RageQuit[TeamB][iID].timer = CreateDataTimer(60.0, Timer_RageQuit, hdataPack);
 			hdataPack.WriteCell(iID);
 			hdataPack.WriteCell(TeamB);
 
 			CPrintToChatAll("%t %t", "Tag", "RageQuit", g_Players[TeamB][iID].name, sSteamId, 5);
-
 			fkn_log(true, "Player %s (%s) left the game, his waiting time is %d minutes. Reason: %s", g_Players[TeamB][iID].name, sSteamId, 5, sReason);
 		}
 
@@ -132,24 +122,6 @@ public bool IsRageQuiters(int iClient, DataPack pack)
 	if (g_RageQuit[Team][iID].timer != null)
 		return true;
 
-	/*
-	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-	{
-		if (StrEqual(sAuth, g_Players[TeamA][iID].steamid, false))
-		{
-			if (g_RageQuit[TeamA][iID].timer != null)
-				return true;
-		}
-
-		if (StrEqual(sAuth, g_Players[TeamB][iID].steamid, false))
-		{
-			if (g_RageQuit[TeamB][iID].timer != null)
-				return true;
-		}
-
-		if(iID == 0 && g_TypeMatch == duel)
-			break;
-	} */
 	return false;
 }
 
@@ -171,29 +143,6 @@ public void RemoveRageQuiters(int iClient, DataPack pack)
 	g_RageQuit[Team][iID].timer = null;
 	CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[Team][iID].name, g_Players[Team][iID].steamid);
 	fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
-
-	/*
-	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
-	{
-		if (StrEqual(sAuth64, g_Players[TeamA][iID].steamid, false))
-		{
-			delete g_RageQuit[TeamA][iID].timer;
-			g_RageQuit[TeamA][iID].timer = null;
-			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamA][iID].name, g_Players[TeamA][iID].steamid);
-			fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
-		}
-
-		if (StrEqual(sAuth64, g_Players[TeamB][iID].steamid, false))
-		{
-			delete g_RageQuit[TeamB][iID].timer;
-			g_RageQuit[TeamB][iID].timer = null;
-			CPrintToChatAll("%t %t", "Tag", "PlayerReturned", g_Players[TeamB][iID].name, g_Players[TeamB][iID].steamid);
-			fkn_log(false, "ClientConnected: %N no longer ragequiter", iClient);
-		}
-
-		if(iID == 0 && g_TypeMatch == duel)
-			break;
-	} */
 }
 
 /**

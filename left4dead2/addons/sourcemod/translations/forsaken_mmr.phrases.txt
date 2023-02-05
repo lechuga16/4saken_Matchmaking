@@ -4,6 +4,10 @@
 	{
 		"en"		"[{olive}4Saken{default}]"
 	}
+	"ScrimStarted"
+	{
+		"en"		"{blue}Scrim{default} has started: {olive}%s{default} vs {olive}%s{default}"
+	}
 	"MMR"
 	{
 		"en"		"{olive}Rating{default}:{green}%.2f{default} {olive}RD{default}:{green}%.2f{default}"
@@ -22,7 +26,7 @@
 	}
 	"TeamInfo"
 	{
-		"en"		"{olive}Team{default}: {green}%s{default}\{olive}Rating{default}: {green}%.2f{default} | {olive}RD{default}: {green}%.2f{default}"
+		"en"		"{olive}Team{default}: {green}%s{default}\n{olive}Rating{default}: {green}%.2f{default} | {olive}RD{default}: {green}%.2f{default}"
 	}
 	"NoBonus"
 	{
@@ -43,5 +47,9 @@
 	"FinalScoreEvaluation"
 	{
 		"en"		"{lightgreen}You are in the evaluation period{default}, you are missing {green}%d{default} chapters to get your {olive}Rating{default}."
+	}
+	"FinalScoreEvaluationTeam"
+	{
+		"en"		"{lightgreen}The team is in evaluation period{default}, it is missing {green}%d{default} chapters to get its {olive}Rating{default}."
 	}
 }

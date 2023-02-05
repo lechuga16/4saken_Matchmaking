@@ -3,22 +3,6 @@
 #endif
 #define _mmr_1v1_included
 
-/*****************************************************************
-			F O R W A R D   P U B L I C S
-*****************************************************************/
-
-public void OCA_Duel(int iClient)
-{
-	if (g_TypeMatch == duel)
-		IndexClientAuthorized_Duel(iClient);
-}
-
-public void ORLC_Duel()
-{
-	if (g_TypeMatch == duel)
-		IndexClientAll_Duel();
-}
-
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
@@ -142,55 +126,5 @@ void OnDuelCallback(Database db, DBResultSet results, const char[] error, any da
 	{
 		fkn_log(false, "Error: %s", error);
 		return;
-	}
-}
-
-/*****************************************************************
-			P L U G I N   F U N C T I O N S
-*****************************************************************/
-
-void IndexClientAuthorized_Duel(int iClient)
-{
-	char sStemaID[32];
-	if (!GetClientAuthId(iClient, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
-		return;
-
-	int iID = 0;
-	if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
-	{
-		g_Players[TeamA][iID].client = iClient;
-		return;
-	}
-
-	if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
-	{
-		g_Players[TeamB][iID].client = iClient;
-		return;
-	}
-}
-
-void IndexClientAll_Duel()
-{
-	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
-	{
-		if (!IsHuman(i))
-			return;
-
-		char sStemaID[32];
-		if (!GetClientAuthId(i, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
-			return;
-
-		int iID = 0;
-		if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
-		{
-			g_Players[TeamA][iID].client = i;
-			return;
-		}
-
-		if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
-		{
-			g_Players[TeamB][iID].client = i;
-			return;
-		}
 	}
 }

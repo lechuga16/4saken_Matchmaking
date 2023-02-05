@@ -620,7 +620,10 @@ stock int FromUnixTime(int iUnixTime, UnixTime type)
  */
 stock bool IsGameCompetitive(TypeMatch Match)
 {
-	return (Match == scrims || Match == veteran || Match == adept || Match == scout);
+	if(Match == invalid || Match == unranked)
+		return false;
+
+	return true;
 }
 
 stock bool AreTeamsFlipped()

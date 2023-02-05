@@ -50,7 +50,7 @@ public Action Timer_ReadyUpWait(Handle timer)
 
 			fkn_log(true, "Player not Ready: Client: %N | TeamA | Ban: %d", g_Players[TeamA][iID].client, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
-				IsBanned = !IsBanned;
+				IsBanned = true;
 		}
 
 		if (g_Players[TeamB][iID].client != CONSOLE && !IsReady(g_Players[TeamB][iID].client))
@@ -64,7 +64,7 @@ public Action Timer_ReadyUpWait(Handle timer)
 
 			fkn_log(true, "Player not Ready: Client: %N | TeamB | Ban: %d", g_Players[TeamB][iID].client, g_cvarBanReadyup.IntValue);
 			if (!IsBanned)
-				IsBanned = !IsBanned;
+				IsBanned = true;
 		}
 
 		if(iID == 0 && g_TypeMatch == duel)

@@ -142,7 +142,7 @@ public void CheckTeam(int iClient)
 			if (GetTeamHumanCount(L4DTeam_Survivor) == GetTeamMaxHumans(L4DTeam_Survivor))
 			{
 				if(g_cvarDebugOT.BoolValue)
-					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamA Full)", "Tag", iClient, sL4DTeam[ClientTeam]);
+					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Spectator (Survivor Full)", "Tag", iClient, sL4DTeam[ClientTeam]);
 				ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
 				return;
 			}
@@ -159,7 +159,7 @@ public void CheckTeam(int iClient)
 			if (GetTeamHumanCount(L4DTeam_Infected) == GetTeamMaxHumans(L4DTeam_Infected))
 			{
 				if(g_cvarDebugOT.BoolValue)
-					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Team0 (TeamB Full)", "Tag", iClient, sL4DTeam[ClientTeam]);
+					CPrintToChatAll("%t {green}Organizing Teams{default}: %N | %s -> Spectator (Infected Full)", "Tag", iClient, sL4DTeam[ClientTeam]);
 				ServerCommand("sm_swapto 1 #%d", GetClientUserId(iClient));
 				return;
 			}

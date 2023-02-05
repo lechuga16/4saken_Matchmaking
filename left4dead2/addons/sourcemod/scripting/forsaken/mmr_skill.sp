@@ -30,7 +30,7 @@ public void __pl_survivor_mvp_SetNTVOptional()
 
 public void OMS_skill()
 {
-	if (g_TypeMatch == unranked || g_TypeMatch == invalid)
+	if (!IsGameCompetitive(g_TypeMatch))
 		return;
 
 	CleanSkills();

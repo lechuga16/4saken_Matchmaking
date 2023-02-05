@@ -8,7 +8,6 @@
 *****************************************************************/
 
 PlayerInfo g_TeamsInfo[ForsakenTeam][MAX_PLAYER_TEAM];	// Information to calculate mmr of a team
-
 TypeMatch g_TypeMatch;
 
 /*****************************************************************
@@ -25,22 +24,18 @@ public void OCD_Prematch()
 	g_TypeMatch = fkn_TypeMatch();
 	fkn_MapName(g_sMapName, sizeof(g_sMapName));
 	fkn_Players(g_TypeMatch);
+	IndexClients();
 
-	if(IsGameCompetitive(g_TypeMatch) || g_TypeMatch == duel || g_TypeMatch == scrims)
-		GetPlayersInfo();
-	else
-		return;
-}
-
-void GetPlayersInfo()
-{
-	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	if(IsGameCompetitive(g_TypeMatch))
 	{
-		DBInfoPlayers(iID, TeamA);
-		DBInfoPlayers(iID, TeamB);
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+		{
+			DBInfoPlayers(iID, TeamA);
+			DBInfoPlayers(iID, TeamB);
 
-		if(iID == 0 && g_TypeMatch == duel)
-			break;
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
+		}
 	}
 }
 
@@ -69,7 +64,7 @@ void DBInfoPlayers(int Index, ForsakenTeam Team)
 		INNER JOIN `%s` AS `m`\
 		ON `g`.`%s` = `m`.`%s`\
 		WHERE `g`.`SteamID64` LIKE '%s';", 
-		(g_TypeMatch == duel) ? "duel_mmr" : "user_mmr", 
+		(g_TypeMatch == duel) ? "duel_mmr" : "users_mmr", 
 		(g_TypeMatch == duel) ? "Duel_MMRID" : "Pug_MMRID",
 		(g_TypeMatch == duel) ? "Duel_MMRID" : "Pug_MMRID", 
 		g_Players[Team][Index].steamid);
@@ -118,12 +113,12 @@ void DBInfoTeams(int Index, ForsakenTeam Team)
 {
 	if(g_Players[Team][Index].teamid == 0)
 	{
-		fkn_log(true, "Team is invalid");
+		fkn_log(true, "DBInfoTeams: Team is invalid");
 		return;
 	}
 	else if(g_Players[Team][Index].teamid == 1)
 	{
-		fkn_log(true, "Does not have an assigned team");
+		fkn_log(true, "DBInfoTeams: Does not have an assigned team");
 		return;
 	}
 
@@ -133,6 +128,7 @@ void DBInfoTeams(int Index, ForsakenTeam Team)
 	DataPack ClientInfo = new DataPack();
 	ClientInfo.WriteCell(Team);
 	ClientInfo.WriteCell(Index);
+	ClientInfo.WriteCell(g_Players[Team][Index].teamid);
 
 	hForsaken.Format(sQuery, sizeof(sQuery), 
 		"SELECT `Rating`,\
@@ -159,8 +155,11 @@ void OnTeamsInfoCallback(Database db, DBResultSet results, const char[] error, a
 	DataPack ClientInfo = data;
 	ClientInfo.Reset();
 	ForsakenTeam Team = ClientInfo.ReadCell();
-	int Index = ClientInfo.ReadCell();
+	int 
+		Index = ClientInfo.ReadCell(),
+		Teamid = ClientInfo.ReadCell();
 	CloseHandle(ClientInfo);
+	g_TeamsInfo[Team][Index].teamid = Teamid;
 
 	if (results.FetchRow())
 	{
@@ -172,12 +171,41 @@ void OnTeamsInfoCallback(Database db, DBResultSet results, const char[] error, a
 		results.FetchString(5, g_TeamsInfo[Team][Index].name, MAX_NAME_LENGTH);
 	}
 
-	fkn_log(true, "Rating: %f | Deviation: %f | GamesPlayed: %d | LastGame: %d | Wins: %d | Name: %s", 
+	fkn_log(true, "Rating: %f | Deviation: %f | GamesPlayed: %d | LastGame: %d | Wins: %d | Name: %s | TeamID: %d", 
 		g_TeamsInfo[Team][Index].rating, 
 		g_TeamsInfo[Team][Index].deviation, 
 		g_TeamsInfo[Team][Index].gamesplayed, 
 		g_TeamsInfo[Team][Index].lastgame, 
 		g_TeamsInfo[Team][Index].wins,
-		g_TeamsInfo[Team][Index].name);
+		g_TeamsInfo[Team][Index].name,
+		g_TeamsInfo[Team][Index].teamid);
 
+}
+
+/*****************************************************************
+			P L U G I N   F U N C T I O N S
+*****************************************************************/
+
+void IndexClients()
+{
+	for (int i = 1; i <= MAX_INDEX_PLAYER; i++)
+	{
+		if (!IsHuman(i))
+			continue;
+
+		char sStemaID[32];
+		if (!GetClientAuthId(i, AuthId_SteamID64, sStemaID, sizeof(sStemaID)))
+			continue;
+
+		for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+		{
+			if (StrEqual(g_Players[TeamA][iID].steamid, sStemaID))
+				g_Players[TeamA][iID].client = i;
+			else if (StrEqual(g_Players[TeamB][iID].steamid, sStemaID))
+				g_Players[TeamB][iID].client = i;
+			
+			if(iID == 0 && g_TypeMatch == duel)
+				break;
+		}
+	}
 }

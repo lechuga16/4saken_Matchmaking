@@ -5,22 +5,6 @@
 
 #define CONSTANT_SCORE 4.0	  // 4.0 players
 
-/*****************************************************************
-			F O R W A R D   P U B L I C S
-*****************************************************************/
-
-public void OCA_Pug(int iClient)
-{
-	if (IsGameCompetitive(g_TypeMatch))
-		IndexClientAuthorized(iClient);
-}
-
-public void ORLC_Pug()
-{
-	if (IsGameCompetitive(g_TypeMatch))
-		IndexClientAll();
-}
-
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/

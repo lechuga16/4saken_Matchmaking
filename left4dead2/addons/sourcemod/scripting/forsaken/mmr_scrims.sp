@@ -3,22 +3,6 @@
 #endif
 #define _mmr_scrims_included
 
-/*****************************************************************
-			F O R W A R D   P U B L I C S
-*****************************************************************/
-
-public void OCA_Scrims(int iClient)
-{
-	if (g_TypeMatch == scrims)
-		IndexClientAuthorized(iClient);
-}
-
-public void ORLC_Scrims()
-{
-	if (g_TypeMatch != scrims)
-		IndexClientAll();
-}
-
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
@@ -118,23 +102,21 @@ void ProcessRatingTeams(ForsakenTeam team, MatchResults Result)
 
 	char sQuery[512];
 	hForsaken.Format(sQuery, sizeof(sQuery),
-		"UPDATE `teams_mmr` AS m \
-		INNER JOIN `users_general` AS g \
-		ON `g`.`TeamsID` = `m`.`TeamsID` \
-		SET \
-			`m`.`Rating` = %f, \
-			`m`.`Deviation` = %f, \
-			`m`.`GamesPlayed` = %d, \
-			`m`.`LastGame` = %d, \
-			`m`.`Wins` = %d \
-		WHERE `g`.`SteamID64` LIKE '%s'",
-		g_Players[team][iID].rating,
-		g_Players[team][iID].deviation,
-		g_Players[team][iID].gamesplayed,
+		"UPDATE `teams_mmr` \
+		SET `Rating` = %f, \
+			`Deviation` = %f, \
+			`GamesPlayed` = %d, \
+			`LastGame` = %d, \
+			`Wins` = %d \
+		WHERE `TeamsID` LIKE '%d';",
+		g_TeamsInfo[team][iID].rating,
+		g_TeamsInfo[team][iID].deviation,
+		g_TeamsInfo[team][iID].gamesplayed,
 		GetTime(),
-		g_Players[team][iID].wins,
-		g_Players[team][iID].steamid);
+		g_TeamsInfo[team][iID].wins,
+		g_TeamsInfo[team][iID].teamid);
 
+	fkn_log(true, "sQuery: %s", sQuery);
 	hForsaken.Query(OnScrimsCallback, sQuery);
 }
 
@@ -161,6 +143,6 @@ void PrintFinalScoreTeamEV(ForsakenTeam team)
 	for(int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
 	{
 		if (IsValidClient(g_Players[team][iID].client))
-			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScoreEvaluation", (EVALUATION_PERIOD - g_TeamsInfo[team][iID].gamesplayed));
+			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "FinalScoreEvaluationTeam", (EVALUATION_PERIOD - g_TeamsInfo[team][iID].gamesplayed));
 	}
 }

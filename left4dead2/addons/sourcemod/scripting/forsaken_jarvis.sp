@@ -87,6 +87,7 @@ public void OnPluginStart()
 	OnPluginStart_Readyup();
 	OnPluginStart_Bans();
 	OnPluginStart_BlockVote();
+	OnPluginStart_CheckMatch();
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 	HookEvent("round_end", Event_RoundEnd);
@@ -99,7 +100,6 @@ public void OnMapStart()
 		return;
 
 	OMS_Prematch();
-	// ORUI_Teams();
 }
 
 public void OnMapEnd()
@@ -117,7 +117,7 @@ public void OnReadyUpInitiate()
 	
 	ORUI_Waiting();
 	ORUI_Teams();
-	//ORUI_CheckMatch();
+	ORUI_CheckMatch();
 	ORUI_Readyup();
 }
 
@@ -128,7 +128,6 @@ public void OnRoundIsLive()
 
 	if (g_TypeMatch == invalid || g_TypeMatch == unranked)
 		return;
-
 
 	KillTimerWaitPlayers();
 	KillTimerWaitPlayersAnnouncer();
@@ -153,8 +152,9 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 		return;
 
 	char  sAuth64[MAX_AUTHID_LENGTH];
-	SteamIDToCommunityID(sAuth64, MAX_AUTHID_LENGTH, sAuth);
-	OnCA_RageQuit(iClient, sAuth64);
+	GetClientAuthId(iClient, AuthId_SteamID64, sAuth64, MAX_AUTHID_LENGTH);
+	ONCA_IndexPlayers(iClient, sAuth64);
+	ONCA_RageQuit(iClient, sAuth64);
 }
 
 public void OnCacheDownload()
@@ -198,4 +198,18 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 		return;
 
 	KillTimerManager();
+}
+
+public void ONCA_IndexPlayers(int iClient, const char[] sAuth64)
+{
+	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
+	{
+		if (StrEqual(sAuth64, g_Players[TeamA][iID].steamid, false))
+			g_Players[TeamA][iID].client = iClient;
+		else if (StrEqual(sAuth64, g_Players[TeamB][iID].steamid, false))
+			g_Players[TeamB][iID].client = iClient;
+
+		if(iID == 0 && g_TypeMatch == duel)
+			break;
+	}
 }

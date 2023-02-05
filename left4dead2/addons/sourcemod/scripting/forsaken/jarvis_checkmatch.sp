@@ -4,8 +4,22 @@
 #define _jarvis_checkmatch_included
 
 /*****************************************************************
+			G L O B A L   V A R S
+*****************************************************************/
+
+ConVar
+	g_cvarCheckMap,
+	g_cvarCheckCFG;
+
+/*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
+
+public void OnPluginStart_CheckMatch()
+{
+	g_cvarCheckMap	= CreateConVar("sm_jarvis_checkmap", "1", "check if the map is the one defined in the lobby", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarCheckCFG = CreateConVar("sm_jarvis_checkcfg", "1", "check if the CFG is the one defined in the lobby", FCVAR_NONE, true, 0.0, true, 1.0);
+}
 
 /**
  * @brief Check if the game mode is loaded.
@@ -13,10 +27,10 @@
  */
 public void ORUI_CheckMatch()
 {
-	if (g_TypeMatch == invalid || g_TypeMatch == unranked || !L4D_IsFirstMapInScenario())
+	if (!IsGameCompetitive(g_TypeMatch) || !L4D_IsFirstMapInScenario())
 		return;
 
-	CreateTimer(40.0, Timer_ReadCFG);
+	CreateTimer(40.0, Timer_CheckMatch);
 }
 
 /*****************************************************************
@@ -29,75 +43,61 @@ public void ORUI_CheckMatch()
  * @param hTimer	Timer handle
  * @return 			Stop the timer.
  */
-public Action Timer_ReadCFG(Handle hTimer)
+public Action Timer_CheckMatch(Handle hTimer)
 {
-	char
-		sCfgName[128],
-		sCurrentMap[32];
+	CheckMap();
+	CheckCFG();
+	return Plugin_Stop;
+}
 
-	ConVar
-		l4d_ready_cfg_name;
+public void CheckMap()
+{
+	if(!g_cvarCheckMap.BoolValue)
+		return;
 
-	l4d_ready_cfg_name = FindConVar("l4d_ready_cfg_name");
-
-	if (l4d_ready_cfg_name == null)
-	{
-		fkn_log(false, "ConVar l4d_ready_cfg_name not found");
-		return Plugin_Stop;
-	}
-
-	l4d_ready_cfg_name.GetString(sCfgName, sizeof(sCfgName));
-
-	if (FindString(sCfgName, sCFGName[g_TypeMatch], false))
-	{
-		if (g_cvarDebug.BoolValue)
-		{
-			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCFGName[g_TypeMatch]);
-			fkn_log(false, "The current cfg (%s) corresponds to %s", sCfgName, sCFGName[g_TypeMatch]);
-		}
-	}
-	else
-	{
-		CPrintToChatAll("%t %t", "Tag", "ConfigChange", sCfgName, sCFGName[g_TypeMatch]);
-		fkn_log(false, "The current cfg (%s) does not correspond to %s", sCfgName, sCFGName[g_TypeMatch]);
-		CreateTimer(5.0, Timer_ForceMatch);
-	}
-
-	if (!g_cvarChangeMap.BoolValue)
-	{
-		if (IsInReady())
-		{
-			KillTimerWaitPlayers();
-			KillTimerWaitPlayersAnnouncer();
-			KillTimerCheckPlayers();
-			KillTimerWaitReadyup();
-		}
-		return Plugin_Stop;
-	}
+	fkn_MapName(g_sMapName, sizeof(g_sMapName));
+	char sCurrentMap[32];
 
 	GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
 	if (StrEqual(g_sMapName, sCurrentMap, false))
-	{
 		fkn_log(true, "The current map (%s) corresponds to %s", g_sMapName, sCurrentMap);
-	}
 	else
 	{
 		CPrintToChatAll("%t %t", "Tag", "MapChange", g_sMapName, sCurrentMap);
 		fkn_log(false, "The current map (%s) does not correspond to %s", g_sMapName, sCurrentMap);
 
-		if (IsInReady())
-		{
-			KillTimerWaitPlayers();
-			KillTimerWaitPlayersAnnouncer();
-			KillTimerCheckPlayers();
-			KillTimerWaitReadyup();
-		}
+		if(g_cvarCheckCFG.BoolValue)
+			ServerCommand("confogl_match_map %s", g_sMapName);
+		else
+			ServerCommand("changelevel %s", g_sMapName);
+	}
+}
 
-		KillTimerManager();
-		ServerCommand("changelevel %s", g_sMapName);
+public void CheckCFG()
+{
+	if(!g_cvarCheckCFG.BoolValue)
+		return;
+		
+	char sCfgName[128];
+	ConVar l4d_ready_cfg_name;
+
+	if ((l4d_ready_cfg_name = FindConVar("l4d_ready_cfg_name")) == null)
+	{
+		fkn_log(false, "ConVar l4d_ready_cfg_name not found");
+		return;
 	}
 
-	return Plugin_Stop;
+	l4d_ready_cfg_name.GetString(sCfgName, sizeof(sCfgName));
+	if (FindString(sCfgName, sCFGName[g_TypeMatch], false))
+	{
+		if (g_cvarDebug.BoolValue)
+			CPrintToChatAll("%t %t", "Tag", "ConfigConfirm", sCfgName, sCFGName[g_TypeMatch]);
+	}
+	else
+	{
+		CPrintToChatAll("%t %t", "Tag", "ConfigChange", sCfgName, sCFGName[g_TypeMatch]);
+		CreateTimer(5.0, Timer_ForceMatch);
+	}
 }
 
 /**

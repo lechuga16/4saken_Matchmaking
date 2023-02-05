@@ -1,5 +1,9 @@
 "Phrases"
 {
+	"ScrimStarted"
+	{
+		"es"		"El {blue}partido de equipos{default} se a iniciado: {olive}%s{default} vs {olive}%s{default}"
+	}
 	"MMR"
 	{
 		"es"		"{olive}Clasificación{default}:{green}%.2f{default} {olive}Desviación{default}:{green}%.2f{default}"
@@ -18,7 +22,7 @@
 	}
 	"TeamInfo"
 	{
-		"es"		"{olive}Equipo{default}: {green}%s{default}\{olive}Clasificación{default}: {green}%.2f{default} | {olive}Desviación{default}: {green}%.2f{default}"
+		"es"		"{olive}Equipo{default}: {green}%s{default}\n{olive}Clasificación{default}: {green}%.2f{default} | {olive}Desviación{default}: {green}%.2f{default}"
 	}
 	"NoBonus"
 	{
@@ -39,5 +43,9 @@
 	"FinalScoreEvaluation"
 	{
 		"en"		"{lightgreen}Estás en el período de evaluación{default}, te faltan {green}%d{default} capitulos para obtener tu {olive}calificación{default}."
+	}
+	"FinalScoreEvaluationTeam"
+	{
+		"es"		"{lightgreen}El equipo esta en período de evaluación{default}, le faltan {green}%d{default} capitulos para obtener su {olive}calificación{default}."
 	}
 }
