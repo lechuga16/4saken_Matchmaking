@@ -9,28 +9,22 @@
 
 ConVar
 	g_cvarTimeWait,
-	g_cvarTimeWaitAnnouncer,
 	g_cvarBanDesertion,
 	g_cvarBanDesertionx2,
 	g_cvarBanDesertionx3;
 
 Handle
-	g_hTimerWait		  = null,
-	g_hTimerWaitAnnouncer = null,
-	g_hTimerCheckList	  = null,
-	g_hTimerWaitReadyup	  = null;
+	g_hTimerWait;
 
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-
 public void OnPluginStart_Waiting()
 {
-	g_cvarTimeWait			= CreateConVar("sm_jarvis_timewait", "300.0", "The time to wait for the players to join the server", FCVAR_NONE, true, 0.0);
-	g_cvarTimeWaitAnnouncer = CreateConVar("sm_jarvis_timewaitannouncer", "30.0", "The time to announcer the players to join the server", FCVAR_NONE, true, 0.0);
-	g_cvarBanDesertion		= CreateConVar("sm_jarvis_bandesertion", "720", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0);
-	g_cvarBanDesertionx2	= CreateConVar("sm_jarvis_bandesertionx2", "2880", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the second time", FCVAR_NONE, true, 0.0);
-	g_cvarBanDesertionx3	= CreateConVar("sm_jarvis_bandesertionx3", "5760", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the third time", FCVAR_NONE, true, 0.0);
+	g_cvarTimeWait		 = CreateConVar("sm_jarvis_timewait", "5", "Time to wait for players to enter the server (in minutes).", FCVAR_NONE, true, 2.0, true, 30.0);
+	g_cvarBanDesertion	 = CreateConVar("sm_jarvis_bandesertion", "720", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertionx2 = CreateConVar("sm_jarvis_bandesertionx2", "2880", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the second time", FCVAR_NONE, true, 0.0);
+	g_cvarBanDesertionx3 = CreateConVar("sm_jarvis_bandesertionx3", "5760", "The time to ban the player (in minutes, 0 = permanent) for not arrive on time for the third time", FCVAR_NONE, true, 0.0);
 
 	RegAdminCmd("sm_jarvis_missingplayers", Cmd_MissingPlayers, ADMFLAG_ROOT, "Print the missing players");
 }
@@ -49,12 +43,7 @@ public void ORUI_Waiting()
 		return;
 
 	KillTimerWaitPlayers();
-	KillTimerWaitPlayersAnnouncer();
-	KillTimerCheckPlayers();
-
-	g_hTimerWait		  = CreateTimer(g_cvarTimeWait.FloatValue, Timer_WaitPlayers, _, TIMER_REPEAT);
-	g_hTimerWaitAnnouncer = CreateTimer(g_cvarTimeWaitAnnouncer.FloatValue, Timer_WaitPlayersAnnounce, _, TIMER_REPEAT);
-	g_hTimerCheckList	  = CreateTimer(2.0, Timer_CheckListPlayers, _, TIMER_REPEAT);
+	g_hTimerWait = CreateTimer(60.0, Timer_WaitPlayers, _, TIMER_REPEAT);
 }
 
 public Action Cmd_MissingPlayers(int iClient, int iArgs)
@@ -81,49 +70,45 @@ public Action Cmd_MissingPlayers(int iClient, int iArgs)
  *
  * @return			Stop the timer.
  */
-public Action Timer_WaitPlayers(Handle timer)
+public Action Timer_WaitPlayers(Handle iTimer)
 {
-	KillTimerWaitPlayersAnnouncer();
-	if (CheckMissingPlayers(TeamA) && CheckMissingPlayers(TeamB))
+	static int iCycleWait = 1;
+
+	if (g_hTimerWait != iTimer)
 	{
-		CPrintToChatAll("%t %t", "Tag", "AllConnected");
-		ServerCommand("sm_forcestart");
-		KillTimerCheckPlayers();
-	}
-	else
-	{
-		CPrintToChatAll("%t %t", "Tag", "NotAllConnected");
-		BanDesertionPlayers();
-		CreateTimer(5.0, Timer_StartEndGame);
+		iCycleWait = 1;
+		return Plugin_Stop;
 	}
 
-	return Plugin_Stop;
-}
+	if (iCycleWait < g_cvarTimeWait.IntValue)
+	{
+		CPrintToChatAll("%t %t", "Tag", "WaitAnnouncer", (g_cvarTimeWait.IntValue - iCycleWait));
+		CheckListPlayers();
+		MissingPlayers();
+	}
+	else if (iCycleWait == g_cvarTimeWait.IntValue)
+	{
+		if (CheckMissingPlayers(TeamA) && CheckMissingPlayers(TeamB))
+		{
+			CPrintToChatAll("%t %t", "Tag", "AllConnected");
+			ServerCommand("sm_forcestart");
+		}
+		else
+		{
+			CPrintToChatAll("%t %t", "Tag", "NotAllConnected");
+			BanDesertionPlayers();
+			CreateTimer(5.0, Timer_StartEndGame);
+		}
 
-/**
- * @brief Starts the timer that announces players who have not connected.
- * 		After the time specified in the cvar.
- * 		Only works if the cvar is enabled.
- * 		Only works if the game is not started.
- * 		Only works if the game is not in the waiting room.
- *
- * @return			Continue the timer.
- */
-public Action Timer_WaitPlayersAnnounce(Handle timer)
-{
-	MissingPlayers();
+		g_hTimerWait = null;
+		return Plugin_Stop;
+	}
+
+	iCycleWait++;
 	return Plugin_Continue;
 }
 
-/**
- * @brief Start the timer that check if all players are connected
- * 		Only works if the game is not started.
- * 		Only works if the game is not in the waiting room.
- * 		Only works if the cvar is enabled.
- *
- * @return			Continue the timer.
- */
-public Action Timer_CheckListPlayers(Handle timer)
+public void CheckListPlayers()
 {
 	for (int index = 1; index <= MaxClients; index++)
 	{
@@ -140,11 +125,10 @@ public Action Timer_CheckListPlayers(Handle timer)
 			else if (StrEqual(sSteamid, g_Players[TeamB][iID].steamid, false))
 				g_RageQuit[TeamB][iID].ispresent = true;
 
-			if(iID == 0 && g_TypeMatch == duel)
+			if (iID == 0 && g_TypeMatch == duel)
 				break;
 		}
 	}
-	return Plugin_Continue;
 }
 
 /**
@@ -183,7 +167,7 @@ public void MissingPlayers()
 			StrCat(printBufferTB, sizeof(printBufferTB), tmpBufferTB);
 		}
 
-		if(iID == 0 && g_TypeMatch == duel)
+		if (iID == 0 && g_TypeMatch == duel)
 			break;
 	}
 
@@ -209,7 +193,7 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 			if (!g_RageQuit[TeamA][iID].ispresent)
 				return false;
 
-			if(iID == 0 && g_TypeMatch == duel)
+			if (iID == 0 && g_TypeMatch == duel)
 				break;
 		}
 	}
@@ -220,7 +204,7 @@ public bool CheckMissingPlayers(ForsakenTeam Team)
 			if (!g_RageQuit[TeamB][iID].ispresent)
 				return false;
 
-			if(iID == 0 && g_TypeMatch == duel)
+			if (iID == 0 && g_TypeMatch == duel)
 				break;
 		}
 	}
@@ -261,7 +245,7 @@ public void BanDesertionPlayers()
 			}
 		}
 
-		if(iID == 0 && g_TypeMatch == duel)
+		if (iID == 0 && g_TypeMatch == duel)
 			break;
 	}
 }
@@ -277,7 +261,7 @@ public void KillTimerWaitPlayers()
 {
 	if (g_hTimerWait != null)
 	{
-		delete g_hTimerWait;
+		g_hTimerWait = null;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait{default}", "Tag");
 	}
@@ -285,50 +269,6 @@ public void KillTimerWaitPlayers()
 	{
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait not found{default}", "Tag");
-	}
-}
-
-/**
- * @brief Kills the timer stored in the g_hTimerWaitAnnouncer Handle.
- * 		Only works if the game is not started.
- * 		Only works if the game is not in the waiting room.
- *
- * @noreturn
- */
-public void KillTimerWaitPlayersAnnouncer()
-{
-	if (g_hTimerWaitAnnouncer != null)
-	{
-		delete g_hTimerWaitAnnouncer;
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait Announcer{default}", "Tag");
-	}
-	else
-	{
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait Announcer not found{default}", "Tag");
-	}
-}
-
-/**
- * @brief Kills the timer stored in the g_hTimerCheckList Handle.
- * 		Only works if the game is not started.
- * 		Only works if the game is not in the waiting room.
- *
- * @noreturn
- */
-public void KillTimerCheckPlayers()
-{
-	if (g_hTimerCheckList != null)
-	{
-		delete g_hTimerCheckList;
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Check List{default}", "Tag");
-	}
-	else
-	{
-		if (g_cvarDebug.BoolValue)
-			CPrintToChatAll("%t {red}KillTimer{default}: {green}Check List not found{default}", "Tag");
 	}
 }
 

@@ -107,7 +107,7 @@
     // jarvis_ban.sp
     "NoBans"
     {
-        "es"        "{olive}%N{default} has no bans."
+        "en"        "{olive}%N{default} has no bans."
     }
     "CountBans"
     {
@@ -158,14 +158,23 @@
     {
         "en"        "[BanCode:02] Desertion before starting the game"
     }
+    "WaitAnnouncer"
+    {
+        "en"        "{green}%d{default} minutes to wait, to {olive}enter the server{default}."
+    }
+    // jarvis_readyup.sp
+    "ReadyUpAnnouncer"
+    {
+        "en"        "{green}%d{default} minutes to wait for {olive}ReadyUp{default}."
+    }
     // jarvis_ragequit.sp
     "RageQuit"
     {
-        "en"        "{olive}%s{default} ({green}%s{default}) {red}left the game{default}, timeout is ({green}%d{default}) minutes."
+        "en"        "Player {olive}%s{default} {red}has left the game{default}."
     }
     "RageQuitAnnouncer"
     {
-        "en"        "({red}%d{default}) minutes left to wait for the player."
+        "en"        "{green}%d{default} minutes to wait, for {olive}reconnection{default}."
     }
     "BanReasonRQ" 
     {

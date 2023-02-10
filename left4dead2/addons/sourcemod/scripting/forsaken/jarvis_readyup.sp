@@ -8,18 +8,19 @@
 *****************************************************************/
 
 ConVar
-	g_cvarReadyupWait,
+	g_cvarTimerReadyup,
 	g_cvarBanReadyup,
 	g_cvarBanReadyupx2,
 	g_cvarBanReadyupx3;
 
+Handle g_hTimerWaitReadyup;
+
 /*****************************************************************
 			F O R W A R D   P U B L I C S
 *****************************************************************/
-
 public void OnPluginStart_Readyup()
 {
-	g_cvarReadyupWait  = CreateConVar("sm_jarvis_readyupwait", "360.0", "The time to wait for the players to ready up", FCVAR_NONE, true, 0.0);
+	g_cvarTimerReadyup = CreateConVar("sm_jarvis_timerreadyup", "6", "The time to wait for the players to ready up (in minutes).", FCVAR_NONE, true, 2.0, true, 30.0);
 	g_cvarBanReadyup   = CreateConVar("sm_jarvis_banreadyup", "120", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time", FCVAR_NONE, true, 0.0);
 	g_cvarBanReadyupx2 = CreateConVar("sm_jarvis_banreadyupx2", "240", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time for the second time", FCVAR_NONE, true, 0.0);
 	g_cvarBanReadyupx3 = CreateConVar("sm_jarvis_banreadyupx3", "480", "The time to ban the player (in minutes, 0 = permanent) for not ready up on time for the third time", FCVAR_NONE, true, 0.0);
@@ -28,10 +29,34 @@ public void OnPluginStart_Readyup()
 public void ORUI_Readyup()
 {
 	KillTimerWaitReadyup();
-	g_hTimerWaitReadyup = CreateTimer(g_cvarReadyupWait.FloatValue, Timer_ReadyUpWait);
+	g_hTimerWaitReadyup = CreateTimer(60.0, Timer_ReadyUpWait, _, TIMER_REPEAT);
 }
 
-public Action Timer_ReadyUpWait(Handle timer)
+Action Timer_ReadyUpWait(Handle iTimer, DataPack hPack)
+{
+	static int iCycleReadyUp = 1;
+
+	if (g_hTimerWaitReadyup != iTimer)
+	{
+		iCycleReadyUp = 1;
+		return Plugin_Stop;
+	}
+
+	if (iCycleReadyUp < g_cvarTimerReadyup.IntValue)
+		CPrintToChatAll("%t %t", "Tag", "ReadyUpAnnouncer", (g_cvarTimerReadyup.IntValue - iCycleReadyUp));
+	else if (iCycleReadyUp == g_cvarTimerReadyup.IntValue)
+	{
+		BanReadyup();
+		iCycleReadyUp = 1;
+		g_hTimerWaitReadyup = null;
+		return Plugin_Stop;
+	}
+
+	iCycleReadyUp++;
+	return Plugin_Continue;
+}
+
+void BanReadyup()
 {
 	bool IsBanned = false;
 	for (int iID = 0; iID <= MAX_INDEX_PLAYER; iID++)
@@ -67,21 +92,19 @@ public Action Timer_ReadyUpWait(Handle timer)
 				IsBanned = true;
 		}
 
-		if(iID == 0 && g_TypeMatch == duel)
+		if (iID == 0 && g_TypeMatch == duel)
 			break;
 	}
 
 	if (IsBanned)
 		ForceEndGame(readyup);
-
-	return Plugin_Stop;
 }
 
 public void KillTimerWaitReadyup()
 {
 	if (g_hTimerWaitReadyup != null)
 	{
-		delete g_hTimerWaitReadyup;
+		g_hTimerWaitReadyup = null;
 		if (g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Readyup{default}", "Tag");
 	}

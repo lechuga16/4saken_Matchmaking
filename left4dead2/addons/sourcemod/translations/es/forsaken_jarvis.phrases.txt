@@ -149,14 +149,23 @@
     {
         "es"        "[BanCode:02] Deserción antes del iniciar la partida"
     }
+    "WaitAnnouncer"
+    {
+        "es"        "{green}%d{default} minutos de espera, para {olive}entrar al servidor{default}."
+    }
+    // jarvis_readyup.sp
+    "ReadyUpAnnouncer"
+    {
+        "es"        "{green}%d{default} minutos de espera para dar {olive}ReadyUp{default}."
+    }
     // jarvis_ragequit.sp
     "RageQuit"
     {
-        "es"        "{olive}%s{default} ({green}%s{default}) {red}dejó el juego{default}, ({green}%d{default}) minutos de espera."
+        "es"        "El jugador {olive}%s{default} {red}ha abandonado la partida{default}."
     }
     "RageQuitAnnouncer"
     {
-        "es"        "quedan ({red}%d{default}) minutos para esperar al jugador."
+        "es"        "{green}%d{default} minutos de espera, para la {olive}reconexión{default}."
     }
     "BanReasonRQ" 
     {

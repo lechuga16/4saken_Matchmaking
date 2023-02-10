@@ -8,8 +8,8 @@
 *****************************************************************/
 
 Handle
-	g_hTimerSurvivorFix = null,
-	g_hTimerManager = null;
+	g_hTimerSurvivorFix,
+	g_hTimerManager;
 
 ConVar 
 	survivor_limit,
@@ -43,7 +43,8 @@ public void ORUI_Teams()
 
 public void OME_Teams()
 {
-	delete g_hTimerSurvivorFix;
+	if (g_hTimerSurvivorFix != null)
+		delete g_hTimerSurvivorFix;
 }
 
 public Action Cmd_KillTimer(int iClient, int iArgs)
@@ -66,7 +67,6 @@ public Action Cmd_KillTimer(int iClient, int iArgs)
 	else if (StrEqual(sArg, "waitplayers", false))
 	{
 		KillTimerWaitPlayers();
-		KillTimerWaitPlayersAnnouncer();
 		if (!g_cvarDebug.BoolValue)
 			CPrintToChatAll("%t {red}KillTimer{default}: {green}Wait{default}/{green}Announcer{default}", "Tag");
 	}
@@ -98,7 +98,7 @@ public Action Timer_OrganizeTeams(Handle hTimer)
 		if (IsClientInGame(index) && IsClientConnected(index) && !IsFakeClient(index) && !IsClientSourceTV(index))
 			CheckTeam(index);
 	}
-
+	g_hTimerManager = null;
 	return Plugin_Continue;
 }
 

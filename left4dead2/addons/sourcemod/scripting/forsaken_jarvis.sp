@@ -15,6 +15,7 @@
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #include <readyup>
+#include <pause>
 #define REQUIRE_PLUGIN
 
 /*****************************************************************
@@ -130,8 +131,6 @@ public void OnRoundIsLive()
 		return;
 
 	KillTimerWaitPlayers();
-	KillTimerWaitPlayersAnnouncer();
-	KillTimerCheckPlayers();
 	KillTimerWaitReadyup();
 }
 
@@ -151,10 +150,7 @@ public void OnClientAuthorized(int iClient, const char[] sAuth)
 	if (!g_cvarEnable.BoolValue || !IsGameCompetitive(g_TypeMatch) || IsFakeClient(iClient))
 		return;
 
-	char  sAuth64[MAX_AUTHID_LENGTH];
-	GetClientAuthId(iClient, AuthId_SteamID64, sAuth64, MAX_AUTHID_LENGTH);
-	ONCA_IndexPlayers(iClient, sAuth64);
-	ONCA_RageQuit(iClient, sAuth64);
+	ONCA_RageQuit(iClient);
 }
 
 public void OnCacheDownload()
