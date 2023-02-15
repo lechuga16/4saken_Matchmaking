@@ -3,7 +3,7 @@
 #endif
 #define _mmr_pug_included
 
-#define CONSTANT_SCORE 4.0	  // 4.0 players
+#define CONSTANT_SCORE 4.0  
 
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
