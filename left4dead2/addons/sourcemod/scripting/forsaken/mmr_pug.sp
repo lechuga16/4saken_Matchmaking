@@ -3,8 +3,6 @@
 #endif
 #define _mmr_pug_included
 
-#define CONSTANT_SCORE 4.0  
-
 /****************************************************************
 			C A L L B A C K   F U N C T I O N S
 ****************************************************************/
@@ -92,8 +90,8 @@ void ProcessRatingPug(ForsakenTeam team, MatchResults Result)
 		}
 
 		fGlicko_d	 = Glicko_d(fSum_d);
-		fFinalRD	 = (Glicko_FinalRD(g_Players[team][iID], fGlicko_d) - g_Players[team][iID].deviation) / CONSTANT_SCORE;
-		fFinalRating = (Glicko_FinalRating(g_Players[team][iID], fGlicko_d, fSum_FinalRating) - g_Players[team][iID].rating) / CONSTANT_SCORE;
+		fFinalRD	 = (Glicko_FinalRD(g_Players[team][iID], fGlicko_d) - g_Players[team][iID].deviation);
+		fFinalRating = (Glicko_FinalRating(g_Players[team][iID], fGlicko_d, fSum_FinalRating) - g_Players[team][iID].rating);
 
 		if (g_Players[team][iID].skill > 0.0)
 		{
@@ -169,7 +167,7 @@ public void ProcessBonus(ForsakenTeam team)
 		if (iMVP != g_Players[team][iID].client && iMVPCI != g_Players[team][iID].client)
 			return;
 
-		if (EVALUATION_PERIOD >= (g_Players[team][iID].gamesplayed + 1))
+		if (EVALUATION_PERIOD >= (g_Players[team][iID].gamesplayed + 1) && IsValidClient(g_Players[team][iID].client))
 		{
 			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "NoBonus");
 			continue;
@@ -186,17 +184,19 @@ public void ProcessBonus(ForsakenTeam team)
 		}
 
 		fGlicko_d = Glicko_d(fSum_d);
-		fFinalRD  = (Glicko_FinalRD(g_Players[team][iID], fGlicko_d) - g_Players[team][iID].deviation) / CONSTANT_SCORE;
+		fFinalRD  = (Glicko_FinalRD(g_Players[team][iID], fGlicko_d) - g_Players[team][iID].deviation);
 
 		if (iMVP == g_Players[team][iID].client)
 		{
 			g_Players[team][iID].skill += (fFinalRD * 0.3 * -1);
-			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "BonusMVP", (fFinalRD * 0.3 * -1));
+			if(IsValidClient(g_Players[team][iID].client))
+				CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "BonusMVP", (fFinalRD * 0.3 * -1));
 		}
 		if (iMVPCI == g_Players[team][iID].client)
 		{
 			g_Players[team][iID].skill += (fFinalRD * 0.3 * -1);
-			CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "BonusMVPCI", (fFinalRD * 0.3 * -1));
+			if(IsValidClient(g_Players[team][iID].client))
+				CPrintToChat(g_Players[team][iID].client, "%t %t", "Tag", "BonusMVPCI", (fFinalRD * 0.3 * -1));
 		}
 	}
 }

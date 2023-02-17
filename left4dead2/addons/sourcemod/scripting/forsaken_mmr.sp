@@ -385,6 +385,7 @@ stock int DaysLastGame(PlayerInfo Player)
 
 void LogicTeamScore()
 {
+	/*
 	if (!InSecondHalfOfRound())	   // Firs Half of Round
 	{
 		if (!AreTeamsFlipped())	   // Teams are not flipped
@@ -398,7 +399,12 @@ void LogicTeamScore()
 			g_iTeamScore[TeamB] = L4D_GetTeamScore(2);
 		else
 			g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
-	}
+	}*/
+
+	if (!AreTeamsFlipped())
+		g_iTeamScore[TeamA] = L4D_GetTeamScore(1);
+	else
+		g_iTeamScore[TeamB] = L4D_GetTeamScore(2);
 }
 
 public ForsakenTeam GetOpponent(ForsakenTeam team)
