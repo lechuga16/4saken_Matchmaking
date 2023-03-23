@@ -7,7 +7,6 @@
 
 # Directorios 📁
 - left4dead2: Este será el repositorio principal donde se desarrollaran los complementos básicos para el funcionamiento del sistema, en él se puede encontrar los complementos termínanos o en desarrollo.
-- Adicionales: Se almacena los complementos secundarios, además de su configuración que se respalda por el reglamento ‘Integración al proyecto 4saken’.
 
 # Estructura del proyecto
 ```
